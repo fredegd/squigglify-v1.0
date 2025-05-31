@@ -16,7 +16,7 @@ this App transforms regular images into path-based SVG graphics using wave-like 
 
 - **Image to SVG Conversion**: Transform any image into a vector SVG using wave-like paths
 - **Curved Path Optimization**: Generate smooth, curved paths that optimize pen plotter efficiency and speed. Customize curvature for a more organic, hand-drawn appeal.
-- **Random Image Starter**: Quickly begin with a random image sourced from Wikimedia Commons to spark your creativity.
+- **Random Image Starter**: Quickly begin with a random image sourced from Wikimedia Commons.
 - **Multiple Processing Modes**:
   - **Monochrome**: Single-color paths with density based on brightness
   - **Grayscale**: Multiple levels of gray for more detailed gradation
@@ -27,15 +27,17 @@ this App transforms regular images into path-based SVG graphics using wave-like 
 
 ### Pen Plotting
 
-The primary use case for Squigglify is generating SVG files for pen plotters. The curved path technology significantly improves plotting efficiency by:
+The primary use case for Squigglify is generating SVG files, very useful for pen plotters. The curved path technology significantly improves plotting efficiency by:
 
 - Reducing the number of pen lifts required
 - Creating smoother, more continuous motion
 - Optimizing travel paths between sections
 - Supporting multi-color plotting through Posterization
-- Supporting multi-color plotting through CMYK separation
+- Supporting multi-color plotting through CMYK separation (still in beta)
 
 ### Other Applications
+
+of course once one have a Svalable Vector Graphics, it can be used for many other purposes:
 
 - **CNC Routing**: Produce toolpaths for custom machining
 - **Digital Art**: Create unique artistic interpretations of photographs
@@ -44,13 +46,15 @@ The primary use case for Squigglify is generating SVG files for pen plotters. Th
 
 ## How to Use
 
-1. **Upload an Image or Use a Random Starter**: Select any image file from your device, or use the random image loader to pick an inspiring image from Wikimedia Commons.
+1. **Upload an Image or Use a Random Starter**: Select any image file from your device, or use the random image loader to pick an random image from Wikimedia Commons.
 2. **Configure Settings**:
    - Choose a processing mode (Monochrome, Grayscale, Posterize, or CMYK)
    - Adjust grid density, curve parameters (for organic appeal), and other settings
+   - Adjust grid Tiling (columns and rows)
    - Toggle continuous paths and curved paths options
 3. **Preview & Refine**: See a real-time preview of your vector output
 4. **Download**: Export the final SVG for use in plotting software or graphic design applications
+5. **Download**: It support also PNG and PDF formats.
 
 ## Processing Modes
 
@@ -94,6 +98,34 @@ This application is built with:
 - TypeScript for type safety
 - Tailwind CSS for styling
 - HTML Canvas API for image processing
+
+## Local Development.
+
+To run the application locally:
+
+1. Clone the repository:
+
+   ```bash
+   git clone git@github.com:fredegd/squigglify-v1.0.git
+    cd squigglify-v1.0
+   ```
+
+2. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+3. Start the development server:
+
+   ```bash
+   pnpm dev
+   ```
+
+4. Open your browser and navigate to `http://localhost:3000`
+5. Make changes and see them reflected in real-time!
+
+## Contributing
+
+We welcome contributions! If you have ideas for improvements, bug fixes, or new features, please open an issue or submit a pull request.
 
 ## License
 
