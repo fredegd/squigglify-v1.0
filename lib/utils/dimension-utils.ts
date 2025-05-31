@@ -1,3 +1,35 @@
+const MAX_DIMENSION = 560;
+
+// Berechnet die optimale Bildgröße basierend auf dem Seitenverhältnis
+export function calculateOptimalDimensions(
+  originalWidth: number,
+  originalHeight: number
+): { width: number; height: number } {
+  const aspectRatio = originalWidth / originalHeight;
+
+  // Quadratisches Bild
+  if (Math.abs(aspectRatio - 1) < 0.01) {
+    return {
+      width: MAX_DIMENSION,
+      height: MAX_DIMENSION,
+    };
+  }
+
+  // Portrait-Modus (Höhe > Breite)
+  if (aspectRatio < 1) {
+    return {
+      width: MAX_DIMENSION,
+      height: Math.round(MAX_DIMENSION / aspectRatio),
+    };
+  }
+
+  // Panorama-Modus (Breite > Höhe)
+  return {
+    width: Math.round(MAX_DIMENSION * aspectRatio),
+    height: MAX_DIMENSION,
+  };
+}
+
 // Calculate resize dimensions based on aspect ratio with fixed output dimensions
 export function calculateResizeDimensions(
   originalWidth: number,
@@ -7,7 +39,6 @@ export function calculateResizeDimensions(
 ) {
   const aspectRatio = originalWidth / originalHeight;
   let outputWidth, outputHeight;
-  const MAX_DIMENSION = 560; // Fixed maximum dimension
 
   // Determine if image is portrait, landscape, or square
   if (aspectRatio < 1) {

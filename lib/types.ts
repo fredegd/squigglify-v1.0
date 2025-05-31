@@ -29,6 +29,7 @@ export interface Settings {
   visiblePaths: Record<string, boolean>;
   curveControls: CurveControlSettings;
   colorGroups?: Record<string, ColorGroup>;
+  predefinedColors?: string[]; // Optional: Vorberechnete Farben für die Posterisierung
 }
 
 // Default values for the curve controls

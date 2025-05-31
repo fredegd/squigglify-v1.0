@@ -5,39 +5,11 @@ export function kMeansClustering(
   colors: [number, number, number][],
   k: number
 ): [number, number, number][] {
-  // Limit the number of colors to process for performance
-  const maxColorsToProcess = 10000;
-  let colorsToProcess = colors;
-
-  if (colors.length > maxColorsToProcess) {
-    // Sample colors if there are too many
-    colorsToProcess = [];
-    const step = Math.floor(colors.length / maxColorsToProcess);
-    for (let i = 0; i < colors.length; i += step) {
-      colorsToProcess.push(colors[i]);
-    }
-  }
-
-  // Initialize centroids with random colors from the input
-  let centroids: [number, number, number][] = [];
-  const colorsCopy = [...colorsToProcess];
-
-  // Select initial centroids randomly
-  for (let i = 0; i < k; i++) {
-    if (colorsCopy.length === 0) break;
-    const randomIndex = Math.floor(Math.random() * colorsCopy.length);
-    centroids.push(colorsCopy[randomIndex]);
-    colorsCopy.splice(randomIndex, 1);
-  }
-
-  // If we couldn't get enough centroids, duplicate the last one
-  while (centroids.length < k) {
-    centroids.push([...centroids[centroids.length - 1]]);
-  }
-
+  // Verwende die ursprüngliche Zentroid-Initialisierung
+  let centroids = colors.slice(0, k);
   let oldCentroids: [number, number, number][] = [];
   let iterations = 0;
-  const maxIterations = 10; // Reduced from 20 for performance
+  const maxIterations = 10;
 
   while (
     iterations < maxIterations &&
@@ -49,7 +21,8 @@ export function kMeansClustering(
     const clusters: [number, number, number][][] = Array(k)
       .fill(null)
       .map(() => []);
-    colorsToProcess.forEach((color) => {
+
+    colors.forEach((color) => {
       const nearestIndex = findNearestCentroidIndex(color, centroids);
       clusters[nearestIndex].push(color);
     });

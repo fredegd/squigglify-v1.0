@@ -4,13 +4,40 @@ import { processGrayscale } from "./processors/grayscale-processor";
 import { processPosterize } from "./processors/posterize-processor";
 import { processCMYK } from "./processors/cmyk-processor";
 import { processMonochrome } from "./processors/monochrome-processor";
-import { calculateResizeDimensions } from "./utils/dimension-utils";
+import {
+  calculateResizeDimensions,
+  calculateOptimalDimensions,
+} from "./utils/dimension-utils";
 import {
   generateSVG as generateSvgFromImageData,
   extractColorGroupSVG,
   extractAllColorGroups,
 } from "./utils/svg-utils";
 import { calculateHueAndBrightness } from "./converters/color-converters";
+import { ColorQuantizer } from "./processors/color-quantizer";
+
+// Cache für die Farbquantisierung
+let colorQuantizerCache: {
+  imageHash: string;
+  quantizer: ColorQuantizer | null;
+  lastColorsAmt: number;
+} = {
+  imageHash: "",
+  quantizer: null,
+  lastColorsAmt: 0,
+};
+
+// Berechne Hash für das Originalbild
+function calculateImageHash(imageData: Uint8ClampedArray): string {
+  // Samplen der ersten 1000 Pixel für den Hash
+  const sampleSize = Math.min(1000, imageData.length / 4);
+  let hash = "";
+  for (let i = 0; i < sampleSize; i++) {
+    const idx = i * 4;
+    hash += `${imageData[idx]},${imageData[idx + 1]},${imageData[idx + 2]}|`;
+  }
+  return hash;
+}
 
 // Process image to extract pixel data
 export async function processImage(
@@ -22,7 +49,113 @@ export async function processImage(
     img.crossOrigin = "anonymous";
     img.onload = () => {
       try {
-        // Calculate resize dimensions based on column and row counts
+        // Berechne optimale Bildgröße
+        const { width: optimalWidth, height: optimalHeight } =
+          calculateOptimalDimensions(img.width, img.height);
+
+        // Erstelle Canvas für das optimierte Originalbild
+        const originalCanvas = document.createElement("canvas");
+        const originalCtx = originalCanvas.getContext("2d");
+        if (!originalCtx) {
+          reject(new Error("Could not get canvas context"));
+          return;
+        }
+
+        // Setze Canvas auf optimale Größe
+        originalCanvas.width = optimalWidth;
+        originalCanvas.height = optimalHeight;
+
+        // Zeichne Bild in optimierter Größe
+        originalCtx.drawImage(img, 0, 0, optimalWidth, optimalHeight);
+        const originalImageData = originalCtx.getImageData(
+          0,
+          0,
+          optimalWidth,
+          optimalHeight
+        );
+
+        // Berechne Hash für das Originalbild
+        const currentImageHash = calculateImageHash(originalImageData.data);
+
+        // Prüfe ob wir einen neuen ColorQuantizer erstellen oder aktualisieren müssen
+        if (
+          colorQuantizerCache.imageHash !== currentImageHash ||
+          !colorQuantizerCache.quantizer ||
+          colorQuantizerCache.lastColorsAmt !== settings.colorsAmt
+        ) {
+          // Wenn das Bild neu ist, erstelle einen neuen Quantizer
+          if (
+            colorQuantizerCache.imageHash !== currentImageHash ||
+            !colorQuantizerCache.quantizer
+          ) {
+            // Erstelle Pixel-Array für das Originalbild
+            const originalPixels = [];
+            for (let y = 0; y < optimalHeight; y++) {
+              for (let x = 0; x < optimalWidth; x++) {
+                const i = (y * optimalWidth + x) * 4;
+                const r = originalImageData.data[i];
+                const g = originalImageData.data[i + 1];
+                const b = originalImageData.data[i + 2];
+                const a = originalImageData.data[i + 3];
+
+                if (a === 0) continue;
+
+                const brightness = Math.round(
+                  (r * 0.299 + g * 0.587 + b * 0.114) * (a / 255)
+                );
+                originalPixels.push({ x, y, r, g, b, a, brightness });
+              }
+            }
+
+            // Erstelle und cache neuen ColorQuantizer
+            colorQuantizerCache = {
+              imageHash: currentImageHash,
+              quantizer: new ColorQuantizer(
+                {
+                  width: optimalWidth,
+                  height: optimalHeight,
+                  pixels: originalPixels,
+                  originalWidth: optimalWidth, // Use optimized dimensions
+                  originalHeight: optimalHeight,
+                  resizedWidth: optimalWidth,
+                  resizedHeight: optimalHeight,
+                  outputWidth: optimalWidth,
+                  outputHeight: optimalHeight,
+                  columnsCount: optimalWidth,
+                  rowsCount: optimalHeight,
+                  tileWidth: 1,
+                  tileHeight: 1,
+                },
+                settings.colorsAmt
+              ),
+              lastColorsAmt: settings.colorsAmt,
+            };
+          }
+          // Wenn nur die Farbanzahl anders ist, aktualisiere den existierenden Quantizer
+          else if (colorQuantizerCache.lastColorsAmt !== settings.colorsAmt) {
+            colorQuantizerCache.quantizer.updateSettings(
+              {
+                width: optimalWidth,
+                height: optimalHeight,
+                pixels: colorQuantizerCache.quantizer.getOriginalPixels(),
+                originalWidth: optimalWidth,
+                originalHeight: optimalHeight,
+                resizedWidth: optimalWidth,
+                resizedHeight: optimalHeight,
+                outputWidth: optimalWidth,
+                outputHeight: optimalHeight,
+                columnsCount: optimalWidth,
+                rowsCount: optimalHeight,
+                tileWidth: 1,
+                tileHeight: 1,
+              },
+              settings.colorsAmt
+            );
+            colorQuantizerCache.lastColorsAmt = settings.colorsAmt;
+          }
+        }
+
+        // Calculate resize dimensions based on optimized size
         const {
           resizedWidth,
           resizedHeight,
@@ -33,8 +166,8 @@ export async function processImage(
           outputWidth,
           outputHeight,
         } = calculateResizeDimensions(
-          img.width,
-          img.height,
+          optimalWidth,
+          optimalHeight,
           settings.columnsCount,
           settings.rowsCount
         );
@@ -84,43 +217,57 @@ export async function processImage(
         const imageData = gridCtx.getImageData(0, 0, gridWidth, gridHeight);
         const pixels = [];
 
-        // Process each pixel
+        // Process each pixel using cached quantizer colors
         for (let y = 0; y < gridHeight; y++) {
           for (let x = 0; x < gridWidth; x++) {
             const i = (y * gridWidth + x) * 4;
-
-            // Get RGB values
             const r = imageData.data[i];
             const g = imageData.data[i + 1];
             const b = imageData.data[i + 2];
-            const aVal = imageData.data[i + 3]; // Original alpha value (0-255)
+            const aVal = imageData.data[i + 3];
 
-            // If the pixel is fully transparent, skip it entirely
-            if (aVal === 0) {
-              continue; // Move to the next pixel
-            }
+            if (aVal === 0) continue;
 
             const alphaNormalized = aVal / 255.0;
-
-            // Calculate brightness (weighted RGB for human perception, multiplied by alpha)
-            let brightness = Math.round(
+            const brightness = Math.round(
               (r * 0.299 + g * 0.587 + b * 0.114) * alphaNormalized
             );
 
-            // Only include pixels that meet the threshold for non-CMYK modes
             if (
               settings.processingMode === "cmyk" ||
               brightness <= settings.brightnessThreshold
             ) {
-              pixels.push({
-                x,
-                y,
-                brightness,
-                r,
-                g,
-                b,
-                a: aVal, // Store original alpha (0-255)
-              });
+              // Bei Posterize-Modus: Verwende die gecachten quantisierten Farben
+              if (
+                settings.processingMode === "posterize" &&
+                colorQuantizerCache.quantizer
+              ) {
+                const nearestColor =
+                  colorQuantizerCache.quantizer.findNearestQuantizedColor([
+                    r,
+                    g,
+                    b,
+                  ]);
+                pixels.push({
+                  x,
+                  y,
+                  brightness,
+                  r: nearestColor[0],
+                  g: nearestColor[1],
+                  b: nearestColor[2],
+                  a: aVal,
+                });
+              } else {
+                pixels.push({
+                  x,
+                  y,
+                  brightness,
+                  r,
+                  g,
+                  b,
+                  a: aVal,
+                });
+              }
             }
           }
         }
@@ -140,7 +287,7 @@ export async function processImage(
           rowsCount,
           tileWidth: outputWidth / columnsCount,
           tileHeight: outputHeight / rowsCount,
-          colorGroups: {}, // Initialize colorGroups, will be populated by processors
+          colorGroups: {},
         };
 
         // Process the image according to the selected mode
