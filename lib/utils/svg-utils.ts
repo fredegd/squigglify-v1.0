@@ -27,8 +27,12 @@ export function generateSVG(imageData: ImageData, settings: Settings): string {
     Object.entries(colorGroups).forEach(([colorKey, group], index) => {
       // Skip if this path is not visible
       if (visiblePaths[colorKey] === false) return;
+
+      // Verwende die aktuelle Farbe als Gruppen-ID (ohne # für gültige IDs)
+      const safeColorId = group.color.replace("#", "");
+
       // Create a group with id and custom data attributes for easier post-processing
-      svgContent += `<g id="color-group-${colorKey}" data-color="${
+      svgContent += `<g id="color-group-${safeColorId}" data-color="${
         group.color
       }" data-name="${group.displayName}" data-index="${index + 1}">\n`;
 
@@ -553,10 +557,13 @@ export function extractColorGroupSVG(
     const parser = new DOMParser();
     const svgDoc = parser.parseFromString(svgContent, "image/svg+xml");
 
-    // Find the specified color group
-    const colorGroup = svgDoc.getElementById(`color-group-${colorKey}`);
+    // Finde die Farbgruppe basierend auf der Farbe (mit oder ohne #)
+    const safeColorKey = colorKey.replace("#", "");
+    const colorGroup = svgDoc.getElementById(`color-group-${safeColorKey}`);
     if (!colorGroup) {
-      console.error(`Color group with ID 'color-group-${colorKey}' not found`);
+      console.error(
+        `Color group with ID 'color-group-${safeColorKey}' not found`
+      );
       return null;
     }
 
@@ -641,16 +648,23 @@ export function extractAllColorGroups(
         return;
       }
 
-      const colorKey = id.replace("color-group-", "");
-      console.log(`Extracting color group: ${colorKey}`);
+      // Extrahiere die Farbe aus den data-Attributen statt aus der ID
+      const color = group.getAttribute("data-color");
+      if (!color) {
+        console.warn(`No color data found for group: ${id}`);
+        return;
+      }
 
-      const extractedSvg = extractColorGroupSVG(svgContent, colorKey);
+      console.log(`Extracting color group: ${color}`);
+
+      const extractedSvg = extractColorGroupSVG(svgContent, color);
 
       if (extractedSvg) {
-        result[colorKey] = extractedSvg;
-        console.log(`Successfully extracted SVG for color key: ${colorKey}`);
+        // Verwende die originale Farbe als Schlüssel
+        result[color] = extractedSvg;
+        console.log(`Successfully extracted SVG for color: ${color}`);
       } else {
-        console.error(`Failed to extract SVG for color key: ${colorKey}`);
+        console.error(`Failed to extract SVG for color: ${color}`);
       }
     });
 

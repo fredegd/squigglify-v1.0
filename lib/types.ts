@@ -88,6 +88,7 @@ export interface ColorGroup {
   pathData?: string;
   hue: number; // Farbton für die Sortierung im "posterize"-Modus
   brightness: number; // Helligkeit für die Sortierung im "grayscale"-Modus
+  isCustomColor?: boolean; // Flag für benutzerdefinierte Farben
 }
 
 export interface CMYKValues {

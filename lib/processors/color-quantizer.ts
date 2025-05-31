@@ -1,4 +1,4 @@
-import type { ImageData, PixelData } from "../types";
+import type { ImageData, PixelData, ColorGroup } from "../types";
 import { kMeansClustering, findNearestCentroid } from "../utils/math-utils";
 
 export class ColorQuantizer {
@@ -73,5 +73,27 @@ export class ColorQuantizer {
 
   public getOriginalPixels(): PixelData[] {
     return this.originalPixels;
+  }
+
+  // Aktualisiert die quantisierten Farben und behält benutzerdefinierte Farben bei
+  public static updateQuantizedColors(
+    existingColorGroups: Record<string, ColorGroup>,
+    newQuantizedColors: Record<string, ColorGroup>
+  ): Record<string, ColorGroup> {
+    const updatedColors = { ...newQuantizedColors };
+
+    // Durchlaufe die existierenden Farbgruppen
+    Object.entries(existingColorGroups).forEach(([key, group]) => {
+      if (group.isCustomColor && updatedColors[key]) {
+        // Behalte die benutzerdefinierte Farbe bei
+        updatedColors[key] = {
+          ...updatedColors[key],
+          color: group.color,
+          isCustomColor: true,
+        };
+      }
+    });
+
+    return updatedColors;
   }
 }

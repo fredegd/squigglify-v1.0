@@ -1,4 +1,4 @@
-import type { Settings, ImageData } from "./types";
+import type { Settings, ImageData, ColorGroup } from "./types";
 
 import { processGrayscale } from "./processors/grayscale-processor";
 import { processPosterize } from "./processors/posterize-processor";
@@ -291,40 +291,35 @@ export async function processImage(
         };
 
         // Process the image according to the selected mode
-        // Use setTimeout to prevent UI blocking
-        setTimeout(() => {
-          try {
-            switch (settings.processingMode) {
-              case "grayscale":
-                processedImageData.colorGroups = processGrayscale(
-                  processedImageData,
-                  settings
-                );
-                break;
-              case "posterize":
-                processedImageData.colorGroups = processPosterize(
-                  processedImageData,
-                  settings
-                );
-                break;
-              case "cmyk":
-                processedImageData.colorGroups = processCMYK(
-                  processedImageData,
-                  settings
-                );
-                break;
-              case "monochrome":
-                processedImageData.colorGroups = processMonochrome(
-                  processedImageData,
-                  settings
-                );
-                break;
-            }
-            resolve(processedImageData);
-          } catch (error) {
-            reject(error);
-          }
-        }, 0);
+        let newColorGroups: Record<string, ColorGroup>;
+        switch (settings.processingMode) {
+          case "grayscale":
+            newColorGroups = processGrayscale(processedImageData, settings);
+            break;
+          case "posterize":
+            newColorGroups = processPosterize(processedImageData, settings);
+            break;
+          case "cmyk":
+            newColorGroups = processCMYK(processedImageData, settings);
+            break;
+          case "monochrome":
+            newColorGroups = processMonochrome(processedImageData, settings);
+            break;
+          default:
+            newColorGroups = {};
+        }
+
+        // Wenn es bereits Farbgruppen gibt, aktualisiere sie unter Berücksichtigung der benutzerdefinierten Farben
+        if (settings.colorGroups) {
+          processedImageData.colorGroups = ColorQuantizer.updateQuantizedColors(
+            settings.colorGroups,
+            newColorGroups
+          );
+        } else {
+          processedImageData.colorGroups = newColorGroups;
+        }
+
+        resolve(processedImageData);
       } catch (error) {
         reject(error);
       }

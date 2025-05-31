@@ -76,12 +76,14 @@ const PathVisibilitySettings = React.memo(function PathVisibilitySettings({
 
     const handleColorChange = (colorKey: string, newColor: string) => {
         if (!colorGroups) return;
+
         const updatedColorGroups = {
             ...colorGroups,
             [colorKey]: {
                 ...colorGroups[colorKey],
                 color: newColor,
-            },
+                isCustomColor: true // Setze das Flag für benutzerdefinierte Farben
+            }
         };
         onSettingsChange({ colorGroups: updatedColorGroups });
 
@@ -186,4 +188,4 @@ const PathVisibilitySettings = React.memo(function PathVisibilitySettings({
     )
 })
 
-export default PathVisibilitySettings; 
+export default PathVisibilitySettings;
