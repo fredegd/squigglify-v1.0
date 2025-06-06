@@ -196,7 +196,7 @@ const RandomImageLoader: React.FC<RandomImageLoaderProps> = ({ onImageSelected, 
                     />
                 </div>
                 <p className="text-sm text-gray-300 mb-1 max-w-full truncate text-center text-wrap" title={currentImage.title}>
-                    Title: <span className="font-medium text-gray-300">{currentImage.title}</span>
+                    <span className="font-medium text-gray-300">{currentImage.title}</span>
                 </p>
                 <a href={currentImage.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:text-blue-300 hover:underline mb-6">
                     View source on Wikimedia Commons

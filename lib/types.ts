@@ -12,9 +12,6 @@ export interface CurveControlSettings {
 }
 
 export interface Settings {
-  gridSize: number;
-  gridSizeX: number;
-  gridSizeY: number;
   brightnessThreshold: number;
   minDensity: number;
   maxDensity: number;
@@ -33,13 +30,13 @@ export interface Settings {
 
 // Default values for the curve controls
 export const DEFAULT_CURVE_CONTROLS: CurveControlSettings = {
-  junctionContinuityFactor: 0.1, // Default smoothness factor for curves
-  tileHeightScale: 0.95, // Default tile height scale (1.0 = 100% of original height)
-  strokeWidth: 1, // Default stroke width
+  junctionContinuityFactor: 0.15, // Default smoothness factor for curves
+  tileHeightScale: 0.9, // Default tile height scale (1.0 = 100% of original height)
+  strokeWidth: 1.5, // Default stroke width
   handleRotationAngle: 0, // Default handle rotation angle in degrees
   lowerKnotXShift: 0, // Default X shift for lower knot points
-  upperKnotShiftFactor: 0, // Default factor for upper knot random shift
-  disorganizeFactor: 0, // Default factor for the new disorganize effect
+  upperKnotShiftFactor: 0.0, // Default factor for upper knot random shift
+  disorganizeFactor: 0.0, // Default factor for the new disorganize effect
 };
 
 export interface PixelData {
@@ -67,6 +64,8 @@ export interface ImageData {
   tileWidth: number;
   tileHeight: number;
   colorGroups?: Record<string, ColorGroup>;
+  fileName?: string; // Name der hochgeladenen Datei
+  sourceUrl?: string; // URL zur Originalquelle (für Wiki Commons Bilder)
 }
 
 export interface PathPoint {

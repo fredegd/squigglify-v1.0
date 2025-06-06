@@ -1,20 +1,10 @@
-import type {
-  ColorGroup,
-  ImageData,
-  PixelData,
-  Settings,
-  PathPoint,
-} from "../types";
-import { findNearestCentroid } from "../utils/math-utils";
+import type { ColorGroup, ImageData, Settings, PathPoint } from "../types";
 import {
   calculateHueAndBrightness as calculateHueAndBrightnessForGroup,
   rgbToHex,
 } from "../converters/color-converters";
-import { ColorQuantizer } from "./color-quantizer";
 
 export class PosterizeProcessor {
-  private colorQuantizer: ColorQuantizer;
-
   constructor(imageData: ImageData, settings: Settings) {
     // Die Farbquantisierung wurde bereits im image-processor durchgeführt
     // Wir verwenden hier nur die bereits berechneten Farben

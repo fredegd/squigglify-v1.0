@@ -6,6 +6,7 @@ import RandomImageLoader from "@/components/random-image-loader"
 import Preview, { ImageThumbnail } from "@/components/preview"
 import SettingsPanel from "@/components/settings-panel"
 import { DEFAULT_CURVE_CONTROLS } from "@/lib/types"
+import type { ProcessImageOptions } from "@/lib/image-processor"
 import { Button } from "@/components/ui/button"
 import { processImage, generateSVG } from "@/lib/image-processor"
 import type { ImageData, Settings } from "@/lib/types"
@@ -20,17 +21,14 @@ export default function Home() {
   const [isSettingsPanelVisible, setIsSettingsPanelVisible] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [settings, setSettings] = useState<Settings>({
-    gridSize: 10,
-    gridSizeX: 10,
-    gridSizeY: 10,
     brightnessThreshold: 255,
     minDensity: 2,
     maxDensity: 5,
-    rowsCount: 10,
-    columnsCount: 10,
+    rowsCount: 36,
+    columnsCount: 24,
     continuousPaths: true,
-    curvedPaths: false,
-    pathDistanceThreshold: 10,
+    curvedPaths: true,
+    pathDistanceThreshold: 25,
     processingMode: "posterize",
     colorsAmt: 5,
     monochromeColor: "#000000",
@@ -38,6 +36,7 @@ export default function Home() {
     curveControls: DEFAULT_CURVE_CONTROLS,
   })
   const [showRandomImageLoader, setShowRandomImageLoader] = useState(false)
+  const [currentFileName, setCurrentFileName] = useState<string | undefined>(undefined)
 
   // Process image when it's uploaded or settings change (excluding curveControls and visiblePaths)
   useEffect(() => {
@@ -48,9 +47,6 @@ export default function Home() {
     }
   }, [
     originalImage,
-    settings.gridSize,
-    settings.gridSizeX,
-    settings.gridSizeY,
     settings.brightnessThreshold,
     settings.minDensity,
     settings.maxDensity,
@@ -89,15 +85,15 @@ export default function Home() {
     isProcessing
   ])
 
-  const handleManualImageUpload = (imageDataUrl: string) => {
+  const handleManualImageUpload = (imageDataUrl: string, fileName: string) => {
     setOriginalImage(imageDataUrl)
-
+    setCurrentFileName(fileName) // Store the fileName
     setShowRandomImageLoader(false)
   }
 
-  const handleImageSelectedFromRandomLoader = (imageUrl: string) => {
+  const handleImageSelectedFromRandomLoader = (imageUrl: string, fileName?: string) => {
     setOriginalImage(imageUrl)
-
+    setCurrentFileName(fileName) // Store the fileName, it might be undefined for random images
     setShowRandomImageLoader(false)
   }
 
@@ -107,9 +103,9 @@ export default function Home() {
 
   const handleNewImageUpload = () => {
     setIsSettingsPanelVisible(false)
-    setProcessedData(null)
     setSvgContent(null)
     setShowRandomImageLoader(true)
+    // processedData wird jetzt automatisch durch handleFileChange aktualisiert
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,7 +121,15 @@ export default function Home() {
       const reader = new FileReader()
       reader.onload = (e) => {
         if (e.target && typeof e.target.result === "string") {
-          handleManualImageUpload(e.target.result)
+          // Setze den Dateinamen aus der hochgeladenen Datei
+          handleProcessImage({
+            imageDataUrl: e.target.result,
+            fileName: file.name // Pass fileName here
+          } as ProcessImageOptions)
+
+          setOriginalImage(e.target.result)
+          setCurrentFileName(file.name) // Update currentFileName state
+
           // Clear the input value so the same file can be selected again
           if (fileInputRef.current) {
             fileInputRef.current.value = ''
@@ -136,13 +140,27 @@ export default function Home() {
     }
   }
 
-  const handleProcessImage = async (processingSettings: Settings) => {
+  const handleProcessImage = async (input: ProcessImageOptions | Settings) => {
     if (!originalImage) return
 
     setIsProcessing(true)
     try {
-      // Process the image to get pixel data
-      const imageData = await processImage(originalImage, processingSettings)
+      // Determine if we're dealing with ProcessImageOptions or Settings
+      const imageOptions: ProcessImageOptions = 'imageDataUrl' in input
+        ? input
+        : {
+          imageDataUrl: originalImage,
+          fileName: currentFileName, // Use currentFileName from state
+          ...(originalImage.includes('wikimedia.org') && {
+            fileName: currentFileName || new URL(originalImage).pathname.split('/').pop(),
+            sourceUrl: originalImage
+          })
+        };
+
+      // Use the appropriate settings
+      const processingSettings = 'imageDataUrl' in input ? settings : input as Settings;
+
+      const imageData = await processImage(imageOptions, processingSettings)
 
       // Initialize visibility for all color groups
       if (imageData.colorGroups) {

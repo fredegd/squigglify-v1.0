@@ -8,17 +8,20 @@ import type { ImageData } from "@/lib/types"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 interface PreviewProps {
+  originalImage: string
   svgContent: string | null
   isProcessing: boolean
   processedData: ImageData | null
-
+  onNewImageUpload: () => void
 }
 
 // Use memo to prevent unnecessary re-renders
 const Preview = memo(function Preview({
+  originalImage,
   svgContent,
   isProcessing,
   processedData,
+  onNewImageUpload
 }: PreviewProps) {
   const svgContainerRef = useRef<HTMLDivElement>(null)
 
@@ -44,7 +47,7 @@ const Preview = memo(function Preview({
       <div className="relative h-full">
         <div className="space-y-4 sticky top-0 max-h-screen  flex flex-col ">
           <div className="flex-1 lg:w-full  border border-gray-700 rounded-2xl overflow-hidden p-2 relative">
-            <h3 className="text-lg font-medium  text-center mb-2">Vector Output</h3>
+            <h3 className="text-lg font-medium  text-center mb-2">Output</h3>
             <div className=" absolute lg:top-auto bottom-2 lg:right-2 right-4  ">
               {svgContent && (
                 <SvgDownloadOptions
@@ -124,11 +127,11 @@ export const ImageThumbnail = memo(function ImageThumbnail({
   }, [svgContentPreview]);
 
   return (
-    <div className="bg-gray-800 rounded-lg   sticky top-0 z-50  pt-12 lg:pt-0">
-      <div className="flex flex-row gap-4 items-start p-4 lg:px-0 lg:pt-0">
+    <div className=" bg-gray-800/80 backdrop-blur-md rounded-lg   sticky top-0 z-50  pt-12 lg:pt-0">
+      <div className="flex flex-row gap-4 items-start p-4 lg:px-0 lg:pt-0 h-full">
         {/* Original Image Section */}
         <div className="flex-1 lg:w-full  border border-gray-700 rounded-2xl overflow-hidden p-2 relative">
-          <h3 className="text-base md:text-lg font-medium mb-1 md:mb-2 text-center">Original</h3>
+          <h3 className="text-base md:text-lg font-medium mb-1 md:mb-2 text-center">Input</h3>
           <div className="  absolute top-2 right-2  ">
             <Button
               onClick={onNewImageUpload}
@@ -148,8 +151,29 @@ export const ImageThumbnail = memo(function ImageThumbnail({
 
           </div>
           {processedData && (
-            <div className="mt-1 text-center text-xs text-gray-300">
-              {processedData.originalWidth} × {processedData.originalHeight} px
+            <div className="mt-1 space-y-1">
+              {processedData.fileName && (
+                <div className="text-center text-xs text-gray-300">
+                  {processedData.fileName}
+                </div>
+              )}
+              <div className="text-center text-xs text-gray-300">
+                {processedData.originalWidth} × {processedData.originalHeight} px
+                {" • "}
+                {(processedData.originalWidth / processedData.originalHeight).toFixed(2)}:1
+              </div>
+              {processedData.sourceUrl && (
+                <div className="text-center text-xs">
+                  <a
+                    href={processedData.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300 underline"
+                  >
+                    Originalquelle
+                  </a>
+                </div>
+              )}
             </div>
           )}
 
@@ -157,7 +181,7 @@ export const ImageThumbnail = memo(function ImageThumbnail({
 
         {/* Mini SVG Preview Section (only on mobile/when svgContentPreview is present) */}
         {svgContentPreview && (
-          <div className="flex-1  lg:hidden border border-gray-700 rounded-2xl overflow-hidden p-2 relative " onClick={toggleSettingsPanel}>
+          <div className="flex-1  lg:hidden border border-gray-700 rounded-2xl overflow-hidden p-2 relative  h-full" onClick={toggleSettingsPanel}>
             <h3 className="text-base md:text-lg font-medium mb-1 md:mb-2 text-center">Preview</h3>
             <div ref={svgPreviewContainerRef} className="aspect-square bg-[#f1f1f1] rounded-lg overflow-hidden flex items-center justify-center max-h-40  mx-auto p-1">
               {/* Mini SVG will be injected here */}

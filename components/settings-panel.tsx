@@ -130,7 +130,7 @@ export default function SettingsPanel({
               </div>
             )}
 
-            {settings.curvedPaths && (
+            {/* {settings.curvedPaths && (
               <div className="space-y-2">
                 <div className="flex gap-2">
                   <Label htmlFor="handleRotationAngle-panel">
@@ -157,7 +157,7 @@ export default function SettingsPanel({
                   disabled={disabled}
                 />
               </div>
-            )}
+            )} */}
 
             <div className="space-y-2">
               <div className="flex gap-2">
@@ -177,8 +177,8 @@ export default function SettingsPanel({
               </div>
               <Slider
                 id="lowerKnotXShift-panel"
-                min={-settings.gridSizeX / 2}
-                max={settings.gridSizeX / 2}
+                min={-(processedData?.tileWidth ?? 0) / 2}
+                max={(processedData?.tileWidth ?? 0) / 2}
                 step={0.1}
                 value={[curveControls.lowerKnotXShift || 0]}
                 onValueChange={(value) => onCurveControlsChange({ lowerKnotXShift: value[0] })}
@@ -189,7 +189,7 @@ export default function SettingsPanel({
             <div className="space-y-2">
               <div className="flex gap-2">
                 <Label htmlFor="upperKnotShiftFactor-panel">
-                  Upper Knot Shift: {((curveControls.upperKnotShiftFactor || 0) * 100).toFixed(0)}%
+                  Upper Knot Explode: {((curveControls.upperKnotShiftFactor || 0) * 100).toFixed(0)}%
                 </Label>
                 <Tooltip>
                   <TooltipTrigger>
@@ -234,7 +234,7 @@ export default function SettingsPanel({
                 min={0}
                 max={1}
                 step={0.01}
-                value={[curveControls.disorganizeFactor || 0]}
+                value={[curveControls.disorganizeFactor || 0.0]}
                 onValueChange={(value) => onCurveControlsChange({ disorganizeFactor: value[0] })}
                 disabled={disabled}
               />

@@ -40,8 +40,14 @@ function calculateImageHash(imageData: Uint8ClampedArray): string {
 }
 
 // Process image to extract pixel data
+export interface ProcessImageOptions {
+  imageDataUrl: string;
+  fileName?: string;
+  sourceUrl?: string;
+}
+
 export async function processImage(
-  imageDataUrl: string,
+  options: ProcessImageOptions,
   settings: Settings
 ): Promise<ImageData> {
   return new Promise((resolve, reject) => {
@@ -161,8 +167,8 @@ export async function processImage(
           resizedHeight,
           columnsCount,
           rowsCount,
-          gridSizeX,
-          gridSizeY,
+          // gridSizeX,
+          // gridSizeY,
           outputWidth,
           outputHeight,
         } = calculateResizeDimensions(
@@ -172,9 +178,9 @@ export async function processImage(
           settings.rowsCount
         );
 
-        // Update the settings with the calculated grid sizes
-        settings.gridSizeX = gridSizeX;
-        settings.gridSizeY = gridSizeY;
+        // // Update the settings with the calculated grid sizes
+        // settings.gridSizeX = gridSizeX;
+        // settings.gridSizeY = gridSizeY;
 
         // Create canvas to resize and extract pixel data
         const canvas = document.createElement("canvas");
@@ -288,6 +294,8 @@ export async function processImage(
           tileWidth: outputWidth / columnsCount,
           tileHeight: outputHeight / rowsCount,
           colorGroups: {},
+          fileName: options.fileName,
+          sourceUrl: options.sourceUrl,
         };
 
         // Process the image according to the selected mode
@@ -329,7 +337,7 @@ export async function processImage(
       reject(new Error("Failed to load image"));
     };
 
-    img.src = imageDataUrl;
+    img.src = options.imageDataUrl;
   });
 }
 

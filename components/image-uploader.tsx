@@ -7,7 +7,7 @@ import { Upload, ImageIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface ImageUploaderProps {
-  onImageUpload: (imageDataUrl: string) => void
+  onImageUpload: (imageDataUrl: string, fileName: string) => void
 }
 
 export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
@@ -49,7 +49,7 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
     const reader = new FileReader()
     reader.onload = (e) => {
       if (e.target && typeof e.target.result === "string") {
-        onImageUpload(e.target.result)
+        onImageUpload(e.target.result, file.name) // Pass file.name here
       }
     }
     reader.readAsDataURL(file)
