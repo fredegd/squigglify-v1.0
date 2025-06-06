@@ -71,7 +71,7 @@ export default function PathDensitySettings({ settings, onSettingsChange, disabl
                         />
                     </div>
                     <p className="text-xs pl-4">
-                        * auto-adjusted to tile width: {calculatedDensity / 2}px
+                        * auto-adjusted to tile width: {calculatedDensity / 3}px
                     </p>
                 </div>
             </details>

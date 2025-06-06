@@ -74,3 +74,10 @@ export function calculateResizeDimensions(
     outputHeight,
   };
 }
+
+// Berechnet die maximale Strichstärke basierend auf der Tile-Breite
+export function calculateMaxStrokeWidth(tileWidth: number): number {
+  // Eine sinnvolle Formel wäre: 20% der Tile-Breite, mindestens 0.1 und maximal 10
+  const maxStrokeWidth = Math.min(10, Math.max(0.1, tileWidth * 0.2));
+  return maxStrokeWidth;
+}

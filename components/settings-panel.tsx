@@ -39,7 +39,7 @@ export default function SettingsPanel({
     let outputWidth = MAX_DIMENSION;
     let tileWidth = Math.floor(outputWidth / settings.columnsCount);
     tileWidth = tileWidth % 2 === 0 ? tileWidth : tileWidth - 1;
-    return tileWidth * 2;
+    return tileWidth * 3; // Assuming density amount is calculated as tile width * 3
   }, [settings.columnsCount]);
 
   useEffect(() => {

@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Info, ChevronDown } from "lucide-react"
 import type { Settings, CurveControlSettings } from "@/lib/types"
+import { calculateMaxStrokeWidth } from "@/lib/utils/dimension-utils"
 import Image from "next/image"
 
 interface CurveStyleSettingsProps {
@@ -16,6 +17,8 @@ interface CurveStyleSettingsProps {
     disabled: boolean
 }
 
+import { useMemo, useEffect } from "react"
+
 export default function CurveStyleSettings({
     settings,
     onSettingsChange,
@@ -23,6 +26,19 @@ export default function CurveStyleSettings({
     onCurveControlsChange,
     disabled,
 }: CurveStyleSettingsProps) {
+    const calculatedMaxStrokeWidth = useMemo(() => {
+        const MAX_DIMENSION = 560;
+        let outputWidth = MAX_DIMENSION;
+        let tileWidth = Math.floor(outputWidth / settings.columnsCount);
+        tileWidth = tileWidth % 2 === 0 ? tileWidth : tileWidth - 1;
+        return calculateMaxStrokeWidth(tileWidth);
+    }, [settings.columnsCount]);
+
+    useEffect(() => {
+        if (curveControls.strokeWidth > calculatedMaxStrokeWidth) {
+            onCurveControlsChange({ strokeWidth: calculatedMaxStrokeWidth });
+        }
+    }, [calculatedMaxStrokeWidth, curveControls.strokeWidth, onCurveControlsChange]);
     return (
         <TooltipProvider>
             <details className="group" >
@@ -116,9 +132,9 @@ export default function CurveStyleSettings({
                         <Slider
                             id="strokeWidth-setting"
                             min={0.1}
-                            max={10}
+                            max={calculatedMaxStrokeWidth}
                             step={0.1}
-                            value={[curveControls.strokeWidth]}
+                            value={[Math.min(curveControls.strokeWidth, calculatedMaxStrokeWidth)]}
                             onValueChange={(value) => onCurveControlsChange({ strokeWidth: value[0] })}
                             disabled={disabled}
                         />
