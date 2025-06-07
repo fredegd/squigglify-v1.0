@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useCallback, useMemo, useEffect, useRef } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"

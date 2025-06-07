@@ -136,6 +136,9 @@ export function ensureEvenDensity(density: number): number {
 
 // Calculate density with awareness of neighboring tiles
 // This function helps smooth transitions between adjacent tiles with different colors
+//  This is a basic implementation, consider more complex logic for better smoothing
+//
+// TODO: integrate this into the main processing logic
 export function calculateContextAwareDensity(
   pixelGrid: (PixelData | null)[][],
   x: number,

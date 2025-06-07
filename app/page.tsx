@@ -73,7 +73,6 @@ export default function Home() {
   // Handle curve control changes and curvedPaths toggle separately (SVG regeneration only)
   useEffect(() => {
     if (processedData && originalImage && !isProcessing) {
-      // console.log("Regenerating SVG due to curveControls or curvedPaths change");
       const svg = generateSVG(processedData, { ...settings })
       setSvgContent(svg)
     }
@@ -105,7 +104,6 @@ export default function Home() {
     setIsSettingsPanelVisible(false)
     setSvgContent(null)
     setShowRandomImageLoader(true)
-    // processedData wird jetzt automatisch durch handleFileChange aktualisiert
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -121,7 +119,7 @@ export default function Home() {
       const reader = new FileReader()
       reader.onload = (e) => {
         if (e.target && typeof e.target.result === "string") {
-          // Setze den Dateinamen aus der hochgeladenen Datei
+          // Set the original image and pass the file name to handleProcessImage
           handleProcessImage({
             imageDataUrl: e.target.result,
             fileName: file.name // Pass fileName here

@@ -5,12 +5,12 @@ import {
 } from "../converters/color-converters";
 
 export class PosterizeProcessor {
-  constructor(imageData: ImageData, settings: Settings) {
-    // Die Farbquantisierung wurde bereits im image-processor durchgeführt
-    // Wir verwenden hier nur die bereits berechneten Farben
-  }
+  // constructor(imageData: ImageData, settings: Settings) {
+  //   // Color quantization has already been performed in the image-processor
+  //   // Here we only use the already calculated colors
+  // }
 
-  public process(
+  public static process(
     imageData: ImageData,
     settings: Settings
   ): Record<string, ColorGroup> {
@@ -24,7 +24,7 @@ export class PosterizeProcessor {
 
     const colorGroups: Record<string, ColorGroup> = {};
 
-    // Sammele die bereits quantisierten Farben
+    // Collect the quantized colors from the pixels
     const uniqueColors = new Set<string>();
     pixels.forEach((pixel) => {
       const colorKey = `${pixel.r},${pixel.g},${pixel.b}`;
@@ -95,11 +95,11 @@ export class PosterizeProcessor {
   }
 }
 
-// Export die Wrapper-Funktion für Kompatibilität mit dem bestehenden Code
-export function processPosterize(
-  imageData: ImageData,
-  settings: Settings
-): Record<string, ColorGroup> {
-  const processor = new PosterizeProcessor(imageData, settings);
-  return processor.process(imageData, settings);
-}
+// Export the wrapper function for compatibility with the existing code
+// export function processPosterize(
+//   imageData: ImageData,
+//   settings: Settings
+// ): Record<string, ColorGroup> {
+//   const processor = new PosterizeProcessor(imageData, settings);
+//   return processor.process(imageData, settings);
+// }

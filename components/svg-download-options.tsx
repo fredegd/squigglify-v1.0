@@ -10,7 +10,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
-import { Download, ChevronDown, Layers, FileImage, FileText } from "lucide-react"
+import { Download, Layers, FileImage, FileText } from "lucide-react"
 import type { ColorGroup } from "@/lib/types"
 import { extractColorGroupSVG, extractAllColorGroups } from "@/lib/image-processor"
 
@@ -92,7 +92,7 @@ export default function SvgDownloadOptions({
     const handleDownloadFull = () => {
         if (!svgContent) return
         const blob = new Blob([svgContent], { type: "image/svg+xml" });
-        downloadFile(blob, "vector-image.svg");
+        downloadFile(blob, "squigglify_output.svg");
     }
 
     // Handler for downloading a specific color group
@@ -103,7 +103,7 @@ export default function SvgDownloadOptions({
         try {
             const extractedSvg = extractColorGroupSVG(svgContent, colorKey)
             if (extractedSvg) {
-                const filename = `vector-image-${displayName.toLowerCase().replace(/[^a-z0-9]/g, "-")}.svg`
+                const filename = `squigglify_output-${displayName.toLowerCase().replace(/[^a-z0-9]/g, "-")}.svg`
                 const blob = new Blob([extractedSvg], { type: "image/svg+xml" });
                 downloadFile(blob, filename);
             }
@@ -360,7 +360,7 @@ export default function SvgDownloadOptions({
             const url = URL.createObjectURL(content)
             const a = document.createElement("a")
             a.href = url
-            a.download = "vector-image-layers.zip"
+            a.download = "squigglify_output-layers.zip"
             document.body.appendChild(a)
             a.click()
             document.body.removeChild(a)
@@ -392,12 +392,12 @@ export default function SvgDownloadOptions({
                     Download Complete SVG
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={() => svgContent && handleDownloadPng(svgContent, "vector-image")} disabled={!isWasmInitialized || isDownloading}>
+                <DropdownMenuItem onClick={() => svgContent && handleDownloadPng(svgContent, "squigglify_output")} disabled={!isWasmInitialized || isDownloading}>
                     <FileImage className="mr-2 h-4 w-4" />
                     Download as PNG
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={() => svgContent && handleDownloadPdf(svgContent, "vector-image")} disabled={!isWasmInitialized || isDownloading}>
+                <DropdownMenuItem onClick={() => svgContent && handleDownloadPdf(svgContent, "squigglify_output")} disabled={!isWasmInitialized || isDownloading}>
                     <FileText className="mr-2 h-4 w-4" />
                     Download as PDF
                 </DropdownMenuItem>

@@ -5,7 +5,6 @@ import type {
   PathPoint,
   PixelData,
 } from "../types";
-import { calculateContextAwareDensity } from "../utils/math-utils";
 import { rgbToCMYK } from "../converters/color-converters";
 
 // Process image in CMYK mode

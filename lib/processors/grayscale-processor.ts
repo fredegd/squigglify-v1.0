@@ -1,12 +1,4 @@
-import type {
-  ColorGroup,
-  ImageData,
-  PixelData,
-  Settings,
-  PathPoint,
-} from "../types";
-import { calculateContextAwareDensity } from "../utils/math-utils";
-import { rgbToHex } from "../converters/color-converters";
+import type { ColorGroup, ImageData, Settings, PathPoint } from "../types";
 
 // Process image in grayscale mode
 export function processGrayscale(

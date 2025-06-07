@@ -1,7 +1,7 @@
 import type { Settings, ImageData, ColorGroup } from "./types";
 
 import { processGrayscale } from "./processors/grayscale-processor";
-import { processPosterize } from "./processors/posterize-processor";
+import { PosterizeProcessor } from "./processors/posterize-processor";
 import { processCMYK } from "./processors/cmyk-processor";
 import { processMonochrome } from "./processors/monochrome-processor";
 import {
@@ -13,7 +13,6 @@ import {
   extractColorGroupSVG,
   extractAllColorGroups,
 } from "./utils/svg-utils";
-import { calculateHueAndBrightness } from "./converters/color-converters";
 import { ColorQuantizer } from "./processors/color-quantizer";
 
 // Cache für die Farbquantisierung
@@ -305,7 +304,10 @@ export async function processImage(
             newColorGroups = processGrayscale(processedImageData, settings);
             break;
           case "posterize":
-            newColorGroups = processPosterize(processedImageData, settings);
+            newColorGroups = PosterizeProcessor.process(
+              processedImageData,
+              settings
+            );
             break;
           case "cmyk":
             newColorGroups = processCMYK(processedImageData, settings);
@@ -345,12 +347,4 @@ export async function processImage(
 export const generateSVG = generateSvgFromImageData;
 
 // Re-export wichtiger Funktionen für externe Nutzung
-export {
-  extractColorGroupSVG,
-  extractAllColorGroups,
-  processGrayscale,
-  processPosterize,
-  processCMYK,
-  processMonochrome,
-  calculateHueAndBrightness,
-};
+export { extractColorGroupSVG, extractAllColorGroups };

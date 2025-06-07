@@ -5,11 +5,7 @@ import type {
   PathPoint,
   PixelData,
 } from "../types";
-import { calculateContextAwareDensity } from "../utils/math-utils";
-import {
-  hexToRgb,
-  calculateHueAndBrightness as calculateHueAndBrightnessForGroup,
-} from "../converters/color-converters";
+import { calculateHueAndBrightness as calculateHueAndBrightnessForGroup } from "../converters/color-converters";
 
 // Process image in monochrome mode
 export function processMonochrome(
