@@ -21,7 +21,6 @@ this App transforms regular images into path-based SVG graphics using wave-like 
   - **Monochrome**: Single-color paths with density based on brightness
   - **Grayscale**: Multiple levels of gray for more detailed gradation
   - **Posterize**: Reduced color palette for stylized results
-  - **CMYK (Beta)**: Separate paths for Cyan, Magenta, Yellow, and Black channels, ideal for multi-color plotting
 
 ## Use Cases
 
@@ -33,7 +32,6 @@ The primary use case for Squigglify is generating SVG files, very useful for pen
 - Creating smoother, more continuous motion
 - Optimizing travel paths between sections
 - Supporting multi-color plotting through Posterization
-- Supporting multi-color plotting through CMYK separation (still in beta)
 
 ### Other Applications
 
@@ -48,7 +46,7 @@ of course once one have a Svalable Vector Graphics, it can be used for many othe
 
 1. **Upload an Image or Use a Random Starter**: Select any image file from your device, or use the random image loader to pick an random image from Wikimedia Commons.
 2. **Configure Settings**:
-   - Choose a processing mode (Monochrome, Grayscale, Posterize, or CMYK)
+   - Choose a processing mode (Monochrome, Grayscale, or Posterize)
    - Adjust grid density, curve parameters (for organic appeal), and other settings
    - Adjust grid Tiling (columns and rows)
    - Toggle continuous paths and curved paths options
@@ -69,10 +67,6 @@ Creates multiple layers of wave paths with different densities to represent diff
 ### Posterize
 
 Reduces your image to a limited color palette, creating separate path groups for each color level. Ideal for stylized, graphic representations.
-
-### CMYK (Beta)
-
-Separates your image into Cyan, Magenta, Yellow, and Black channels. Each channel can be toggled individually, making this perfect for multi-color plots where you want to change pens for each color layer. The black (K) channel often produces the best results for single-color plotting.
 
 ## Advanced Options
 

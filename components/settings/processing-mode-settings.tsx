@@ -30,17 +30,19 @@ export default function ProcessingModeSettings({ settings, onSettingsChange, dis
                     className="space-y-2 text-gray-300"
                     disabled={disabled}
                 >
+
+
                     <div className="flex items-center space-x-2 px-4">
-                        <RadioGroupItem value="monochrome" id="monochrome-setting" />
-                        <Label htmlFor="monochrome-setting" className="cursor-pointer">
-                            Monochrome
+                        <RadioGroupItem value="posterize" id="posterize-setting" />
+                        <Label htmlFor="posterize-setting" className="cursor-pointer">
+                            Posterize
                         </Label>
                         <Tooltip>
                             <TooltipTrigger>
                                 <Info className="h-4 w-4 text-gray-300" />
                             </TooltipTrigger>
                             <TooltipContent>
-                                <p className="max-w-xs">Creates a single-color path with density based on brightness</p>
+                                <p className="max-w-xs">Reduces image to limited color palette</p>
                             </TooltipContent>
                         </Tooltip>
                     </div>
@@ -58,31 +60,18 @@ export default function ProcessingModeSettings({ settings, onSettingsChange, dis
                             </TooltipContent>
                         </Tooltip>
                     </div>
+
                     <div className="flex items-center space-x-2 px-4">
-                        <RadioGroupItem value="posterize" id="posterize-setting" />
-                        <Label htmlFor="posterize-setting" className="cursor-pointer">
-                            Posterize
+                        <RadioGroupItem value="monochrome" id="monochrome-setting" />
+                        <Label htmlFor="monochrome-setting" className="cursor-pointer">
+                            Monochrome
                         </Label>
                         <Tooltip>
                             <TooltipTrigger>
                                 <Info className="h-4 w-4 text-gray-300" />
                             </TooltipTrigger>
                             <TooltipContent>
-                                <p className="max-w-xs">Reduces image to limited color palette</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </div>
-                    <div className="flex items-center space-x-2 px-4    ">
-                        <RadioGroupItem value="cmyk" id="cmyk-setting" />
-                        <Label htmlFor="cmyk-setting" className="cursor-pointer">
-                            CMYK (Beta)
-                        </Label>
-                        <Tooltip>
-                            <TooltipTrigger>
-                                <Info className="h-4 w-4 text-gray-300" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p className="max-w-xs">Separates image into Cyan, Magenta, Yellow, and Black channels</p>
+                                <p className="max-w-xs">Creates a single-color path with density based on brightness</p>
                             </TooltipContent>
                         </Tooltip>
                     </div>

@@ -2,7 +2,6 @@ import type { Settings, ImageData, ColorGroup } from "./types";
 
 import { processGrayscale } from "./processors/grayscale-processor";
 import { PosterizeProcessor } from "./processors/posterize-processor";
-import { processCMYK } from "./processors/cmyk-processor";
 import { processMonochrome } from "./processors/monochrome-processor";
 import {
   calculateResizeDimensions,
@@ -238,10 +237,7 @@ export async function processImage(
               (r * 0.299 + g * 0.587 + b * 0.114) * alphaNormalized
             );
 
-            if (
-              settings.processingMode === "cmyk" ||
-              brightness <= settings.brightnessThreshold
-            ) {
+            if (brightness <= settings.brightnessThreshold) {
               // Bei Posterize-Modus: Verwende die gecachten quantisierten Farben
               if (
                 settings.processingMode === "posterize" &&
@@ -308,9 +304,6 @@ export async function processImage(
               processedImageData,
               settings
             );
-            break;
-          case "cmyk":
-            newColorGroups = processCMYK(processedImageData, settings);
             break;
           case "monochrome":
             newColorGroups = processMonochrome(processedImageData, settings);

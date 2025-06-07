@@ -1,4 +1,4 @@
-export type ProcessingMode = "grayscale" | "posterize" | "cmyk" | "monochrome";
+export type ProcessingMode = "grayscale" | "posterize" | "monochrome";
 
 export interface CurveControlSettings {
   // Simplified curve control parameters for the new implementation
@@ -88,11 +88,4 @@ export interface ColorGroup {
   hue: number; // Farbton für die Sortierung im "posterize"-Modus
   brightness: number; // Helligkeit für die Sortierung im "grayscale"-Modus
   isCustomColor?: boolean; // Flag für benutzerdefinierte Farben
-}
-
-export interface CMYKValues {
-  cyan: number;
-  magenta: number;
-  yellow: number;
-  black: number;
 }

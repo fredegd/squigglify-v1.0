@@ -20,34 +20,31 @@ export default function VectorGenerationSettings({ settings, onSettingsChange, d
                 <summary className="cursor-pointer text-md font-bold  my-6 flex items-center justify-between">
                     <h3 className="flex items-center gap-2">Vector Generation</h3>
                     <ChevronDown className="h-5 w-5 text-gray-300 transition-transform duration-200 group-open:rotate-180" />
-                </summary>
-                <div className="flex flex-col gap-8 mt-4 text-gray-300 lg:px-4 px-8">
-                    {settings.processingMode !== "cmyk" && (
-                        <div className="space-y-2">
-                            <div className="flex justify-between">
-                                <Label htmlFor="brightnessThreshold-vec-setting">Brightness Threshold: {settings.brightnessThreshold}</Label>
-                                <Tooltip>
-                                    <TooltipTrigger>
-                                        <Info className="h-4 w-4 text-gray-300" />
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p className="max-w-xs">
-                                            Pixels darker than this threshold contribute more to path generation. Lighter pixels are less likely to generate paths.
-                                        </p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </div>
-                            <Slider
-                                id="brightnessThreshold-vec-setting"
-                                min={0}
-                                max={255}
-                                step={1}
-                                value={[settings.brightnessThreshold]}
-                                onValueChange={(value) => onSettingsChange({ brightnessThreshold: value[0] })}
-                                disabled={disabled}
-                            />
+                </summary>                <div className="flex flex-col gap-8 mt-4 text-gray-300 lg:px-4 px-8">
+                    <div className="space-y-2">
+                        <div className="flex justify-between">
+                            <Label htmlFor="brightnessThreshold-vec-setting">Brightness Threshold: {settings.brightnessThreshold}</Label>
+                            <Tooltip>
+                                <TooltipTrigger>
+                                    <Info className="h-4 w-4 text-gray-300" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p className="max-w-xs">
+                                        Pixels darker than this threshold contribute more to path generation. Lighter pixels are less likely to generate paths.
+                                    </p>
+                                </TooltipContent>
+                            </Tooltip>
                         </div>
-                    )}
+                        <Slider
+                            id="brightnessThreshold-vec-setting"
+                            min={0}
+                            max={255}
+                            step={1}
+                            value={[settings.brightnessThreshold]}
+                            onValueChange={(value) => onSettingsChange({ brightnessThreshold: value[0] })}
+                            disabled={disabled}
+                        />
+                    </div>
 
                     <div className="flex items-center justify-between">
                         <Label htmlFor="continuousPaths-setting" className="flex items-center gap-2">

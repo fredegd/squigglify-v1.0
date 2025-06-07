@@ -26,19 +26,101 @@ const Preview = memo(function Preview({
   const svgContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (svgContent) {
-      // Process SVG content to fix unit issues and ensure proper scaling
+    if (svgContent && svgContainerRef.current) {
       let processedSvg = svgContent;
 
-      // Remove or fix problematic width/height with mm units
-      processedSvg = processedSvg.replace(/(width|height)=\"([^\"]*?\\s*mm)\"/g, '');
+      // Remove or fix problematic width/height with mm units (fixed regex)
+      processedSvg = processedSvg.replace(/(width|height)="[^"]*\s*mm"/g, '');
 
-      // Add styling to ensure SVGs are properly scaled and have rounded corners
-      const enhancedSvgContent = processedSvg.replace('<svg ', '<svg style="shape-rendering: geometricPrecision; stroke-linejoin: round; stroke-linecap: round;" ');
+      // Also handle cases where there might be other problematic units
+      processedSvg = processedSvg.replace(/(width|height)="[^"]*\s*(cm|in|pt|pc)"/g, '');
+
+      // Extract original SVG dimensions for proper scaling
+      const widthMatch = processedSvg.match(/width="([^"]+)"/);
+      const heightMatch = processedSvg.match(/height="([^"]+)"/);
+      const viewBoxMatch = processedSvg.match(/viewBox="([^"]+)"/);
+
+      let svgWidth = widthMatch ? parseFloat(widthMatch[1]) : null;
+      let svgHeight = heightMatch ? parseFloat(heightMatch[1]) : null;
+
+      // If dimensions are not found in attributes, try to extract from viewBox
+      if ((!svgWidth || !svgHeight) && viewBoxMatch) {
+        const viewBoxValues = viewBoxMatch[1].split(/\s+/);
+        if (viewBoxValues.length >= 4) {
+          svgWidth = parseFloat(viewBoxValues[2]);
+          svgHeight = parseFloat(viewBoxValues[3]);
+        }
+      }
+
+      const updateSVGSize = () => {
+        if (!svgContainerRef.current) return;
+
+        // Create a wrapper div for better SVG control
+        const svgWrapper = document.createElement('div');
+        svgWrapper.style.cssText = `
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+        `;
+
+        // Add styling to ensure SVGs are properly scaled while maintaining aspect ratio and fitting container
+        let enhancedSvgContent = processedSvg.replace('<svg ', '<svg style="shape-rendering: geometricPrecision; stroke-linejoin: round; stroke-linecap: round; max-width: 100%; max-height: 100%; width: auto; height: auto; display: block;" ');
+
+        // If we have dimensions, calculate the optimal display size
+        if (svgWidth && svgHeight) {
+          const containerWidth = svgContainerRef.current.clientWidth - 16; // Account for padding
+          const containerHeight = svgContainerRef.current.clientHeight - 16;
+
+          // Ensure minimum container dimensions
+          const effectiveContainerWidth = Math.max(containerWidth, 200);
+          const effectiveContainerHeight = Math.max(containerHeight, 200);
+
+          const aspectRatio = svgWidth / svgHeight;
+          let displayWidth = effectiveContainerWidth;
+          let displayHeight = effectiveContainerWidth / aspectRatio;
+
+          if (displayHeight > effectiveContainerHeight) {
+            displayHeight = effectiveContainerHeight;
+            displayWidth = effectiveContainerHeight * aspectRatio;
+          }
+
+          // Ensure we don't exceed the original SVG size unnecessarily
+          if (displayWidth > svgWidth && displayHeight > svgHeight) {
+            displayWidth = svgWidth;
+            displayHeight = svgHeight;
+          }
+
+          // Apply calculated dimensions
+          enhancedSvgContent = enhancedSvgContent.replace(
+            'style="shape-rendering: geometricPrecision; stroke-linejoin: round; stroke-linecap: round; max-width: 100%; max-height: 100%; width: auto; height: auto; display: block;"',
+            `style="shape-rendering: geometricPrecision; stroke-linejoin: round; stroke-linecap: round; width: ${Math.round(displayWidth)}px; height: ${Math.round(displayHeight)}px; display: block;"`
+          );
+        }
+
+        svgWrapper.innerHTML = enhancedSvgContent;
+        svgContainerRef.current.innerHTML = '';
+        svgContainerRef.current.appendChild(svgWrapper);
+      };
+
+      // Initial render
+      updateSVGSize();
+
+      // Setup resize observer for responsive behavior
+      const resizeObserver = new ResizeObserver(() => {
+        updateSVGSize();
+      });
 
       if (svgContainerRef.current) {
-        svgContainerRef.current.innerHTML = enhancedSvgContent;
+        resizeObserver.observe(svgContainerRef.current);
       }
+
+      // Cleanup
+      return () => {
+        resizeObserver.disconnect();
+      };
     }
   }, [svgContent])
 
@@ -71,10 +153,10 @@ const Preview = memo(function Preview({
                   maxScale={8}
                 >
                   <TransformComponent
-                    wrapperStyle={{ width: "100%", maxHeight: "75vh", backgroundColor: '#f1f1f1', borderRadius: '12px' }}
-                    contentStyle={{ width: "100%", height: "100%" }}
+                    wrapperStyle={{ width: "100%", height: "75vh", backgroundColor: '#f1f1f1', borderRadius: '12px' }}
+                    contentStyle={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}
                   >
-                    <div ref={svgContainerRef} className="w-full flex items-center justify-center bg-[#f1f1f1] max-h-[75vh] overflow-auto rounded-xl p-1" >
+                    <div ref={svgContainerRef} className="w-full h-full flex items-center justify-center bg-[#f1f1f1] rounded-xl p-1" style={{ minHeight: '200px' }}>
                     </div>
                   </TransformComponent>
                 </TransformWrapper>
@@ -116,11 +198,15 @@ export const ImageThumbnail = memo(function ImageThumbnail({
 
   useEffect(() => {
     if (svgContentPreview && svgPreviewContainerRef.current) {
-      // Basic styling for the mini SVG preview
-      let processedMiniSvg = svgContentPreview.replace(/(width|height)=\"([^\"]*?\\s*mm)\"/g, '');
+      // Basic styling for the mini SVG preview (fixed regex)
+      let processedMiniSvg = svgContentPreview.replace(/(width|height)="[^"]*\s*mm"/g, '');
+
+      // Also handle cases where there might be other problematic units
+      processedMiniSvg = processedMiniSvg.replace(/(width|height)="[^"]*\s*(cm|in|pt|pc)"/g, '');
+
       processedMiniSvg = processedMiniSvg.replace(
         '<svg ',
-        '<svg style="max-width: 100%; max-height: 100%; width: auto; height: auto; shape-rendering: geometricPrecision; stroke-linejoin: round; stroke-linecap: round;  zoom: 0.2;" '
+        '<svg style="max-width: 100%; max-height: 100%; width: auto; height: auto; shape-rendering: geometricPrecision; stroke-linejoin: round; stroke-linecap: round;" '
       );
       svgPreviewContainerRef.current.innerHTML = processedMiniSvg;
     }

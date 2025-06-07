@@ -12,14 +12,17 @@ export function generateSVG(imageData: ImageData, settings: Settings): string {
   const { outputWidth, outputHeight, colorGroups } = imageData;
   const { continuousPaths, visiblePaths } = settings;
 
+  // For display purposes, use pixel dimensions instead of mm to avoid browser issues
+  // We can still include mm as comments or data attributes if needed for print
   const widthInMM = Math.round(outputWidth / 3.759);
   const heightInMM = Math.round(outputHeight / 3.759);
+
   // Set SVG dimensions to the calculated output dimensions
   const svgWidth = outputWidth;
   const svgHeight = outputHeight;
 
-  // Start SVG content with additional shape-rendering attribute to ensure smooth corners
-  let svgContent = `<svg width="${widthInMM} mm" height="${heightInMM} mm" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision" style="stroke-linejoin: round; stroke-linecap: round;">
+  // Start SVG content with pixel dimensions instead of mm to avoid browser parsing issues
+  let svgContent = `<svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision" style="stroke-linejoin: round; stroke-linecap: round;" data-width-mm="${widthInMM}" data-height-mm="${heightInMM}">
   `;
 
   // Generate paths for each color group

@@ -1,4 +1,3 @@
-import type { CMYKValues } from "../types";
 import { ColorGroup } from "../types";
 
 // Convert RGB to hex color
@@ -10,37 +9,6 @@ export function rgbToHex(r: number, g: number, b: number): string {
 export function componentToHex(c: number): string {
   const hex = Math.round(c).toString(16);
   return hex.length === 1 ? "0" + hex : hex;
-}
-
-// Convert RGB to CMYK
-export function rgbToCMYK(r: number, g: number, b: number): CMYKValues {
-  // Normalize RGB values
-  const rn = r / 255;
-  const gn = g / 255;
-  const bn = b / 255;
-
-  // Calculate black key
-  const k = 1 - Math.max(rn, gn, bn);
-
-  // Calculate CMY
-  let c = 0,
-    m = 0,
-    y = 0;
-
-  if (k < 1) {
-    const ik = 1 / (1 - k);
-    c = (1 - rn - k) * ik;
-    m = (1 - gn - k) * ik;
-    y = (1 - bn - k) * ik;
-  }
-
-  // Convert to 0-255 range
-  return {
-    cyan: Math.round(c * 255),
-    magenta: Math.round(m * 255),
-    yellow: Math.round(y * 255),
-    black: Math.round(k * 255),
-  };
 }
 
 // Convert hex color to RGB
