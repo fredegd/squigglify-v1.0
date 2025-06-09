@@ -1,9 +1,10 @@
 "use client"
 
+import { useState } from "react"
 import { Slider } from "@/components/ui/slider"
 import { Label } from "@/components/ui/label"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Info, ChevronDown } from "lucide-react"
+import { Info, ChevronDown, Link2, Unlink2 } from "lucide-react"
 import type { Settings } from "@/lib/types"
 
 interface PathDensitySettingsProps {
@@ -14,6 +15,31 @@ interface PathDensitySettingsProps {
 }
 
 export default function PathDensitySettings({ settings, onSettingsChange, disabled, calculatedDensity }: PathDensitySettingsProps) {
+    const [isValueLinked, setIsValueLinked] = useState(true)
+
+    const handleMinDensityChange = (value: number) => {
+        if (isValueLinked) {
+            // When linked, both min and max density should be the same
+            onSettingsChange({ minDensity: value, maxDensity: value })
+        } else {
+            onSettingsChange({ minDensity: value })
+        }
+    }
+
+    const handleMaxDensityChange = (value: number) => {
+        if (isValueLinked) {
+            // When linked, both min and max density should be the same
+            onSettingsChange({ minDensity: value, maxDensity: value })
+        } else {
+            // When unlinked, ensure min density doesn't exceed max density
+            const newMinDensity = Math.min(settings.minDensity, value)
+            onSettingsChange({ minDensity: newMinDensity, maxDensity: value })
+        }
+    }
+
+    const toggleLinkState = () => {
+        setIsValueLinked(!isValueLinked)
+    }
     return (
         <TooltipProvider>
             <details className="group" >
@@ -52,7 +78,7 @@ export default function PathDensitySettings({ settings, onSettingsChange, disabl
                             max={calculatedDensity} // Use calculatedDensity here
                             step={1}
                             value={[settings.minDensity]}
-                            onValueChange={(value) => onSettingsChange({ minDensity: value[0] })}
+                            onValueChange={(value) => handleMinDensityChange(value[0])}
                             disabled={disabled}
                         />
                     </div>
@@ -66,10 +92,32 @@ export default function PathDensitySettings({ settings, onSettingsChange, disabl
                             max={calculatedDensity} // Use calculatedDensity here
                             step={1}
                             value={[settings.maxDensity]}
-                            onValueChange={(value) => onSettingsChange({ maxDensity: value[0] })}
+                            onValueChange={(value) => handleMaxDensityChange(value[0])}
                             disabled={disabled}
                         />
                     </div>
+
+                    <div className="flex justify-end">
+                        <button
+                            onClick={toggleLinkState}
+                            disabled={disabled}
+                            className="group/link p-2 rounded hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title={isValueLinked ? "Unlink density values" : "Link density values"}
+                        >
+                            {isValueLinked ? (
+                                <div className="flex items-center gap-1">
+                                    <p className="text-xs text-gray-300 opacity-0 group-hover/link:opacity-100 transition-opacity">Unlink</p>
+                                    <Link2 className="h-5 w-5 text-gray-300" />
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-1">
+                                    <p className="text-xs text-gray-300 opacity-0 group-hover/link:opacity-100 transition-opacity">Link</p>
+                                    <Unlink2 className="h-5 w-5 text-gray-300" />
+                                </div>
+                            )}
+                        </button>
+                    </div>
+
                     <p className="text-xs pl-4">
                         * auto-adjusted to tile width: {calculatedDensity / 3}px
                     </p>

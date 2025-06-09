@@ -10,7 +10,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
-import { Download, Layers, FileImage, FileText } from "lucide-react"
+import { Layers, FileImage, FileText, ArrowDownToLine, Route } from "lucide-react"
 import type { ColorGroup } from "@/lib/types"
 import { extractColorGroupSVG, extractAllColorGroups } from "@/lib/image-processor"
 
@@ -380,7 +380,7 @@ export default function SvgDownloadOptions({
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button className=" text-lg h-8 w-8 p-0 rounded-full !bg-transparent hover:text-red-400" disabled={isProcessing || isDownloading} >
-                    <Download className="h-6 w-6" />
+                    <ArrowDownToLine className="h-6 w-6" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56">
@@ -388,7 +388,7 @@ export default function SvgDownloadOptions({
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem onClick={handleDownloadFull}>
-                    <Download className="mr-2 h-4 w-4" />
+                    <Route className="mr-2 h-4 w-4" />
                     Download Complete SVG
                 </DropdownMenuItem>
 

@@ -1,8 +1,9 @@
 "use client"
 
+import { useState } from "react"
 import { Slider } from "@/components/ui/slider"
 import { Label } from "@/components/ui/label"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, Link, Link2, Unlink2 } from "lucide-react"
 import type { Settings } from "@/lib/types"
 
 interface ImageTilingSettingsProps {
@@ -12,6 +13,27 @@ interface ImageTilingSettingsProps {
 }
 
 export default function ImageTilingSettings({ settings, onSettingsChange, disabled }: ImageTilingSettingsProps) {
+    const [isValueLinked, setIsValueLinked] = useState(false)
+
+    const handleColumnsChange = (value: number) => {
+        if (isValueLinked) {
+            onSettingsChange({ columnsCount: value, rowsCount: value })
+        } else {
+            onSettingsChange({ columnsCount: value })
+        }
+    }
+
+    const handleRowsChange = (value: number) => {
+        if (isValueLinked) {
+            onSettingsChange({ columnsCount: value, rowsCount: value })
+        } else {
+            onSettingsChange({ rowsCount: value })
+        }
+    }
+
+    const toggleLinkState = () => {
+        setIsValueLinked(!isValueLinked)
+    }
     return (
         <details className="group" >
             <summary className="cursor-pointer text-md font-bold  my-6 flex items-center justify-between ">
@@ -29,7 +51,7 @@ export default function ImageTilingSettings({ settings, onSettingsChange, disabl
                         max={128}
                         step={1}
                         value={[settings.columnsCount]}
-                        onValueChange={(value) => onSettingsChange({ columnsCount: value[0] })}
+                        onValueChange={(value) => handleColumnsChange(value[0])}
                         disabled={disabled}
                     />
                     <p className="text-xs text-gray-300">Number of horizontal tiles</p>
@@ -45,10 +67,31 @@ export default function ImageTilingSettings({ settings, onSettingsChange, disabl
                         max={128}
                         step={1}
                         value={[settings.rowsCount]}
-                        onValueChange={(value) => onSettingsChange({ rowsCount: value[0] })}
+                        onValueChange={(value) => handleRowsChange(value[0])}
                         disabled={disabled}
                     />
                     <p className="text-xs text-gray-300">Number of vertical tiles</p>
+                </div>
+
+                <div className="flex justify-end">
+                    <button
+                        onClick={toggleLinkState}
+                        disabled={disabled}
+                        className="group/link p-2 rounded hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={isValueLinked ? "Unlink values" : "Link values"}
+                    >
+                        {isValueLinked ? (
+                            <div className="flex items-center gap-1">
+                                <p className="text-xs text-gray-300 opacity-0 group-hover/link:opacity-100 transition-opacity">Unlink</p>
+                                <Link2 className="h-5 w-5 text-gray-300" />
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-1">
+                                <p className="text-xs text-gray-300 opacity-0 group-hover/link:opacity-100 transition-opacity">Link</p>
+                                <Unlink2 className="h-5 w-5 text-gray-300" />
+                            </div>
+                        )}
+                    </button>
                 </div>
             </div>
         </details>

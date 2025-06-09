@@ -64,8 +64,8 @@ export interface ImageData {
   tileWidth: number;
   tileHeight: number;
   colorGroups?: Record<string, ColorGroup>;
-  fileName?: string; // Name der hochgeladenen Datei
-  sourceUrl?: string; // URL zur Originalquelle (für Wiki Commons Bilder)
+  fileName?: string; // Name of the uploaded file
+  sourceUrl?: string; // URL to source (for Wiki Commons images)
 }
 
 export interface PathPoint {

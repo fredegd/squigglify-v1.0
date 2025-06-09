@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, memo } from "react"
-import { Loader, Upload } from "lucide-react"
+import { Loader, ArrowUpToLine, ArrowUpRight, Maximize2, LoaderCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import SvgDownloadOptions from "@/components/svg-download-options"
 import type { ImageData } from "@/lib/types"
@@ -17,11 +17,9 @@ interface PreviewProps {
 
 // Use memo to prevent unnecessary re-renders
 const Preview = memo(function Preview({
-  originalImage,
   svgContent,
   isProcessing,
   processedData,
-  onNewImageUpload
 }: PreviewProps) {
   const svgContainerRef = useRef<HTMLDivElement>(null)
 
@@ -143,7 +141,7 @@ const Preview = memo(function Preview({
             <div className="flex items-center justify-center">
               {isProcessing ? (
                 <div className="flex flex-col items-center justify-center">
-                  <Loader className="h-10 w-10 text-primary animate-spin mb-2" />
+                  <LoaderCircle className="h-10 w-10 text-primary animate-spin mb-2" />
                   <p className="text-gray-300">Processing image...</p>
                 </div>
               ) : svgContent ? (
@@ -225,7 +223,7 @@ export const ImageThumbnail = memo(function ImageThumbnail({
               size="sm"
               title="Upload new image"
             >
-              <Upload className="h-3.5 md:h-4 w-3.5 md:w-4" />
+              <ArrowUpToLine className="h-3.5 md:h-4 w-3.5 md:w-4" />
             </Button>
           </div>
           <div className="flex flex-col lg:w-full  max-h-40 items-center justify-center aspect-square bg-[#f1f1f1] rounded-xl mx-auto relative">
@@ -256,7 +254,8 @@ export const ImageThumbnail = memo(function ImageThumbnail({
                     rel="noopener noreferrer"
                     className="text-blue-400 hover:text-blue-300 underline"
                   >
-                    Originalquelle
+                    Source
+                    <ArrowUpRight className="inline h-3 w-3 ml-1" />
                   </a>
                 </div>
               )}
@@ -267,15 +266,16 @@ export const ImageThumbnail = memo(function ImageThumbnail({
 
         {/* Mini SVG Preview Section (only on mobile/when svgContentPreview is present) */}
         {svgContentPreview && (
-          <div className="flex-1  lg:hidden border border-gray-700 rounded-2xl overflow-hidden p-2 relative  h-full" onClick={toggleSettingsPanel}>
+          <div className="flex-1  lg:hidden border border-gray-700 rounded-2xl overflow-hidden p-2 relative  h-full" >
             <h3 className="text-base md:text-lg font-medium mb-1 md:mb-2 text-center">Preview</h3>
-            <div ref={svgPreviewContainerRef} className="aspect-square bg-[#f1f1f1] rounded-lg overflow-hidden flex items-center justify-center max-h-40  mx-auto p-1">
+            <Maximize2 className="absolute top-2 right-2 h-4 w-4 text-gray-400 cursor-pointer hover:text-gray-300" onClick={toggleSettingsPanel} />
+            <div ref={svgPreviewContainerRef} className="aspect-square bg-[#f1f1f1] rounded-lg overflow-hidden flex items-center justify-center max-h-40  mx-auto p-1" onClick={toggleSettingsPanel}>
               {/* Mini SVG will be injected here */}
             </div>
             {/* Optional: Add tile info for preview if needed */}
             {processedData && (
               <div className="mt-1 text-center text-xs text-gray-300">
-                {processedData.width} × {processedData.height} tiles
+                {processedData.columnsCount} × {processedData.rowsCount} tiles
               </div>
             )}
           </div>

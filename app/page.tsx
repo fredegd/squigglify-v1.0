@@ -233,7 +233,7 @@ export default function Home() {
   return (
     <main className="h-screen bg-gray-800 text-gray-100  p-0  no-scrollbar">
       <div className="max-w-7xl mx-auto h-full overflow-y-auto pt-20 no-scrollbar">
-        <header className="h-20 text-center flex justify-between items-center fixed top-0 left-0 right-0 z-50  rounded-lg p-4">
+        <header className="h-20 text-center flex justify-between items-center fixed top-0 left-0 right-0 z-50  rounded-lg p-4 bg-inherit backdrop-blur-md shadow-lg">
           <h1 className="text-3xl md:text-4xl font-bold mb-2">Squigglify</h1>
           {originalImage && !showRandomImageLoader && !isSettingsPanelVisible && (
 
@@ -309,7 +309,7 @@ export default function Home() {
           {!showRandomImageLoader && originalImage && (<>
             <div className={`
               ${isSettingsPanelVisible ? 'block' : 'hidden lg:block'}
-              ${isSettingsPanelVisible ? 'fixed right-0 top-0 bottom-0 w-full  z-50  overflow-y-auto md:p-4 p-0 transition-all duration-300 ease-in-out     bg-gray-700/30 backdrop-blur rounded-lg' : ''}
+              ${isSettingsPanelVisible ? 'fixed right-0 top-0 bottom-0 w-full  z-50  overflow-y-auto md:p-4 p-0 transition-all duration-300 ease-in-out     bg-gray-800/60 backdrop-blur rounded-lg' : ''}
               lg:static lg:z-auto lg:overflow-visible lg:p-0 lg:space-y-6 lg:w-auto lg:shadow-none no-scrollbar
             `}
             >
