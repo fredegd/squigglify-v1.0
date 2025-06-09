@@ -1,11 +1,11 @@
 "use client"
 
 import { useEffect, useRef, memo, useState } from "react"
-import { Loader, ArrowUpToLine, ArrowUpRight, Maximize2, LoaderCircle, X } from "lucide-react"
+import { ArrowUpToLine, ArrowUpRight, Maximize2, LoaderCircle, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
 import SvgDownloadOptions from "@/components/svg-download-options"
-import type { ImageData } from "@/lib/types"
+import type { ImageData, Settings } from "@/lib/types"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 interface PreviewProps {
@@ -185,13 +185,15 @@ export const ImageThumbnail = memo(function ImageThumbnail({
   processedData,
   onNewImageUpload,
   svgContentPreview,
-  toggleSettingsPanel
+  toggleSettingsPanel,
+  settings
 }: {
   originalImage: string
   processedData: ImageData | null
   onNewImageUpload: () => void
   svgContentPreview?: string | null
   toggleSettingsPanel: () => void
+  settings: Settings
 }) {
   const svgPreviewContainerRef = useRef<HTMLDivElement>(null);
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
@@ -237,15 +239,16 @@ export const ImageThumbnail = memo(function ImageThumbnail({
 
           </div>
           {processedData && (
-            <div className="mt-1 space-y-1">
+            <div className="flex flex-col  gap-1 mx-auto">
               {processedData.fileName && (
                 <div className="text-center text-xs text-gray-300">
                   {processedData.fileName}
                 </div>
               )}
               <div className="text-center text-xs text-gray-300">
+                {"Size: "}
                 {processedData.originalWidth} × {processedData.originalHeight} px
-                {" • "}
+                {"  •  Ratio: "}
                 {(processedData.originalWidth / processedData.originalHeight).toFixed(2)}:1
               </div>
               {processedData.sourceUrl && (
@@ -276,10 +279,20 @@ export const ImageThumbnail = memo(function ImageThumbnail({
             </div>
             {/* Optional: Add tile info for preview if needed */}
             {processedData && (
-              <div className="mt-1 text-center text-xs text-gray-300">
+              <p className="mt-1 text-center text-xs text-gray-300">
                 {processedData.columnsCount} × {processedData.rowsCount} tiles
-              </div>
+
+              </p>
             )}
+            {/* display density information */}
+            <p className="mt-1 text-center text-xs text-gray-300">
+              Density: {settings.minDensity} - {settings.maxDensity}
+            </p>
+
+            {/* display current processing mode */}
+            <p className="mt-1 text-center text-xs text-gray-300">
+              Processing Mode: {settings.processingMode}
+            </p>
           </div>
         )}
       </div>

@@ -323,6 +323,7 @@ export default function Home() {
                     onNewImageUpload={handleNewImageUpload}
                     svgContentPreview={svgContent}
                     toggleSettingsPanel={toggleSettingsPanel}
+                    settings={settings}
                   />
                 )}
                 <TooltipProvider>
