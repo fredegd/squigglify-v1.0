@@ -339,7 +339,7 @@ export default function Home() {
             </div>
             {/* Close button - only visible on mobile, moved outside panel scroll for correct fixed behavior */}
             {isSettingsPanelVisible && (
-              <div className="fixed top-3 right-4 z-[51] lg:hidden">
+              <div className="fixed top-3 right-4 z-[50] lg:hidden">
                 <Button
                   // variant="ghost"
                   size="icon"

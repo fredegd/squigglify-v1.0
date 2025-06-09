@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useRef, memo } from "react"
-import { Loader, ArrowUpToLine, ArrowUpRight, Maximize2, LoaderCircle } from "lucide-react"
+import { useEffect, useRef, memo, useState } from "react"
+import { Loader, ArrowUpToLine, ArrowUpRight, Maximize2, LoaderCircle, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import SvgDownloadOptions from "@/components/svg-download-options"
 import type { ImageData } from "@/lib/types"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
@@ -193,6 +194,7 @@ export const ImageThumbnail = memo(function ImageThumbnail({
   toggleSettingsPanel: () => void
 }) {
   const svgPreviewContainerRef = useRef<HTMLDivElement>(null);
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
 
   useEffect(() => {
     if (svgContentPreview && svgPreviewContainerRef.current) {
@@ -211,7 +213,7 @@ export const ImageThumbnail = memo(function ImageThumbnail({
   }, [svgContentPreview]);
 
   return (
-    <div className=" bg-gray-800/80 backdrop-blur-md rounded-lg   sticky top-0 z-50  pt-12 lg:pt-0">
+    <div className=" bg-gray-800/80 backdrop-blur-md rounded-lg   sticky top-0 z-[45]  pt-12 lg:pt-0">
       <div className="flex flex-row gap-4 items-start p-4 lg:px-0 lg:pt-0 h-full">
         {/* Original Image Section */}
         <div className="flex-1 lg:w-full  border border-gray-700 rounded-2xl overflow-hidden p-2 relative">
@@ -226,7 +228,7 @@ export const ImageThumbnail = memo(function ImageThumbnail({
               <ArrowUpToLine className="h-3.5 md:h-4 w-3.5 md:w-4" />
             </Button>
           </div>
-          <div className="flex flex-col lg:w-full  max-h-40 items-center justify-center aspect-square bg-[#f1f1f1] rounded-xl mx-auto relative">
+          <div className="flex flex-col lg:w-full  max-h-40 items-center justify-center aspect-square bg-[#f1f1f1] rounded-xl mx-auto relative cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setIsFullscreenOpen(true)}>
             <img
               src={originalImage || "/placeholder.svg"}
               alt="Original"
@@ -281,6 +283,53 @@ export const ImageThumbnail = memo(function ImageThumbnail({
           </div>
         )}
       </div>
+
+      {/* Fullscreen Image Dialog */}
+      <Dialog open={isFullscreenOpen} onOpenChange={setIsFullscreenOpen}>
+        <DialogContent className="max-w-[100vw] max-h-[100vh] w-screen h-screen p-0 border-0 bg-black/95">
+          <div className="relative w-full h-full flex items-center justify-center">
+            {/* Close button */}
+            <Button
+              onClick={() => setIsFullscreenOpen(false)}
+              className="absolute top-4 right-4 z-50  h-8 w-8 p-0 hover:!text-red-500 !bg-transparent"
+              title="Close Fullscreen"
+              size="sm"
+
+            >
+              <X className="h-5 w-5 text-white" />
+            </Button>
+
+            {/* Fullscreen image */}
+            <img
+              src={originalImage || "/placeholder.svg"}
+              alt="Original - Fullscreen"
+              className="max-w-full max-h-full object-contain p-4"
+              style={{
+                width: 'auto',
+                height: 'auto',
+                maxWidth: '100vw',
+                maxHeight: '100vh'
+              }}
+            />
+
+            {/* Optional: Image info overlay */}
+            {processedData && (
+              <div className="absolute bottom-4 left-4 bg-black/70 text-white px-4 py-2 rounded-lg backdrop-blur-sm">
+                <div className="text-sm">
+                  {processedData.fileName && (
+                    <div className="font-medium">{processedData.fileName}</div>
+                  )}
+                  <div className="text-gray-300">
+                    {processedData.originalWidth} × {processedData.originalHeight} px
+                    {" • "}
+                    {(processedData.originalWidth / processedData.originalHeight).toFixed(2)}:1
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
 
     </div>

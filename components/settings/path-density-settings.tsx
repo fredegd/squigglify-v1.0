@@ -15,7 +15,7 @@ interface PathDensitySettingsProps {
 }
 
 export default function PathDensitySettings({ settings, onSettingsChange, disabled, calculatedDensity }: PathDensitySettingsProps) {
-    const [isValueLinked, setIsValueLinked] = useState(true)
+    const [isValueLinked, setIsValueLinked] = useState(false)
 
     const handleMinDensityChange = (value: number) => {
         if (isValueLinked) {
