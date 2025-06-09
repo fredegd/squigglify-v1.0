@@ -14,6 +14,7 @@ interface PreviewProps {
   isProcessing: boolean
   processedData: ImageData | null
   onNewImageUpload: () => void
+  settings: Settings
 }
 
 // Use memo to prevent unnecessary re-renders
@@ -21,6 +22,7 @@ const Preview = memo(function Preview({
   svgContent,
   isProcessing,
   processedData,
+  settings,
 }: PreviewProps) {
   const svgContainerRef = useRef<HTMLDivElement>(null)
 
@@ -167,11 +169,20 @@ const Preview = memo(function Preview({
             {/* here we need to add information about the pattern density (min and max) */}
             {/* here we need to add information about the output size */}
             {processedData && (
-              <div className="my-2 text-center text-xs text-gray-300">
-                {processedData.width} ×{" "}
-                {processedData.height} tiles
-              </div>
+              <p className="mt-1 text-center text-xs text-gray-300">
+                {processedData.columnsCount} × {processedData.rowsCount} tiles
+
+              </p>
             )}
+            {/* display density information */}
+            <p className="mt-1 text-center text-xs text-gray-300">
+              Density: {settings.minDensity} - {settings.maxDensity}
+            </p>
+
+            {/* display current processing mode */}
+            <p className="mt-1 text-center text-xs text-gray-300">
+              Processing Mode: {settings.processingMode}
+            </p>
           </div>
         </div>
       </div>

@@ -300,6 +300,7 @@ export default function Home() {
                   isProcessing={isProcessing}
                   processedData={processedData}
                   onNewImageUpload={handleNewImageUpload}
+                  settings={settings}
                 />
               </>
             )}
