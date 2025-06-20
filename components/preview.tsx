@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, memo, useState } from "react"
-import { ArrowUpToLine, ArrowUpRight, Maximize2, LoaderCircle, X } from "lucide-react"
+import { ArrowUpToLine, ArrowUpRight, Maximize2, LoaderCircle, X, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import SvgDownloadOptions from "@/components/svg-download-options"
@@ -226,87 +226,89 @@ export const ImageThumbnail = memo(function ImageThumbnail({
   }, [svgContentPreview]);
 
   return (
-    <div className=" bg-gray-800/80 backdrop-blur-md rounded-lg   sticky top-0 z-[45]  pt-12 lg:pt-0">
-      <div className="flex flex-row gap-4 items-start p-4 lg:px-0 lg:pt-0 h-full">
-        {/* Original Image Section */}
-        <div className="flex-1 lg:w-full  border border-gray-700 rounded-2xl overflow-hidden p-2 relative">
-          <h3 className="text-base md:text-lg font-medium mb-1 md:mb-2 text-center">Input</h3>
-          <div className="  absolute top-2 right-2  ">
-            <Button
-              onClick={onNewImageUpload}
-              className="h-7 w-7 md:h-8 md:w-8 p-0 !bg-transparent hover:text-red-500"
-              size="sm"
-              title="Upload new image"
-            >
-              <ArrowUpToLine className="h-3.5 md:h-4 w-3.5 md:w-4" />
-            </Button>
-          </div>
-          <div className="flex flex-col lg:w-full  max-h-40 items-center justify-center aspect-square bg-[#f1f1f1] rounded-xl mx-auto relative cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setIsFullscreenOpen(true)}>
-            <img
-              src={originalImage || "/placeholder.svg"}
-              alt="Original"
-              className="max-w-full max-h-full object-contain p-1"
-            />
-
-          </div>
-          {processedData && (
-            <div className="flex flex-col  gap-1 mx-auto">
-              {processedData.fileName && (
+    <div className=" bg-gray-800/80 backdrop-blur-md rounded-lg   sticky top-0 z-[45]  pt-12 lg:pt-0 px-4">
+      {/* we should include this following div in a details/summary section */}
+      <details className="lg:hidden" open>
+        <summary className="cursor-pointer text-md font-bold  my-6 flex items-center justify-between ">
+          <h3 className="flex items-center gap-2">Image Details</h3>
+          <ChevronDown className="h-4 w-4 transform transition-transform duration-200 group-open:rotate-180" />
+        </summary>
+        <div className="flex flex-row gap-4 items-start p-4 pt-0 h-full">
+          {/* Original Image Section */}
+          <div className="flex-1 lg:w-full  border border-gray-700 rounded-2xl overflow-hidden p-2 relative">
+            <h3 className="text-base md:text-lg font-medium mb-1 md:mb-2 text-center">Input</h3>
+            <div className="  absolute top-2 right-2  ">
+              <Button
+                onClick={onNewImageUpload}
+                className="h-7 w-7 md:h-8 md:w-8 p-0 !bg-transparent hover:text-red-500"
+                size="sm"
+                title="Upload new image"
+              >
+                <ArrowUpToLine className="h-3.5 md:h-4 w-3.5 md:w-4" />
+              </Button>
+            </div>
+            <div className="flex flex-col lg:w-full  max-h-40 items-center justify-center aspect-square bg-[#f1f1f1] rounded-xl mx-auto relative cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setIsFullscreenOpen(true)}>
+              <img
+                src={originalImage || "/placeholder.svg"}
+                alt="Original"
+                className="max-w-full max-h-full object-contain p-1"
+              />
+            </div>
+            {processedData && (
+              <div className="flex flex-col  gap-1 mx-auto">
+                {processedData.fileName && (
+                  <div className="text-center text-xs text-gray-300">
+                    {processedData.fileName}
+                  </div>
+                )}
                 <div className="text-center text-xs text-gray-300">
-                  {processedData.fileName}
+                  {"Size: "}
+                  {processedData.originalWidth} × {processedData.originalHeight} px
+                  {"  •  Ratio: "}
+                  {(processedData.originalWidth / processedData.originalHeight).toFixed(2)}:1
                 </div>
-              )}
-              <div className="text-center text-xs text-gray-300">
-                {"Size: "}
-                {processedData.originalWidth} × {processedData.originalHeight} px
-                {"  •  Ratio: "}
-                {(processedData.originalWidth / processedData.originalHeight).toFixed(2)}:1
+                {processedData.sourceUrl && (
+                  <div className="text-center text-xs">
+                    <a
+                      href={processedData.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 underline"
+                    >
+                      Source
+                      <ArrowUpRight className="inline h-3 w-3 ml-1" />
+                    </a>
+                  </div>
+                )}
               </div>
-              {processedData.sourceUrl && (
-                <div className="text-center text-xs">
-                  <a
-                    href={processedData.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-400 hover:text-blue-300 underline"
-                  >
-                    Source
-                    <ArrowUpRight className="inline h-3 w-3 ml-1" />
-                  </a>
-                </div>
+            )}
+          </div>
+          {/* Mini SVG Preview Section (only on mobile/when svgContentPreview is present) */}
+          {svgContentPreview && (
+            <div className="flex-1  lg:hidden border border-gray-700 rounded-2xl overflow-hidden p-2 relative  h-full" >
+              <h3 className="text-base md:text-lg font-medium mb-1 md:mb-2 text-center">Preview</h3>
+              <Maximize2 className="absolute top-2 right-2 h-4 w-4 text-gray-400 cursor-pointer hover:text-gray-300" onClick={toggleSettingsPanel} />
+              <div ref={svgPreviewContainerRef} className="aspect-square bg-[#f1f1f1] rounded-lg overflow-hidden flex items-center justify-center max-h-40  mx-auto p-1" onClick={toggleSettingsPanel}>
+                {/* Mini SVG will be injected here */}
+              </div>
+              {/* Optional: Add tile info for preview if needed */}
+              {processedData && (
+                <p className="mt-1 text-center text-xs text-gray-300">
+                  {processedData.columnsCount} × {processedData.rowsCount} tiles
+                </p>
               )}
+              {/* display density information */}
+              <p className="mt-1 text-center text-xs text-gray-300">
+                Density: {settings.minDensity} - {settings.maxDensity}
+              </p>
+              {/* display current processing mode */}
+              <p className="mt-1 text-center text-xs text-gray-300">
+                Processing Mode: {settings.processingMode}
+              </p>
             </div>
           )}
-
         </div>
-
-        {/* Mini SVG Preview Section (only on mobile/when svgContentPreview is present) */}
-        {svgContentPreview && (
-          <div className="flex-1  lg:hidden border border-gray-700 rounded-2xl overflow-hidden p-2 relative  h-full" >
-            <h3 className="text-base md:text-lg font-medium mb-1 md:mb-2 text-center">Preview</h3>
-            <Maximize2 className="absolute top-2 right-2 h-4 w-4 text-gray-400 cursor-pointer hover:text-gray-300" onClick={toggleSettingsPanel} />
-            <div ref={svgPreviewContainerRef} className="aspect-square bg-[#f1f1f1] rounded-lg overflow-hidden flex items-center justify-center max-h-40  mx-auto p-1" onClick={toggleSettingsPanel}>
-              {/* Mini SVG will be injected here */}
-            </div>
-            {/* Optional: Add tile info for preview if needed */}
-            {processedData && (
-              <p className="mt-1 text-center text-xs text-gray-300">
-                {processedData.columnsCount} × {processedData.rowsCount} tiles
-
-              </p>
-            )}
-            {/* display density information */}
-            <p className="mt-1 text-center text-xs text-gray-300">
-              Density: {settings.minDensity} - {settings.maxDensity}
-            </p>
-
-            {/* display current processing mode */}
-            <p className="mt-1 text-center text-xs text-gray-300">
-              Processing Mode: {settings.processingMode}
-            </p>
-          </div>
-        )}
-      </div>
+      </details>
 
       {/* Fullscreen Image Dialog */}
       <Dialog open={isFullscreenOpen} onOpenChange={setIsFullscreenOpen}>
