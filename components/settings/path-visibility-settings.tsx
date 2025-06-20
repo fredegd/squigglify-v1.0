@@ -170,7 +170,7 @@ const PathVisibilitySettings = React.memo(function PathVisibilitySettings({
                         <Slider
                             id="colorsAmt-visibility-setting"
                             min={2}
-                            max={10}
+                            max={12}
                             step={1}
                             value={[settings.colorsAmt]}
                             onValueChange={(value) => onSettingsChange({ colorsAmt: value[0] })}

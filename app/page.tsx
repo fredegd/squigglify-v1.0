@@ -12,9 +12,15 @@ import { processImage, generateSVG } from "@/lib/image-processor"
 import type { ImageData, Settings } from "@/lib/types"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Menu } from "lucide-react"
+import {
+  getStoredImage,
+  saveImageToStorage,
+  clearStoredImage,
+  hasStoredImage
+} from "@/lib/utils/image-storage"
 
 export default function Home() {
-  const [originalImage, setOriginalImage] = useState<string | null>("https://upload.wikimedia.org/wikipedia/commons/b/bd/La_Gioconda%2C_Leonardo_Da_Vinci.jpg")
+  const [originalImage, setOriginalImage] = useState<string | null>(null)
   const [processedData, setProcessedData] = useState<ImageData | null>(null)
   const [svgContent, setSvgContent] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -37,10 +43,55 @@ export default function Home() {
   })
   const [showRandomImageLoader, setShowRandomImageLoader] = useState(false)
   const [currentFileName, setCurrentFileName] = useState<string | undefined>(undefined)
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
+
+  // Check localStorage on mount and load stored image or fallback to default
+  useEffect(() => {
+    const loadInitialImage = async () => {
+      try {
+        const storedImage = getStoredImage();
+
+        if (storedImage) {
+          console.log(`Loading stored image: ${storedImage.fileName} (${(storedImage.compressedSize / 1024 / 1024).toFixed(2)}MB)`);
+          setOriginalImage(storedImage.dataUrl);
+          setCurrentFileName(storedImage.fileName);
+          setShowRandomImageLoader(false);
+        } else {
+          // Fallback to default image if no stored image
+          console.log('No stored image found, loading default image');
+          const defaultImageUrl = "https://upload.wikimedia.org/wikipedia/commons/b/bd/La_Gioconda%2C_Leonardo_Da_Vinci.jpg";
+          setOriginalImage(defaultImageUrl);
+          setCurrentFileName("La_Gioconda_Leonardo_Da_Vinci.jpg");
+          setShowRandomImageLoader(false);
+
+          // Save the default image to localStorage for next time (now with proper URL to data URL conversion)
+          saveImageToStorage(defaultImageUrl, "La_Gioconda_Leonardo_Da_Vinci.jpg").catch(error => {
+            console.log('Could not save default image to localStorage:', error);
+          });
+        }
+      } catch (error) {
+        console.error('Error loading initial image:', error);
+        // Fallback to showing the random image loader
+        setShowRandomImageLoader(true);
+      } finally {
+        setIsInitialLoad(false);
+      }
+    };
+
+    loadInitialImage();
+  }, []);
+
+  // Process the initial image once it's loaded
+  useEffect(() => {
+    if (originalImage && !isInitialLoad && !processedData) {
+      const { curveControls, visiblePaths, ...processingSettingsForEffect } = settings;
+      handleProcessImage(processingSettingsForEffect as Settings);
+    }
+  }, [originalImage, isInitialLoad, processedData, settings]);
 
   // Process image when it's uploaded or settings change (excluding curveControls and visiblePaths)
   useEffect(() => {
-    if (originalImage && settings) {
+    if (originalImage && settings && !isInitialLoad) {
       const { curveControls, visiblePaths, ...processingSettingsForEffect } = settings;
       // console.log("Processing image due to settings change (excluding curves/visibility):");
       handleProcessImage(processingSettingsForEffect as Settings) // Cast as Settings, though it's partial
@@ -57,6 +108,7 @@ export default function Home() {
     settings.processingMode,
     settings.colorsAmt,
     settings.monochromeColor,
+    isInitialLoad,
     // curveControls and visiblePaths are intentionally excluded here to prevent re-processing
     // Their changes are handled by the other useEffect hooks that only regenerate SVG
   ])
@@ -84,16 +136,41 @@ export default function Home() {
     isProcessing
   ])
 
-  const handleManualImageUpload = (imageDataUrl: string, fileName: string) => {
-    setOriginalImage(imageDataUrl)
-    setCurrentFileName(fileName) // Store the fileName
-    setShowRandomImageLoader(false)
+  const handleManualImageUpload = async (imageDataUrl: string, fileName: string) => {
+    try {
+      // Save the new image to localStorage
+      await saveImageToStorage(imageDataUrl, fileName);
+      console.log(`Saved image to localStorage: ${fileName}`);
+
+      setOriginalImage(imageDataUrl)
+      setCurrentFileName(fileName) // Store the fileName
+      setShowRandomImageLoader(false)
+    } catch (error) {
+      console.error('Failed to save image to localStorage:', error);
+      // Still proceed with setting the image even if saving fails
+      setOriginalImage(imageDataUrl)
+      setCurrentFileName(fileName)
+      setShowRandomImageLoader(false)
+    }
   }
 
-  const handleImageSelectedFromRandomLoader = (imageUrl: string, fileName?: string) => {
-    setOriginalImage(imageUrl)
-    setCurrentFileName(fileName) // Store the fileName, it might be undefined for random images
-    setShowRandomImageLoader(false)
+  const handleImageSelectedFromRandomLoader = async (imageUrl: string, fileName?: string) => {
+    try {
+      // Save the selected random image to localStorage
+      const finalFileName = fileName || new URL(imageUrl).pathname.split('/').pop() || 'random_image.jpg';
+      await saveImageToStorage(imageUrl, finalFileName);
+      console.log(`Saved random image to localStorage: ${finalFileName}`);
+
+      setOriginalImage(imageUrl)
+      setCurrentFileName(finalFileName)
+      setShowRandomImageLoader(false)
+    } catch (error) {
+      console.error('Failed to save random image to localStorage:', error);
+      // Still proceed with setting the image even if saving fails
+      setOriginalImage(imageUrl)
+      setCurrentFileName(fileName)
+      setShowRandomImageLoader(false)
+    }
   }
 
   const handleCancelRandomImageLoad = () => {
@@ -104,6 +181,10 @@ export default function Home() {
     setIsSettingsPanelVisible(false)
     setSvgContent(null)
     setShowRandomImageLoader(true)
+
+    // Clear the stored image since user is explicitly uploading a new one
+    clearStoredImage()
+    console.log('Cleared stored image for new upload')
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,8 +198,16 @@ export default function Home() {
       }
 
       const reader = new FileReader()
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         if (e.target && typeof e.target.result === "string") {
+          try {
+            // Save the image to localStorage
+            await saveImageToStorage(e.target.result, file.name);
+            console.log(`Saved uploaded file to localStorage: ${file.name}`);
+          } catch (error) {
+            console.error('Failed to save uploaded file to localStorage:', error);
+          }
+
           // Set the original image and pass the file name to handleProcessImage
           handleProcessImage({
             imageDataUrl: e.target.result,

@@ -7,11 +7,12 @@ import { Upload, ImageIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface ImageUploaderProps {
-  onImageUpload: (imageDataUrl: string, fileName: string) => void
+  onImageUpload: (imageDataUrl: string, fileName: string) => Promise<void> | void
 }
 
 export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
   const [isDragging, setIsDragging] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -39,20 +40,49 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
     }
   }
 
-  const handleFile = (file: File) => {
+  const handleFile = async (file: File) => {
     // Check if file is an image
     if (!file.type.match("image.*")) {
       alert("Please select an image file")
       return
     }
 
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      if (e.target && typeof e.target.result === "string") {
-        onImageUpload(e.target.result, file.name) // Pass file.name here
-      }
+    // Check file size (warn if > 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      const proceed = confirm(
+        `This file is ${(file.size / 1024 / 1024).toFixed(2)}MB. ` +
+        `Large files will be automatically compressed to fit in local storage. Continue?`
+      );
+      if (!proceed) return;
     }
-    reader.readAsDataURL(file)
+
+    setIsUploading(true);
+
+    try {
+      const reader = new FileReader()
+      reader.onload = async (e) => {
+        if (e.target && typeof e.target.result === "string") {
+          try {
+            await onImageUpload(e.target.result, file.name);
+          } catch (error) {
+            console.error('Error uploading image:', error);
+            alert('Failed to upload image. Please try again.');
+          } finally {
+            setIsUploading(false);
+          }
+        }
+      }
+      reader.onerror = () => {
+        setIsUploading(false);
+        alert('Failed to read file. Please try again.');
+      };
+      reader.readAsDataURL(file)
+    } catch (error) {
+      setIsUploading(false);
+      console.error('Error handling file:', error);
+      alert('Failed to process file. Please try again.');
+    }
   }
 
   const handleButtonClick = () => {
@@ -63,11 +93,15 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
 
   return (
     <div
-      className={`border-2 border-dashed rounded-lg p-12 flex flex-col items-center justify-center h-96 transition-colors ${isDragging ? "border-primary bg-primary/40" : "border-gray-700 hover:border-gray-500 max-h-64 w-full max-w-lg"
+      className={`border-2 border-dashed rounded-lg p-12 flex flex-col items-center justify-center h-96 transition-colors ${isUploading
+        ? "border-blue-500 bg-blue-500/20"
+        : isDragging
+          ? "border-primary bg-primary/40"
+          : "border-gray-700 hover:border-gray-500 max-h-64 w-full max-w-lg"
         }`}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
+      onDragOver={!isUploading ? handleDragOver : undefined}
+      onDragLeave={!isUploading ? handleDragLeave : undefined}
+      onDrop={!isUploading ? handleDrop : undefined}
     >
       <input type="file" ref={fileInputRef} onChange={handleFileInput} accept="image/*" className="hidden" />
 
@@ -79,11 +113,23 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
             <ImageIcon className="h-10 w-10 text-gray-300" />
           )}
         </div>
-        <h3 className="text-xl font-medium mb-2">{isDragging ? "Drop your image here" : "Upload an image"}</h3>
-        <p className="text-gray-300 mb-4">Upload an image and convert it into a vector wave paths</p>
+        <h3 className="text-xl font-medium mb-2">
+          {isUploading ? "Processing image..." : isDragging ? "Drop your image here" : "Upload an image"}
+        </h3>
+        <p className="text-gray-300 mb-4">
+          {isUploading
+            ? "Compressing and saving to local storage..."
+            : "Upload an image and convert it into a vector wave paths"
+          }
+        </p>
 
-        <Button onClick={handleButtonClick} variant="outline" className="border-gray-500 text-black hover:bg-gray-500 hover:text-white">
-          Select Image
+        <Button
+          onClick={handleButtonClick}
+          variant="outline"
+          className="border-gray-500 text-black hover:bg-gray-500 hover:text-white"
+          disabled={isUploading}
+        >
+          {isUploading ? "Processing..." : "Select Image"}
         </Button>
       </div>
     </div>
