@@ -9,6 +9,8 @@ export interface CurveControlSettings {
   lowerKnotXShift?: number; // Optional: Shifts the X coordinate of lower knot points
   upperKnotShiftFactor?: number; // Optional: Factor to apply random X/Y shift to upper knot points (0-1)
   disorganizeFactor?: number; // Optional: Factor to apply random X/Y shift to each point in a path (0-1)
+  rowWaveShift?: number; // Optional: Factor for row-based wave shift (-1 to 1)
+  columnWaveShift?: number; // Optional: Factor for column-based wave shift (-1 to 1)
 }
 
 export interface Settings {
@@ -37,6 +39,8 @@ export const DEFAULT_CURVE_CONTROLS: CurveControlSettings = {
   lowerKnotXShift: 0, // Default X shift for lower knot points
   upperKnotShiftFactor: 0.0, // Default factor for upper knot random shift
   disorganizeFactor: 0.0, // Default factor for the new disorganize effect
+  rowWaveShift: 0.0, // Default factor for row wave shift
+  columnWaveShift: 0.0, // Default factor for column wave shift
 };
 
 export interface PixelData {
@@ -75,6 +79,7 @@ export interface PathPoint {
   height: number;
   density: number;
   row: number;
+  column?: number; // Add column information for wave calculations
   direction: number;
   randomUpperKnotShiftX?: number; // Pre-calculated random X shift for upper knots
   randomUpperKnotShiftY?: number; // Pre-calculated random Y shift for upper knots

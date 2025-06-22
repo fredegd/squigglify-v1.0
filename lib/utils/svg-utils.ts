@@ -114,7 +114,9 @@ export function generateContinuousPath(
       point.density,
       point.direction,
       curveControls,
-      point
+      point,
+      settings.columnsCount,
+      settings.rowsCount
     );
 
     // If this is not the first point in the current path and we have vertices,
@@ -151,7 +153,9 @@ function createTileVertices(
   density: number,
   direction: number,
   curveControls?: CurveControlSettings,
-  pathPoint?: PathPoint
+  pathPoint?: PathPoint,
+  totalColumns?: number,
+  totalRows?: number
 ): { x: number; y: number }[] {
   if (density <= 0) return [];
 
@@ -160,6 +164,32 @@ function createTileVertices(
   const lowerXShift = curveControls?.lowerKnotXShift || 0;
   const upperShiftFactor = curveControls?.upperKnotShiftFactor || 0;
   const disorganizeFactor = curveControls?.disorganizeFactor || 0;
+  const rowWaveShift = curveControls?.rowWaveShift || 0;
+  const columnWaveShift = curveControls?.columnWaveShift || 0;
+
+  // Calculate wave shifts if pathPoint has row/column information
+  let rowWaveOffset = 0;
+  let columnWaveOffset = 0;
+
+  if (pathPoint && totalColumns && totalRows) {
+    const row = pathPoint.row;
+    const column = pathPoint.column ?? Math.floor(pathPoint.x / width);
+
+    // Row wave shift: sin(column/total_columns) * rowWaveShift
+    // Check if row direction alternates (even/odd rows)
+    const isEvenRow = row % 2 === 0;
+    const normalizedColumn = column / totalColumns;
+    const rowWaveValue =
+      (Math.sin(normalizedColumn * Math.PI * 2) * rowWaveShift * height) / 2; // Scale factor for visible effect
+
+    // Apply opposite shift for alternating rows
+    rowWaveOffset = isEvenRow ? rowWaveValue : -rowWaveValue;
+
+    // Column wave shift: cos(column/total_columns) * columnWaveShift - shifts entire columns vertically
+    const normalizedColumnForColWave = column / totalColumns;
+    columnWaveOffset =
+      Math.cos(normalizedColumnForColWave * Math.PI * 2) * columnWaveShift * 30; // Scale factor for visible effect
+  }
 
   const applyDisorganization = (coordX: number, coordY: number) => {
     if (disorganizeFactor > 0) {
@@ -178,7 +208,14 @@ function createTileVertices(
   const randomUpperYShift =
     (pathPoint?.randomUpperKnotShiftY || 0) * upperShiftFactor;
 
-  let currentPoint = { x: x + randomUpperXShift, y: y + randomUpperYShift };
+  // Apply wave shifts to the upper point
+  const upperWaveShiftX = 0; // No horizontal shift for column waves
+  const upperWaveShiftY = rowWaveOffset + columnWaveOffset; // Row wave + Column wave both affect Y (vertical)
+
+  let currentPoint = {
+    x: x + randomUpperXShift + upperWaveShiftX,
+    y: y + randomUpperYShift + upperWaveShiftY,
+  };
   vertices.push(applyDisorganization(currentPoint.x, currentPoint.y));
 
   // For each segment of the zigzag
@@ -188,38 +225,51 @@ function createTileVertices(
 
     if (i % 2 === 0) {
       // Vertical segment down (to a lower point)
-      currentPoint = { x: currentLoopX + lowerXShift, y: y + height };
+      // Apply opposite wave shift for lower points
+      const lowerWaveShiftX = 0; // No horizontal shift for column waves
+      const lowerWaveShiftY = -rowWaveOffset + columnWaveOffset; // Row wave opposite direction + Column wave
+
+      currentPoint = {
+        x: currentLoopX + lowerXShift + lowerWaveShiftX,
+        y: y + height + lowerWaveShiftY,
+      };
       vertices.push(applyDisorganization(currentPoint.x, currentPoint.y));
 
       // Horizontal segment if not the last one (lower point to lower point)
       if (i < density - 1) {
-        currentPoint = { x: nextLoopX + lowerXShift, y: y + height };
+        currentPoint = {
+          x: nextLoopX + lowerXShift + lowerWaveShiftX,
+          y: y + height + lowerWaveShiftY,
+        };
         vertices.push(applyDisorganization(currentPoint.x, currentPoint.y));
       } else if (density % 2 === 1) {
         // Last segment with odd density (lower point)
-        currentPoint = { x: nextLoopX + lowerXShift, y: y + height };
+        currentPoint = {
+          x: nextLoopX + lowerXShift + lowerWaveShiftX,
+          y: y + height + lowerWaveShiftY,
+        };
         vertices.push(applyDisorganization(currentPoint.x, currentPoint.y));
       }
     } else {
       // Vertical segment up (to an upper point)
       currentPoint = {
-        x: currentLoopX + randomUpperXShift,
-        y: y + randomUpperYShift,
+        x: currentLoopX + randomUpperXShift + upperWaveShiftX,
+        y: y + randomUpperYShift + upperWaveShiftY,
       };
       vertices.push(applyDisorganization(currentPoint.x, currentPoint.y));
 
       // Horizontal segment if not the last one (upper point to upper point)
       if (i < density - 1) {
         currentPoint = {
-          x: nextLoopX + randomUpperXShift,
-          y: y + randomUpperYShift,
+          x: nextLoopX + randomUpperXShift + upperWaveShiftX,
+          y: y + randomUpperYShift + upperWaveShiftY,
         };
         vertices.push(applyDisorganization(currentPoint.x, currentPoint.y));
       } else if (density % 2 === 0) {
         // Last segment with even density (upper point)
         currentPoint = {
-          x: nextLoopX + randomUpperXShift,
-          y: y + randomUpperYShift,
+          x: nextLoopX + randomUpperXShift + upperWaveShiftX,
+          y: y + randomUpperYShift + upperWaveShiftY,
         };
         vertices.push(applyDisorganization(currentPoint.x, currentPoint.y));
       }
@@ -506,7 +556,9 @@ export function generateIndividualPaths(
       point.density,
       point.direction,
       curveControls,
-      point
+      point,
+      settings.columnsCount,
+      settings.rowsCount
     );
 
     // Create path from vertices

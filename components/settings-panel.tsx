@@ -241,6 +241,60 @@ export default function SettingsPanel({
                 disabled={disabled}
               />
             </div>
+
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Label htmlFor="rowWaveShift-panel">
+                  Row Wave Shift: {((curveControls.rowWaveShift || 0) * 100).toFixed(0)}%
+                </Label>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-gray-300" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">
+                      Creates a wave pattern across rows. Upper and lower knots in each row get offset based on sin(column/total_columns). Even and odd rows have opposite wave directions.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <Slider
+                id="rowWaveShift-panel"
+                min={-1}
+                max={1}
+                step={0.01}
+                value={[curveControls.rowWaveShift || 0.0]}
+                onValueChange={(value) => onCurveControlsChange({ rowWaveShift: value[0] })}
+                disabled={disabled}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Label htmlFor="columnWaveShift-panel">
+                  Column Wave Shift: {((curveControls.columnWaveShift || 0) * 100).toFixed(0)}%
+                </Label>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-gray-300" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">
+                      Creates a wave pattern across columns. Whole columns get shifted vertically based on cos(row/total_rows).
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <Slider
+                id="columnWaveShift-panel"
+                min={-1}
+                max={1}
+                step={0.01}
+                value={[curveControls.columnWaveShift || 0.0]}
+                onValueChange={(value) => onCurveControlsChange({ columnWaveShift: value[0] })}
+                disabled={disabled}
+              />
+            </div>
             <div className="flex justify-end">
               <Button
                 variant="ghost"

@@ -81,6 +81,7 @@ export class PosterizeProcessor {
         height: gridSizeY,
         density,
         row: pixel.y,
+        column: pixel.x, // Add column information for wave calculations
         direction: pixel.y % 2 === 0 ? 1 : -1,
         randomUpperKnotShiftX: (Math.random() - 0.5) * (gridSizeX + gridSizeY),
         randomUpperKnotShiftY: (Math.random() - 0.5) * (gridSizeX + gridSizeY),
