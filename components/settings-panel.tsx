@@ -24,6 +24,7 @@ interface SettingsPanelProps {
   curveControls: CurveControlSettings
   onCurveControlsChange: (newControls: Partial<CurveControlSettings>) => void
   processedData: ProcessedDataType | null
+  onResetSettings?: () => void
 }
 
 export default function SettingsPanel({
@@ -32,7 +33,8 @@ export default function SettingsPanel({
   disabled,
   curveControls,
   onCurveControlsChange,
-  processedData
+  processedData,
+  onResetSettings
 }: SettingsPanelProps) {
   const calculatedDensity = useMemo(() => {
     const MAX_DIMENSION = 560;
@@ -277,6 +279,24 @@ export default function SettingsPanel({
         onSettingsChange={onSettingsChange}
         disabled={disabled}
       />
+
+      {onResetSettings && (
+        <>
+          <Separator className="bg-gray-700" />
+          <div className="flex justify-center pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onResetSettings}
+              disabled={disabled}
+              className="text-gray-300 border-gray-600 hover:bg-gray-700 hover:text-white"
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Reset All Settings
+            </Button>
+          </div>
+        </>
+      )}
 
     </div>
   )

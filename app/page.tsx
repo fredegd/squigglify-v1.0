@@ -5,7 +5,7 @@ import ImageUploader from "@/components/image-uploader"
 import RandomImageLoader from "@/components/random-image-loader"
 import Preview, { ImageThumbnail } from "@/components/preview"
 import SettingsPanel from "@/components/settings-panel"
-import { DEFAULT_CURVE_CONTROLS } from "@/lib/types"
+import { useSettings } from "@/hooks/use-settings"
 import type { ProcessImageOptions } from "@/lib/image-processor"
 import { Button } from "@/components/ui/button"
 import { processImage, generateSVG } from "@/lib/image-processor"
@@ -18,6 +18,7 @@ import {
   clearStoredImage,
   hasStoredImage
 } from "@/lib/utils/image-storage"
+import "@/lib/utils/settings-debug" // Load debug utilities
 
 export default function Home() {
   const [originalImage, setOriginalImage] = useState<string | null>(null)
@@ -26,21 +27,7 @@ export default function Home() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [isSettingsPanelVisible, setIsSettingsPanelVisible] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [settings, setSettings] = useState<Settings>({
-    brightnessThreshold: 255,
-    minDensity: 2,
-    maxDensity: 5,
-    rowsCount: 36,
-    columnsCount: 24,
-    continuousPaths: true,
-    curvedPaths: true,
-    pathDistanceThreshold: 25,
-    processingMode: "posterize",
-    colorsAmt: 5,
-    monochromeColor: "#000000",
-    visiblePaths: {},
-    curveControls: DEFAULT_CURVE_CONTROLS,
-  })
+  const { settings, updateSettings, updateCurveControls, resetSettings, isSettingsLoaded } = useSettings()
   const [showRandomImageLoader, setShowRandomImageLoader] = useState(false)
   const [currentFileName, setCurrentFileName] = useState<string | undefined>(undefined)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
@@ -81,17 +68,17 @@ export default function Home() {
     loadInitialImage();
   }, []);
 
-  // Process the initial image once it's loaded
+  // Process the initial image once it's loaded and settings are loaded
   useEffect(() => {
-    if (originalImage && !isInitialLoad && !processedData) {
+    if (originalImage && !isInitialLoad && !processedData && isSettingsLoaded) {
       const { curveControls, visiblePaths, ...processingSettingsForEffect } = settings;
       handleProcessImage(processingSettingsForEffect as Settings);
     }
-  }, [originalImage, isInitialLoad, processedData, settings]);
+  }, [originalImage, isInitialLoad, processedData, settings, isSettingsLoaded]);
 
   // Process image when it's uploaded or settings change (excluding curveControls and visiblePaths)
   useEffect(() => {
-    if (originalImage && settings && !isInitialLoad) {
+    if (originalImage && settings && !isInitialLoad && isSettingsLoaded) {
       const { curveControls, visiblePaths, ...processingSettingsForEffect } = settings;
       // console.log("Processing image due to settings change (excluding curves/visibility):");
       handleProcessImage(processingSettingsForEffect as Settings) // Cast as Settings, though it's partial
@@ -109,6 +96,7 @@ export default function Home() {
     settings.colorsAmt,
     settings.monochromeColor,
     isInitialLoad,
+    isSettingsLoaded,
     // curveControls and visiblePaths are intentionally excluded here to prevent re-processing
     // Their changes are handled by the other useEffect hooks that only regenerate SVG
   ])
@@ -259,10 +247,7 @@ export default function Home() {
 
         // Only update settings if the visible paths have changed
         if (JSON.stringify(newVisiblePaths) !== JSON.stringify(settings.visiblePaths)) {
-          setSettings((prev) => ({
-            ...prev,
-            visiblePaths: newVisiblePaths,
-          }))
+          updateSettings({ visiblePaths: newVisiblePaths })
         }
       }
 
@@ -280,12 +265,8 @@ export default function Home() {
   }
 
   const handleSettingsChange = (newSettingsPatch: Partial<Settings>) => {
-    // If processing mode changes, reset visiblePaths
-    if (newSettingsPatch.processingMode && newSettingsPatch.processingMode !== settings.processingMode) {
-      newSettingsPatch.visiblePaths = {}
-    }
-
-    setSettings(prevSettings => ({ ...prevSettings, ...newSettingsPatch }));
+    // Use the unified settings update function
+    updateSettings(newSettingsPatch);
 
     // If colorGroups were part of the update patch, update processedData directly
     // This ensures that changes from PathVisibilitySettings' color picker are reflected.
@@ -306,13 +287,7 @@ export default function Home() {
   }
 
   const handleCurveControlsChange = (newCurveControls: Partial<typeof settings.curveControls>) => {
-    setSettings((prev) => ({
-      ...prev,
-      curveControls: {
-        ...prev.curveControls,
-        ...newCurveControls
-      }
-    }))
+    updateCurveControls(newCurveControls)
   }
 
   const toggleSettingsPanel = () => {
@@ -424,6 +399,7 @@ export default function Home() {
                     curveControls={settings.curveControls}
                     onCurveControlsChange={handleCurveControlsChange}
                     processedData={processedData}
+                    onResetSettings={resetSettings}
                   />
                 </TooltipProvider>
               </div>
