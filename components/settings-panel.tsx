@@ -295,6 +295,33 @@ export default function SettingsPanel({
                 disabled={disabled}
               />
             </div>
+
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Label htmlFor="waveShiftFrequency-panel">
+                  Wave Frequency: {(curveControls.waveShiftFrequency || 2.0).toFixed(1)}
+                </Label>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-gray-300" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">
+                      Controls the frequency of both row and column wave patterns. Higher values create more waves, lower values create fewer, broader waves.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <Slider
+                id="waveShiftFrequency-panel"
+                min={0.5}
+                max={5.0}
+                step={0.1}
+                value={[curveControls.waveShiftFrequency || 2.0]}
+                onValueChange={(value) => onCurveControlsChange({ waveShiftFrequency: value[0] })}
+                disabled={disabled}
+              />
+            </div>
             <div className="flex justify-end">
               <Button
                 variant="ghost"

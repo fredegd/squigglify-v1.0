@@ -166,6 +166,7 @@ function createTileVertices(
   const disorganizeFactor = curveControls?.disorganizeFactor || 0;
   const rowWaveShift = curveControls?.rowWaveShift || 0;
   const columnWaveShift = curveControls?.columnWaveShift || 0;
+  const waveShiftFrequency = curveControls?.waveShiftFrequency || 2.0;
 
   // Calculate wave shifts if pathPoint has row/column information
   let rowWaveOffset = 0;
@@ -180,7 +181,10 @@ function createTileVertices(
     const isEvenRow = row % 2 === 0;
     const normalizedColumn = column / totalColumns;
     const rowWaveValue =
-      (Math.sin(normalizedColumn * Math.PI * 2) * rowWaveShift * height) / 2; // Scale factor for visible effect
+      (Math.sin(normalizedColumn * Math.PI * waveShiftFrequency) *
+        rowWaveShift *
+        height) /
+      2; // Scale factor for visible effect
 
     // Apply opposite shift for alternating rows
     rowWaveOffset = isEvenRow ? rowWaveValue : -rowWaveValue;
@@ -188,7 +192,9 @@ function createTileVertices(
     // Column wave shift: cos(column/total_columns) * columnWaveShift - shifts entire columns vertically
     const normalizedColumnForColWave = column / totalColumns;
     columnWaveOffset =
-      Math.cos(normalizedColumnForColWave * Math.PI * 2) * columnWaveShift * 30; // Scale factor for visible effect
+      Math.cos(normalizedColumnForColWave * Math.PI * waveShiftFrequency) *
+      columnWaveShift *
+      30; // Scale factor for visible effect
   }
 
   const applyDisorganization = (coordX: number, coordY: number) => {

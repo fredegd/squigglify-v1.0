@@ -11,6 +11,7 @@ export interface CurveControlSettings {
   disorganizeFactor?: number; // Optional: Factor to apply random X/Y shift to each point in a path (0-1)
   rowWaveShift?: number; // Optional: Factor for row-based wave shift (-1 to 1)
   columnWaveShift?: number; // Optional: Factor for column-based wave shift (-1 to 1)
+  waveShiftFrequency?: number; // Optional: Frequency multiplier for wave calculations (0.5 to 5.0)
 }
 
 export interface Settings {
@@ -41,6 +42,7 @@ export const DEFAULT_CURVE_CONTROLS: CurveControlSettings = {
   disorganizeFactor: 0.0, // Default factor for the new disorganize effect
   rowWaveShift: 0.0, // Default factor for row wave shift
   columnWaveShift: 0.0, // Default factor for column wave shift
+  waveShiftFrequency: 2.0, // Default frequency multiplier for wave calculations
 };
 
 export interface PixelData {

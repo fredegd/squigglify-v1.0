@@ -1,3 +1,5 @@
+///ignore the content of this file, it is just a reference
+
 "use client";
 
 import type React from "react";
