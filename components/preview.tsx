@@ -228,7 +228,7 @@ export const ImageThumbnail = memo(function ImageThumbnail({
   return (
     <div className=" bg-gray-800/80 backdrop-blur-md rounded-lg   sticky top-0 z-[45]  pt-12 lg:pt-0 px-4">
       {/* we should include this following div in a details/summary section */}
-      <details className="lg:hidden" open>
+      <details className="" open>
         <summary className="cursor-pointer text-md font-bold  my-6 flex items-center justify-between ">
           <h3 className="flex items-center gap-2">Image Details</h3>
           <ChevronDown className="h-4 w-4 transform transition-transform duration-200 group-open:rotate-180" />
