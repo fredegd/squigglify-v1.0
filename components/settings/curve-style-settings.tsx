@@ -1,6 +1,6 @@
 "use client"
 
-import { Slider } from "@/components/ui/slider"
+import { Slider } from "@/components/ui/slider-w-buttons"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"

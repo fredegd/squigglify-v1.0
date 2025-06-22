@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { Slider } from "@/components/ui/slider"
+import { Slider } from "@/components/ui/slider-w-buttons"
 import type { ColorGroup, ProcessingMode, Settings } from "@/lib/types"
 import { ChevronDown } from "lucide-react"
 
