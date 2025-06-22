@@ -18,8 +18,7 @@ import { extractColorGroupSVG, extractAllColorGroups } from "@/lib/image-process
 import { svg2png, initialize as initializeSvg2pngWasm } from 'svg2png-wasm';
 
 // For PDF Conversion
-import { pdf, Document, Page, View, Text as PdfText, Image as PdfImage } from '@react-pdf/renderer';
-// Note: For more complex SVGs in PDF, you might need <Svg>, <Path>, etc. from @react-pdf/renderer
+import { pdf, Document, Page, View, Text as PdfText, Svg, Path, Rect, G } from '@react-pdf/renderer';
 
 // Add this at the top level of the module, outside the component
 if (typeof window !== 'undefined') {
@@ -176,34 +175,81 @@ export default function SvgDownloadOptions({
         }
     };
 
-    // PDF Document Component
-    // For a more robust solution, especially for complex SVGs, consider parsing the svgInput
-    // and reconstructing it using @react-pdf/renderer's <Svg>, <Path>, <Rect>, etc. components.
-    // Or, generate a data URL (e.g., PNG) from the SVG and use <PdfImage>.
-    const MyPdfDocument = ({ imageDataUrl, svgWidth, svgHeight }: { imageDataUrl: string | null, svgWidth: number, svgHeight: number }) => {
-        // Calculate image dimensions to fit within 90% of page width, maintaining aspect ratio
-        const imageMaxWidth = svgWidth * 0.9;
-        const imageMaxHeight = svgHeight * 0.9; // Also consider height constraint
+    // Function to parse SVG and convert to react-pdf SVG components
+    const parseSvgToPdfComponents = (svgString: string) => {
+        try {
+            const parser = new DOMParser();
+            const svgDoc = parser.parseFromString(svgString, "image/svg+xml");
+            const svgElement = svgDoc.documentElement;
 
-        // Assuming the imageDataUrl is for an image with aspect ratio svgWidth / svgHeight
-        // (or more accurately, the aspect ratio of the image data itself if it were known)
-        // For simplicity, we use the passed svgWidth and svgHeight which define the page aspect ratio too.
-        let imgDisplayWidth = imageMaxWidth;
-        let imgDisplayHeight = (svgHeight / svgWidth) * imageMaxWidth; // Calculate height based on aspect ratio
+            // Extract SVG attributes
+            const viewBox = svgElement.getAttribute("viewBox") || "";
+            const width = svgElement.getAttribute("width") || "100%";
+            const height = svgElement.getAttribute("height") || "100%";
 
-        if (imgDisplayHeight > imageMaxHeight) {
-            imgDisplayHeight = imageMaxHeight;
-            imgDisplayWidth = (svgWidth / svgHeight) * imageMaxHeight;
+            // Function to convert DOM elements to react-pdf components
+            const convertElement = (element: Element): any => {
+                const tagName = element.tagName.toLowerCase();
+                const attributes: any = {};
+
+                // Copy all attributes
+                for (let i = 0; i < element.attributes.length; i++) {
+                    const attr = element.attributes[i];
+                    attributes[attr.name] = attr.value;
+                }
+
+                // Convert children
+                const children: any[] = [];
+                for (let i = 0; i < element.children.length; i++) {
+                    children.push(convertElement(element.children[i]));
+                }
+
+                // Return appropriate react-pdf component based on tag name
+                switch (tagName) {
+                    case 'path':
+                        return <Path key={`path-${Math.random()}`} {...attributes} />;
+                    case 'rect':
+                        return <Rect key={`rect-${Math.random()}`} {...attributes} />;
+                    case 'g':
+                        return <G key={`g-${Math.random()}`} {...attributes}>{children}</G>;
+                    // Add more SVG elements as needed (circle, line, polygon, etc.)
+                    default:
+                        console.warn(`Unsupported SVG element: ${tagName}`);
+                        return null;
+                }
+            };
+
+            // Convert all children of the SVG element
+            const svgChildren: any[] = [];
+            for (let i = 0; i < svgElement.children.length; i++) {
+                const converted = convertElement(svgElement.children[i]);
+                if (converted) {
+                    svgChildren.push(converted);
+                }
+            }
+
+            return {
+                viewBox,
+                width,
+                height,
+                children: svgChildren
+            };
+        } catch (error) {
+            console.error("Error parsing SVG:", error);
+            return null;
         }
+    };
 
-        // Sanity check for zero dimensions
-        if (imgDisplayWidth <= 0 || imgDisplayHeight <= 0) {
-            console.error("PDF MyPdfDocument: Calculated image dimensions are zero or negative.", { imgDisplayWidth, imgDisplayHeight });
+    // PDF Document Component with native SVG support
+    const MyPdfDocument = ({ svgString, svgWidth, svgHeight }: { svgString: string, svgWidth: number, svgHeight: number }) => {
+        const parsedSvg = parseSvgToPdfComponents(svgString);
+
+        if (!parsedSvg) {
             return (
                 <Document>
                     <Page size={[svgWidth, svgHeight]} style={{ padding: 20 }}>
                         <View>
-                            <PdfText>Error: Calculated image dimensions are invalid.</PdfText>
+                            <PdfText>Error: Could not parse SVG content.</PdfText>
                         </View>
                     </Page>
                 </Document>
@@ -213,24 +259,28 @@ export default function SvgDownloadOptions({
         return (
             <Document>
                 <Page size={[svgWidth, svgHeight]} style={{ padding: 20, justifyContent: 'center', alignItems: 'center' }}>
-                    <View>
-                        {imageDataUrl ? (
-                            <PdfImage
-                                src={imageDataUrl}
-                                style={{
-                                    width: imgDisplayWidth,
-                                    height: imgDisplayHeight,
-                                    // objectFit: 'contain' // objectFit might not be needed with explicit width/height that maintain aspect ratio
-                                }}
-                            />
-                        ) : (
-                            <PdfText>Generating image for PDF...</PdfText> // Updated text
-                        )}
+                    <View style={{
+                        width: svgWidth * 0.9,
+                        height: svgHeight * 0.9,
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                    }}>
+                        <Svg
+                            width={parsedSvg.width}
+                            height={parsedSvg.height}
+                            viewBox={parsedSvg.viewBox}
+                            style={{
+                                width: '100%',
+                                height: '100%'
+                            }}
+                        >
+                            {parsedSvg.children}
+                        </Svg>
                     </View>
                 </Page>
             </Document>
         );
-    }
+    };
 
     // Handler for downloading the SVG as PDF
     const handleDownloadPdf = async (svgInput: string, baseFilename: string) => {
@@ -238,16 +288,10 @@ export default function SvgDownloadOptions({
             alert("No SVG content to download.");
             return;
         }
-        if (!isWasmInitialized) { // Also check for WASM if using svg2png for PDF's image
-            alert("Conversion module not ready. Please wait a moment and try again.");
-            return;
-        }
 
         setIsDownloading(true);
         try {
-            let pngDataUrl: string | null = null;
-
-            // Determine base dimensions (unscaled) for the PDF page and intermediate image
+            // Determine base dimensions for the PDF page
             let basePageWidth = 595; // Default A4 width in points if no viewBox
             let basePageHeight = 842; // Default A4 height in points if no viewBox
 
@@ -265,64 +309,23 @@ export default function SvgDownloadOptions({
                 if (heightMatch && heightMatch[1]) {
                     basePageHeight = parseInt(heightMatch[1], 10);
                 }
-                console.log(`PDF: Base dimensions from attributes (fallback) or default: ${basePageWidth}x${basePageHeight}`);
+                console.log(`PDF: Base dimensions from attributes: ${basePageWidth}x${basePageHeight}`);
             }
 
-            if (!basePageWidth || !basePageWidth || basePageWidth === 0 || basePageHeight === 0) {
-                console.warn(`PDF: SVG base dimensions for page size not found or zero. Using default A4 size for base.`);
+            if (!basePageWidth || basePageWidth === 0 || !basePageHeight || basePageHeight === 0) {
+                console.warn(`PDF: SVG base dimensions not found or zero. Using default A4 size.`);
                 basePageWidth = 595;
                 basePageHeight = 842;
             }
 
-            // Calculate final scaled PDF page dimensions
+            // Calculate scaled PDF page dimensions
             const finalPdfPageWidth = basePageWidth * exportScaleFactor;
             const finalPdfPageHeight = basePageHeight * exportScaleFactor;
-            console.log(`PDF: Scaled page dimensions for PDF output: ${finalPdfPageWidth}x${finalPdfPageHeight}`);
+            console.log(`PDF: Scaled page dimensions: ${finalPdfPageWidth}x${finalPdfPageHeight}`);
 
-            // For the embedded image, render it using base dimensions and the exportScaleFactor for quality
-            let imageRenderWidthForSvg2Png = basePageWidth;
-            let imageRenderHeightForSvg2Png = basePageHeight;
-
-            console.log(`PDF: Attempting to render intermediate PNG with base dimensions for svg2png: ${imageRenderWidthForSvg2Png}x${imageRenderHeightForSvg2Png}, applying scale: ${exportScaleFactor}`);
-
-            try {
-                const pngUint8Array = await svg2png(svgInput, {
-                    width: imageRenderWidthForSvg2Png > 0 ? imageRenderWidthForSvg2Png : undefined,
-                    height: imageRenderHeightForSvg2Png > 0 ? imageRenderHeightForSvg2Png : undefined,
-                    scale: exportScaleFactor // This makes the intermediate PNG high-res
-                });
-                console.log("PDF: Intermediate PNG Uint8Array generated, length:", pngUint8Array.length);
-                const blob = new Blob([new Uint8Array(pngUint8Array)], { type: "image/png" });
-                pngDataUrl = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                        console.log("PDF: FileReader success. PNG Data URL (first 100 chars):", (reader.result as string)?.substring(0, 100));
-                        resolve(reader.result as string);
-                    };
-                    reader.onerror = (error) => {
-                        console.error("PDF: FileReader error:", error);
-                        reject(error);
-                    };
-                    reader.readAsDataURL(blob);
-                });
-            } catch (e) {
-                console.error("PDF: Failed to convert SVG to PNG for PDF:", e);
-                alert("Failed to prepare SVG for PDF conversion. PDF download aborted.");
-                setIsDownloading(false);
-                return;
-            }
-
-            if (!pngDataUrl) {
-                alert("PDF: Failed to generate image for PDF. PDF download aborted.");
-                console.error("PDF: pngDataUrl is null or empty after generation attempt.");
-                setIsDownloading(false);
-                return;
-            }
-            console.log(`PDF: Finalizing PDF with page dimensions: ${finalPdfPageWidth}x${finalPdfPageHeight} and image data URL (length: ${pngDataUrl.length})`);
-
-            const doc = <MyPdfDocument imageDataUrl={pngDataUrl} svgWidth={finalPdfPageWidth} svgHeight={finalPdfPageHeight} />;
+            const doc = <MyPdfDocument svgString={svgInput} svgWidth={finalPdfPageWidth} svgHeight={finalPdfPageHeight} />;
             const pdfBlob = await pdf(doc).toBlob();
-            downloadFile(pdfBlob, `${baseFilename}.pdf`);
+            downloadFile(pdfBlob, `${baseFilename}-svg.pdf`);
 
         } catch (error) {
             console.error("Error downloading PDF:", error);
@@ -397,7 +400,7 @@ export default function SvgDownloadOptions({
                     Download as PNG
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={() => svgContent && handleDownloadPdf(svgContent, "squigglify_output")} disabled={!isWasmInitialized || isDownloading}>
+                <DropdownMenuItem onClick={() => svgContent && handleDownloadPdf(svgContent, "squigglify_output")} disabled={isDownloading}>
                     <FileText className="mr-2 h-4 w-4" />
                     Download as PDF
                 </DropdownMenuItem>
@@ -429,4 +432,4 @@ export default function SvgDownloadOptions({
             </DropdownMenuContent>
         </DropdownMenu>
     )
-} 
+}
