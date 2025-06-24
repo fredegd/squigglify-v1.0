@@ -22,7 +22,19 @@ body {
     display: none;
     /* Safari and Chrome */
   }
+
+
+
+
+
 }
+
+@keyframes draw-svg {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 
 @layer base {
   :root {

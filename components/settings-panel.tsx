@@ -5,7 +5,7 @@ import { Slider } from "@/components/ui/slider-w-buttons"
 import { Label } from "@/components/ui/label"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Button } from "@/components/ui/button"
-import { RotateCcw, Info, ChevronDown } from "lucide-react"
+import { RotateCcw, Info, ChevronDown, Play, Square } from "lucide-react"
 import type { Settings, CurveControlSettings, ImageData as ProcessedDataType } from "@/lib/types"
 import { DEFAULT_CURVE_CONTROLS } from "@/lib/types"
 import { useMemo, useEffect } from "react"
@@ -25,6 +25,10 @@ interface SettingsPanelProps {
   onCurveControlsChange: (newControls: Partial<CurveControlSettings>) => void
   processedData: ProcessedDataType | null
   onResetSettings?: () => void
+  onPlayAnimation?: () => void
+  onStopAnimation?: () => void
+  animationSpeed?: number
+  onAnimationSpeedChange?: (speed: number) => void
 }
 
 export default function SettingsPanel({
@@ -34,7 +38,11 @@ export default function SettingsPanel({
   curveControls,
   onCurveControlsChange,
   processedData,
-  onResetSettings
+  onResetSettings,
+  onPlayAnimation,
+  onStopAnimation,
+  animationSpeed = 1.0,
+  onAnimationSpeedChange
 }: SettingsPanelProps) {
   const calculatedDensity = useMemo(() => {
     const MAX_DIMENSION = 560;
@@ -361,6 +369,78 @@ export default function SettingsPanel({
         disabled={disabled}
       />
 
+      <Separator className="bg-gray-700" />
+
+      {/* Animation Controls */}
+      {onPlayAnimation && (
+        <>
+          <details className="group" open>
+            <summary className="cursor-pointer text-md font-bold  my-6 flex items-center justify-between ">
+              <h3 className="flex items-center gap-2">Animation Controls</h3>
+              <ChevronDown className="h-5 w-5 text-gray-300 transition-transform duration-200 group-open:rotate-180" />
+            </summary>
+
+            <div className="flex flex-col gap-4 mt-4 text-gray-300 lg:px-4 px-8">
+              {/* Play and Stop Buttons */}
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onPlayAnimation}
+                  disabled={disabled}
+                  className="bg-transparent hover:bg-blue-700 text-white border-blue-600"
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  Play
+                </Button>
+                {onStopAnimation && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onStopAnimation}
+                    disabled={disabled}
+                    className="bg-transparent hover:bg-red-700 text-white border-red-600"
+                  >
+                    <Square className="h-4 w-4 mr-2" />
+                    Stop
+                  </Button>
+                )}
+              </div>
+
+              {/* Speed Slider */}
+              {onAnimationSpeedChange && (
+                <div className="space-y-2">
+                  <div className="flex gap-2 items-center">
+                    <Label htmlFor="animation-speed" className="text-sm text-gray-300">
+                      Speed: {animationSpeed.toFixed(1)}x
+                    </Label>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Info className="h-4 w-4 text-gray-300" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">
+                          Controls the speed of the drawing animation (higher values = faster animation)
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <Slider
+                    id="animation-speed"
+                    min={0.1}
+                    max={8.0}
+                    step={0.1}
+                    value={[animationSpeed]}
+                    onValueChange={(value) => onAnimationSpeedChange(value[0])}
+                    disabled={disabled}
+                  />
+                </div>
+              )}
+            </div>
+          </details>
+        </>
+      )}
+
       {onResetSettings && (
         <>
           <Separator className="bg-gray-700" />
@@ -368,7 +448,13 @@ export default function SettingsPanel({
             <Button
               variant="outline"
               size="sm"
-              onClick={onResetSettings}
+              onClick={() => {
+                onResetSettings();
+                // Reset animation speed to default
+                if (onAnimationSpeedChange) {
+                  onAnimationSpeedChange(1.0);
+                }
+              }}
               disabled={disabled}
               className="text-gray-300 border-gray-600 hover:bg-gray-700 hover:text-white"
             >

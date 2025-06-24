@@ -31,6 +31,9 @@ export default function Home() {
   const [showRandomImageLoader, setShowRandomImageLoader] = useState(false)
   const [currentFileName, setCurrentFileName] = useState<string | undefined>(undefined)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const [animationSpeed, setAnimationSpeed] = useState(1.0)
+  const [animationTrigger, setAnimationTrigger] = useState(0)
+  const [stopTrigger, setStopTrigger] = useState(0)
 
   // Check localStorage on mount and load stored image or fallback to default
   useEffect(() => {
@@ -294,6 +297,18 @@ export default function Home() {
     setIsSettingsPanelVisible(prev => !prev)
   }
 
+  const handlePlayAnimation = () => {
+    setAnimationTrigger(prev => prev + 1) // Increment to trigger animation
+  }
+
+  const handleStopAnimation = () => {
+    setStopTrigger(prev => prev + 1) // Increment to trigger stop
+  }
+
+  const handleAnimationSpeedChange = (speed: number) => {
+    setAnimationSpeed(speed)
+  }
+
   return (
     <main className="h-screen bg-gray-800 text-gray-100  p-0  no-scrollbar">
       <div className="max-w-7xl mx-auto h-full overflow-y-auto pt-20 no-scrollbar">
@@ -365,6 +380,9 @@ export default function Home() {
                   processedData={processedData}
                   onNewImageUpload={handleNewImageUpload}
                   settings={settings}
+                  animationSpeed={animationSpeed}
+                  animationTrigger={animationTrigger}
+                  stopTrigger={stopTrigger}
                 />
               </>
             )}
@@ -400,6 +418,10 @@ export default function Home() {
                     onCurveControlsChange={handleCurveControlsChange}
                     processedData={processedData}
                     onResetSettings={resetSettings}
+                    onPlayAnimation={handlePlayAnimation}
+                    onStopAnimation={handleStopAnimation}
+                    animationSpeed={animationSpeed}
+                    onAnimationSpeedChange={handleAnimationSpeedChange}
                   />
                 </TooltipProvider>
               </div>

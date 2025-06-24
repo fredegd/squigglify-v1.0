@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useRef, memo, useState } from "react"
-import { ArrowUpToLine, ArrowUpRight, Maximize2, LoaderCircle, X, ChevronDown } from "lucide-react"
+import { useEffect, useRef, memo, useState, useCallback } from "react"
+import { ArrowUpToLine, ArrowUpRight, Maximize2, LoaderCircle, X, ChevronDown, Play, Square } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import SvgDownloadOptions from "@/components/svg-download-options"
@@ -15,6 +15,9 @@ interface PreviewProps {
   processedData: ImageData | null
   onNewImageUpload: () => void
   settings: Settings
+  animationSpeed?: number
+  animationTrigger?: number
+  stopTrigger?: number
 }
 
 // Use memo to prevent unnecessary re-renders
@@ -23,8 +26,80 @@ const Preview = memo(function Preview({
   isProcessing,
   processedData,
   settings,
+  animationSpeed = 1.0,
+  animationTrigger = 0,
+  stopTrigger = 0,
 }: PreviewProps) {
   const svgContainerRef = useRef<HTMLDivElement>(null)
+  const [shouldAnimate, setShouldAnimate] = useState(false)
+  const currentSvgElementRef = useRef<SVGElement | null>(null)
+
+  // Animation function separated from SVG rendering
+  const animateSVGPaths = useCallback(() => {
+    const svgElement = currentSvgElementRef.current;
+    if (!svgElement) return;
+
+    const paths = svgElement.querySelectorAll("path");
+
+    paths.forEach((path, index) => {
+      // Reset any existing animation
+      path.style.animation = 'none';
+      path.style.strokeDasharray = '';
+      path.style.strokeDashoffset = '';
+      path.style.visibility = "visible";
+
+      // Force reflow to reset styles
+      void path.getBoundingClientRect();
+
+      try {
+        const length = path.getTotalLength();
+        const delayPerPath = Math.max(1.0 / length, 1.0) / animationSpeed; // delay between paths in seconds
+        const duration = Math.min(Math.max(0.5, 2 / Math.pow(length, 0.05)), 10) / animationSpeed; // duration per path in seconds, adjusted by speed
+
+        // Set up the stroke dash animation
+        path.style.strokeDasharray = length.toString();
+        path.style.strokeDashoffset = length.toString();
+        path.style.animation = `draw-svg ${duration}s ease-in-out forwards`;
+        path.style.animationDelay = `${index * delayPerPath}s`;
+
+      } catch (e) {
+        console.warn("Error animating path", index, e);
+        // Fallback: just show the path without animation
+        path.style.visibility = "visible";
+      }
+    });
+  }, [animationSpeed]);
+
+  // Stop animation function
+  const stopSVGAnimation = useCallback(() => {
+    const svgElement = currentSvgElementRef.current;
+    if (!svgElement) return;
+
+    const paths = svgElement.querySelectorAll("path");
+    paths.forEach((path) => {
+      // Stop any running animation
+      path.style.animation = 'none';
+      // Reset stroke properties to show full path
+      path.style.strokeDasharray = '';
+      path.style.strokeDashoffset = '';
+      path.style.visibility = "visible";
+    });
+  }, []);
+
+  // Trigger animation when shouldAnimate changes or animationTrigger prop changes
+  useEffect(() => {
+    if (shouldAnimate || (animationTrigger > 0)) {
+      animateSVGPaths();
+      setShouldAnimate(false); // Reset the trigger
+    }
+  }, [shouldAnimate, animationTrigger, animateSVGPaths]);
+
+  // Stop animation when stopTrigger prop changes
+  useEffect(() => {
+    if (stopTrigger > 0) {
+      stopSVGAnimation();
+    }
+  }, [stopTrigger, stopSVGAnimation]);
 
   useEffect(() => {
     if (svgContent && svgContainerRef.current) {
@@ -104,10 +179,25 @@ const Preview = memo(function Preview({
         svgWrapper.innerHTML = enhancedSvgContent;
         svgContainerRef.current.innerHTML = '';
         svgContainerRef.current.appendChild(svgWrapper);
-      };
 
+        // Store reference to the SVG element for animation
+        const svgElement = svgWrapper.querySelector('svg');
+        if (svgElement) {
+          currentSvgElementRef.current = svgElement;
+
+          // Ensure all paths are visible initially (no animation on render)
+          const paths = svgElement.querySelectorAll("path");
+          paths.forEach((path) => {
+            path.style.visibility = "visible";
+            path.style.strokeDasharray = '';
+            path.style.strokeDashoffset = '';
+            path.style.animation = 'none';
+          });
+        }
+      };
       // Initial render
       updateSVGSize();
+
 
       // Setup resize observer for responsive behavior
       const resizeObserver = new ResizeObserver(() => {
@@ -124,6 +214,7 @@ const Preview = memo(function Preview({
       };
     }
   }, [svgContent])
+
 
   return (
     <>
@@ -165,9 +256,6 @@ const Preview = memo(function Preview({
                 <p className="text-gray-300">Vector preview will appear here</p>
               )}
             </div>
-            {/* here we need to add information about the processing mode */}
-            {/* here we need to add information about the pattern density (min and max) */}
-            {/* here we need to add information about the output size */}
             {processedData && (
               <p className="mt-1 text-center text-xs text-gray-300">
                 {processedData.columnsCount} × {processedData.rowsCount} tiles
