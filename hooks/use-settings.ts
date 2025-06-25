@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
-import type { Settings, CurveControlSettings } from '@/lib/types'
-import { DEFAULT_CURVE_CONTROLS } from '@/lib/types'
+import { useState, useEffect, useCallback } from "react";
+import type { Settings, CurveControlSettings } from "@/lib/types";
+import { DEFAULT_CURVE_CONTROLS } from "@/lib/types";
 
 // Default settings values
 const DEFAULT_SETTINGS: Settings = {
@@ -17,16 +17,18 @@ const DEFAULT_SETTINGS: Settings = {
   monochromeColor: "#000000",
   visiblePaths: {},
   curveControls: DEFAULT_CURVE_CONTROLS,
-}
+};
 
-const SETTINGS_STORAGE_KEY = 'settings'
+const SETTINGS_STORAGE_KEY = "settings";
 
 interface UseSettingsReturn {
-  settings: Settings
-  updateSettings: (newSettings: Partial<Settings>) => void
-  updateCurveControls: (newCurveControls: Partial<CurveControlSettings>) => void
-  resetSettings: () => void
-  isSettingsLoaded: boolean
+  settings: Settings;
+  updateSettings: (newSettings: Partial<Settings>) => void;
+  updateCurveControls: (
+    newCurveControls: Partial<CurveControlSettings>
+  ) => void;
+  resetSettings: () => void;
+  isSettingsLoaded: boolean;
 }
 
 /**
@@ -34,16 +36,16 @@ interface UseSettingsReturn {
  * Handles all app settings including curve controls with automatic save/load
  */
 export function useSettings(): UseSettingsReturn {
-  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
-  const [isSettingsLoaded, setIsSettingsLoaded] = useState(false)
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
 
   // Load settings from localStorage on mount
   useEffect(() => {
     try {
-      const savedSettings = localStorage.getItem(SETTINGS_STORAGE_KEY)
+      const savedSettings = localStorage.getItem(SETTINGS_STORAGE_KEY);
       if (savedSettings) {
-        const parsedSettings = JSON.parse(savedSettings) as Settings
-        
+        const parsedSettings = JSON.parse(savedSettings) as Settings;
+
         // Merge with defaults to ensure all properties exist (in case new settings were added)
         const mergedSettings: Settings = {
           ...DEFAULT_SETTINGS,
@@ -51,84 +53,96 @@ export function useSettings(): UseSettingsReturn {
           // Ensure curve controls are properly merged
           curveControls: {
             ...DEFAULT_CURVE_CONTROLS,
-            ...parsedSettings.curveControls
-          }
-        }
-        
-        setSettings(mergedSettings)
-        console.log('Settings loaded from localStorage:', mergedSettings)
+            ...parsedSettings.curveControls,
+          },
+        };
+
+        setSettings(mergedSettings);
+        console.log("Settings loaded from localStorage:", mergedSettings);
       } else {
-        console.log('No saved settings found, using defaults')
+        console.log("No saved settings found, using defaults");
       }
     } catch (error) {
-      console.error('Failed to load settings from localStorage:', error)
+      console.error("Failed to load settings from localStorage:", error);
       // If loading fails, use defaults
     } finally {
-      setIsSettingsLoaded(true)
+      setIsSettingsLoaded(true);
     }
-  }, [])
+  }, []);
 
   // Save settings to localStorage whenever they change
   const saveSettings = useCallback((settingsToSave: Settings) => {
     try {
-      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settingsToSave))
-      console.log('Settings saved to localStorage')
+      localStorage.setItem(
+        SETTINGS_STORAGE_KEY,
+        JSON.stringify(settingsToSave)
+      );
+      // console.log('Settings saved to localStorage')
     } catch (error) {
-      console.error('Failed to save settings to localStorage:', error)
+      console.error("Failed to save settings to localStorage:", error);
     }
-  }, [])
+  }, []);
 
   // Update settings function
-  const updateSettings = useCallback((newSettings: Partial<Settings>) => {
-    setSettings(prevSettings => {
-      let updatedSettings = { ...prevSettings, ...newSettings }
-      
-      // If processing mode changes, reset visiblePaths
-      if (newSettings.processingMode && newSettings.processingMode !== prevSettings.processingMode) {
-        updatedSettings = { ...updatedSettings, visiblePaths: {} }
-      }
-      
-      // Save to localStorage
-      saveSettings(updatedSettings)
-      
-      return updatedSettings
-    })
-  }, [saveSettings])
+  const updateSettings = useCallback(
+    (newSettings: Partial<Settings>) => {
+      setSettings((prevSettings) => {
+        let updatedSettings = { ...prevSettings, ...newSettings };
+
+        // If processing mode changes, reset visiblePaths
+        if (
+          newSettings.processingMode &&
+          newSettings.processingMode !== prevSettings.processingMode
+        ) {
+          updatedSettings = { ...updatedSettings, visiblePaths: {} };
+        }
+
+        // Save to localStorage
+        saveSettings(updatedSettings);
+
+        return updatedSettings;
+      });
+    },
+    [saveSettings]
+  );
 
   // Update curve controls function
-  const updateCurveControls = useCallback((newCurveControls: Partial<CurveControlSettings>) => {
-    setSettings(prevSettings => {
-      const updatedSettings = {
-        ...prevSettings,
-        curveControls: {
-          ...prevSettings.curveControls,
-          ...newCurveControls
-        }
-      }
-      
-      // Save to localStorage
-      saveSettings(updatedSettings)
-      
-      return updatedSettings
-    })
-  }, [saveSettings])
+  const updateCurveControls = useCallback(
+    (newCurveControls: Partial<CurveControlSettings>) => {
+      setSettings((prevSettings) => {
+        const updatedSettings = {
+          ...prevSettings,
+          curveControls: {
+            ...prevSettings.curveControls,
+            ...newCurveControls,
+          },
+        };
+
+        // Save to localStorage
+        saveSettings(updatedSettings);
+
+        return updatedSettings;
+      });
+    },
+    [saveSettings]
+  );
 
   // Reset settings to defaults
   const resetSettings = useCallback(() => {
-    setSettings(DEFAULT_SETTINGS)
+    setSettings(DEFAULT_SETTINGS);
     try {
-      localStorage.removeItem(SETTINGS_STORAGE_KEY)
-      console.log('Settings reset to defaults and cleared from localStorage')
+      localStorage.removeItem(SETTINGS_STORAGE_KEY);
+      console.log("Settings reset to defaults and cleared from localStorage");
     } catch (error) {
-      console.error('Failed to clear settings from localStorage:', error)
+      console.error("Failed to clear settings from localStorage:", error);
     }
-  }, [])
+  }, []);
 
   return {
     settings,
     updateSettings,
     updateCurveControls,
     resetSettings,
-    isSettingsLoaded
-  }
-} 
+    isSettingsLoaded,
+  };
+}

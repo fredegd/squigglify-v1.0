@@ -6,6 +6,7 @@ import RandomImageLoader from "@/components/random-image-loader"
 import Preview, { ImageThumbnail } from "@/components/preview"
 import SettingsPanel from "@/components/settings-panel"
 import { useSettings } from "@/hooks/use-settings"
+import { useIsMobile } from "@/hooks/use-mobile"
 import type { ProcessImageOptions } from "@/lib/image-processor"
 import { Button } from "@/components/ui/button"
 import { processImage, generateSVG } from "@/lib/image-processor"
@@ -34,6 +35,7 @@ export default function Home() {
   const [animationSpeed, setAnimationSpeed] = useState(1.0)
   const [animationTrigger, setAnimationTrigger] = useState(0)
   const [stopTrigger, setStopTrigger] = useState(0)
+  const isMobile = useIsMobile()
 
   // Check localStorage on mount and load stored image or fallback to default
   useEffect(() => {
@@ -299,6 +301,11 @@ export default function Home() {
 
   const handlePlayAnimation = () => {
     setAnimationTrigger(prev => prev + 1) // Increment to trigger animation
+
+    // Close settings panel on mobile when animation plays
+    if (isMobile) {
+      setIsSettingsPanelVisible(false)
+    }
   }
 
   const handleStopAnimation = () => {
