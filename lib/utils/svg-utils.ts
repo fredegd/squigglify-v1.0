@@ -175,13 +175,20 @@ function createTileVertices(
   if (pathPoint && totalColumns && totalRows) {
     const row = pathPoint.row;
     const column = pathPoint.column ?? Math.floor(pathPoint.x / width);
+    const normalizedColumn = (1.0 * column + 1) / totalColumns || 1.0; // Avoid division by zero
+    const normalizedRows = (1.0 * row + 1) / totalRows || 1.0; // Avoid division by zero
 
-    // Row wave shift: sin(column/total_columns) * rowWaveShift
+    // Check if we should apply wave shifts based on constraints:
+    // - Upper vertices of first row (row === 0) should not receive wave shifts
+    // - Lower vertices of last row (row === totalRows - 1) should not receive wave shifts
+    const isFirstRow = row === 0;
+    const isLastRow = row === totalRows - 1;
+
     // Check if row direction alternates (even/odd rows)
     const isEvenRow = row % 2 === 0;
-    const normalizedColumn = column / totalColumns;
+
     const rowWaveValue =
-      (Math.sin(normalizedColumn * Math.PI * waveShiftFrequency) *
+      (Math.cos(normalizedColumn * Math.PI * waveShiftFrequency) *
         rowWaveShift *
         height) /
       2; // Scale factor for visible effect
@@ -190,11 +197,11 @@ function createTileVertices(
     rowWaveOffset = isEvenRow ? rowWaveValue : -rowWaveValue;
 
     // Column wave shift: cos(column/total_columns) * columnWaveShift - shifts entire columns vertically
-    const normalizedColumnForColWave = column / totalColumns;
     columnWaveOffset =
-      Math.cos(normalizedColumnForColWave * Math.PI * waveShiftFrequency) *
-      columnWaveShift *
-      30; // Scale factor for visible effect
+      (Math.cos(normalizedColumn * Math.PI * waveShiftFrequency) *
+        columnWaveShift *
+        height) /
+      2; // Scale factor for visible effect
   }
 
   const applyDisorganization = (coordX: number, coordY: number) => {
@@ -214,13 +221,28 @@ function createTileVertices(
   const randomUpperYShift =
     (pathPoint?.randomUpperKnotShiftY || 0) * upperShiftFactor;
 
+  // Helper function to get wave shift for upper points
+  const getUpperWaveShiftY = () => {
+    // Apply constraint: upper vertices of first row should not receive wave shifts
+    return pathPoint && totalRows && pathPoint.row === 0
+      ? 0 // No wave shift for upper vertices of first row
+      : rowWaveOffset + columnWaveOffset; // Row wave + Column wave both affect Y (vertical)
+  };
+
+  // Helper function to get wave shift for lower points
+  const getLowerWaveShiftY = () => {
+    // Apply constraint: lower vertices of last row should not receive wave shifts
+    return pathPoint && totalRows && pathPoint.row === totalRows - 1
+      ? 0 // No wave shift for lower vertices of last row
+      : -rowWaveOffset + columnWaveOffset; // Row wave opposite direction + Column wave
+  };
+
   // Apply wave shifts to the upper point
   const upperWaveShiftX = 0; // No horizontal shift for column waves
-  const upperWaveShiftY = rowWaveOffset + columnWaveOffset; // Row wave + Column wave both affect Y (vertical)
 
   let currentPoint = {
     x: x + randomUpperXShift + upperWaveShiftX,
-    y: y + randomUpperYShift + upperWaveShiftY,
+    y: y + randomUpperYShift + getUpperWaveShiftY(),
   };
   vertices.push(applyDisorganization(currentPoint.x, currentPoint.y));
 
@@ -231,13 +253,11 @@ function createTileVertices(
 
     if (i % 2 === 0) {
       // Vertical segment down (to a lower point)
-      // Apply opposite wave shift for lower points
       const lowerWaveShiftX = 0; // No horizontal shift for column waves
-      const lowerWaveShiftY = -rowWaveOffset + columnWaveOffset; // Row wave opposite direction + Column wave
 
       currentPoint = {
         x: currentLoopX + lowerXShift + lowerWaveShiftX,
-        y: y + height + lowerWaveShiftY,
+        y: y + height + getLowerWaveShiftY(),
       };
       vertices.push(applyDisorganization(currentPoint.x, currentPoint.y));
 
@@ -245,14 +265,14 @@ function createTileVertices(
       if (i < density - 1) {
         currentPoint = {
           x: nextLoopX + lowerXShift + lowerWaveShiftX,
-          y: y + height + lowerWaveShiftY,
+          y: y + height + getLowerWaveShiftY(),
         };
         vertices.push(applyDisorganization(currentPoint.x, currentPoint.y));
       } else if (density % 2 === 1) {
         // Last segment with odd density (lower point)
         currentPoint = {
           x: nextLoopX + lowerXShift + lowerWaveShiftX,
-          y: y + height + lowerWaveShiftY,
+          y: y + height + getLowerWaveShiftY(),
         };
         vertices.push(applyDisorganization(currentPoint.x, currentPoint.y));
       }
@@ -260,7 +280,7 @@ function createTileVertices(
       // Vertical segment up (to an upper point)
       currentPoint = {
         x: currentLoopX + randomUpperXShift + upperWaveShiftX,
-        y: y + randomUpperYShift + upperWaveShiftY,
+        y: y + randomUpperYShift + getUpperWaveShiftY(),
       };
       vertices.push(applyDisorganization(currentPoint.x, currentPoint.y));
 
@@ -268,14 +288,14 @@ function createTileVertices(
       if (i < density - 1) {
         currentPoint = {
           x: nextLoopX + randomUpperXShift + upperWaveShiftX,
-          y: y + randomUpperYShift + upperWaveShiftY,
+          y: y + randomUpperYShift + getUpperWaveShiftY(),
         };
         vertices.push(applyDisorganization(currentPoint.x, currentPoint.y));
       } else if (density % 2 === 0) {
         // Last segment with even density (upper point)
         currentPoint = {
           x: nextLoopX + randomUpperXShift + upperWaveShiftX,
-          y: y + randomUpperYShift + upperWaveShiftY,
+          y: y + randomUpperYShift + getUpperWaveShiftY(),
         };
         vertices.push(applyDisorganization(currentPoint.x, currentPoint.y));
       }

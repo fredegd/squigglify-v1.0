@@ -253,7 +253,7 @@ export default function SettingsPanel({
             <div className="space-y-2">
               <div className="flex gap-2">
                 <Label htmlFor="rowWaveShift-panel">
-                  Row Wave Shift: {((curveControls.rowWaveShift || 0) * 100).toFixed(0)}%
+                  Row wave height: {((curveControls.rowWaveShift || 0) * 100).toFixed(0)}%
                 </Label>
                 <Tooltip>
                   <TooltipTrigger>
@@ -323,7 +323,8 @@ export default function SettingsPanel({
               <Slider
                 id="waveShiftFrequency-panel"
                 min={0.5}
-                max={5.0}
+                // max value should be the same as the columnsCount
+                max={Math.max(settings.columnsCount * 0.1, 10)}
                 step={0.1}
                 value={[curveControls.waveShiftFrequency || 2.0]}
                 onValueChange={(value) => onCurveControlsChange({ waveShiftFrequency: value[0] })}

@@ -91,7 +91,7 @@ export default function CurveStyleSettings({
                     <div className="space-y-2">
                         <div className="flex gap-2">
                             <Label htmlFor="tileHeightScale-setting">
-                                Tile Height: {(curveControls.tileHeightScale * 100).toFixed(0)}%
+                                Rows Height: {(curveControls.tileHeightScale * 100).toFixed(0)}%
                             </Label>
                             <Tooltip>
                                 <TooltipTrigger>
