@@ -106,12 +106,12 @@ To run the application locally:
 
 2. Install dependencies:
    ```bash
-   pnpm install
+   bun install
    ```
 3. Start the development server:
 
    ```bash
-   pnpm dev
+   bun dev
    ```
 
 4. Open your browser and navigate to `http://localhost:3000`
