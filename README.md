@@ -54,6 +54,10 @@ of course once one have a Svalable Vector Graphics, it can be used for many othe
 4. **Download**: Export the final SVG for use in plotting software or graphic design applications
 5. **Download**: It support also PNG and PDF formats.
 
+**coming soon:** 
+
+export to even bigger formats, like A3, A4, A2, A1, A0.
+
 ## Processing Modes
 
 ### Monochrome
