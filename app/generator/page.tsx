@@ -40,7 +40,41 @@ export default function Home() {
   const [processingProgress, setProcessingProgress] = useState(0)
   const [processingStatus, setProcessingStatus] = useState("")
   const [showProgress, setShowProgress] = useState(false)
+  const [maxPreviewHeight, setMaxPreviewHeight] = useState<number | undefined>(undefined)
   const isMobile = useIsMobile()
+
+  // Track max preview height based on footer position
+  useEffect(() => {
+    const calculateMaxHeight = () => {
+      const footer = document.querySelector('footer');
+      const navbarHeight = 64; // Height of the fixed navigation
+      const padding = 32; // Extra padding from bottom
+
+      if (footer) {
+        const footerRect = footer.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+
+        // If footer is in view
+        if (footerRect.top < viewportHeight) {
+          const availableSpace = footerRect.top - navbarHeight - padding;
+          setMaxPreviewHeight(Math.max(availableSpace, 240)); // Ensure a minimum height
+        } else {
+          setMaxPreviewHeight(undefined); // Reset to default (75vh) when footer is not in view
+        }
+      }
+    };
+
+    window.addEventListener('scroll', calculateMaxHeight);
+    window.addEventListener('resize', calculateMaxHeight);
+
+    // Initial calculation
+    calculateMaxHeight();
+
+    return () => {
+      window.removeEventListener('scroll', calculateMaxHeight);
+      window.removeEventListener('resize', calculateMaxHeight);
+    };
+  }, []);
 
   // Check localStorage on mount and load stored image or fallback to default
   useEffect(() => {
@@ -394,7 +428,10 @@ export default function Home() {
             )}
 
             {!showRandomImageLoader && originalImage && (
-              <div className="sticky top-16 z-10">
+              <div
+                className="sticky top-16 z-10 overflow-hidden"
+                style={maxPreviewHeight ? { maxHeight: `${maxPreviewHeight}px` } : {}}
+              >
                 <Preview
                   originalImage={originalImage!}
                   svgContent={svgContent}
@@ -405,6 +442,7 @@ export default function Home() {
                   animationSpeed={animationSpeed}
                   animationTrigger={animationTrigger}
                   stopTrigger={stopTrigger}
+                  maxHeight={maxPreviewHeight}
                 />
               </div>
             )}
