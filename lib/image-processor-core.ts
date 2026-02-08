@@ -1,3 +1,39 @@
+/*
+ * TODO: DUPLICATE FILE - NEEDS REFACTORING FOR WEB WORKER COMPATIBILITY
+ * 
+ * ISSUE: This file is an exact duplicate of lib/image-processor.ts
+ * 
+ * This duplication was created with the intention of using it in a Web Worker
+ * (lib/workers/image-processing.worker.ts), but it has fundamental issues:
+ * 
+ * 1. USES DOM APIs - Cannot run in Web Workers:
+ *    - new Image() (line 52)
+ *    - document.createElement('canvas') (lines 61, 184, 206)
+ *    - These APIs are NOT available in Web Worker context
+ * 
+ * 2. MAINTAINING TWO IDENTICAL FILES is error-prone:
+ *    - Bug fixes and features must be duplicated
+ *    - Code will inevitably drift over time
+ * 
+ * RECOMMENDED ACTIONS:
+ * 
+ * Option A - If Web Workers are needed:
+ *   1. Refactor to use Worker-compatible APIs:
+ *      - Replace new Image() with fetch() + createImageBitmap()
+ *      - Replace document.createElement('canvas') with OffscreenCanvas
+ *   2. Extract shared logic into a separate module
+ *   3. Have worker-specific and main-thread-specific implementations
+ * 
+ * Option B - If Web Workers are not needed (RECOMMENDED):
+ *   1. Delete this file
+ *   2. Use lib/image-processor.ts directly
+ *   3. Keep using lib/image-processor-with-progress.ts for progress updates
+ *   4. Only consider Web Workers if processing time becomes a UX issue
+ * 
+ * CURRENT STATUS: This file is kept for reference but should not be imported
+ *                 by active code. The Web Worker that would use it is disabled.
+ */
+
 import type { Settings, ImageData, ColorGroup } from "./types";
 
 import { processGrayscale } from "./processors/grayscale-processor";
