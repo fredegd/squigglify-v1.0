@@ -42,36 +42,55 @@ export default function Home() {
   const [maxPreviewHeight, setMaxPreviewHeight] = useState<number | undefined>(undefined)
   const isMobile = useIsMobile()
 
-  // Track max preview height based on footer position
+  // Track max preview height based on footer position using IntersectionObserver
   useEffect(() => {
-    const calculateMaxHeight = () => {
-      const footer = document.querySelector('footer');
-      const navbarHeight = 64; // Height of the fixed navigation
-      const padding = 32; // Extra padding from bottom
+    const footer = document.querySelector('footer');
+    if (!footer) return;
 
-      if (footer) {
-        const footerRect = footer.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
+    const navbarHeight = 64; // Height of the fixed navigation
+    const padding = 32; // Extra padding from bottom
 
-        // If footer is in view
-        if (footerRect.top < viewportHeight) {
+    const updateMaxHeight = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          // Footer is visible - calculate available space
+          const footerRect = entry.boundingClientRect;
           const availableSpace = footerRect.top - navbarHeight - padding;
           setMaxPreviewHeight(Math.max(availableSpace, 240)); // Ensure a minimum height
         } else {
-          setMaxPreviewHeight(undefined); // Reset to default (75vh) when footer is not in view
+          // Footer not visible - reset to default
+          setMaxPreviewHeight(undefined);
         }
+      });
+    };
+
+    // Create IntersectionObserver with a threshold to detect when footer enters viewport
+    const observer = new IntersectionObserver(updateMaxHeight, {
+      root: null, // viewport
+      rootMargin: '0px',
+      threshold: [0, 0.1, 1] // Trigger at different intersection points
+    });
+
+    observer.observe(footer);
+
+    // Handle resize events separately (less frequent than scroll)
+    const handleResize = () => {
+      const footerRect = footer.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+
+      if (footerRect.top < viewportHeight) {
+        const availableSpace = footerRect.top - navbarHeight - padding;
+        setMaxPreviewHeight(Math.max(availableSpace, 240));
+      } else {
+        setMaxPreviewHeight(undefined);
       }
     };
 
-    window.addEventListener('scroll', calculateMaxHeight);
-    window.addEventListener('resize', calculateMaxHeight);
-
-    // Initial calculation
-    calculateMaxHeight();
+    window.addEventListener('resize', handleResize);
 
     return () => {
-      window.removeEventListener('scroll', calculateMaxHeight);
-      window.removeEventListener('resize', calculateMaxHeight);
+      observer.disconnect();
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
 
