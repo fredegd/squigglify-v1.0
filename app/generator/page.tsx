@@ -18,8 +18,7 @@ import { Settings as SettingsIcon, X } from "lucide-react"
 import {
   getStoredImage,
   saveImageToStorage,
-  clearStoredImage,
-  hasStoredImage
+  clearStoredImage
 } from "@/lib/utils/image-storage"
 import "@/lib/utils/settings-debug" // Load debug utilities
 
