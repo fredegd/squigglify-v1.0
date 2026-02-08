@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { ArrowRight, Zap, Palette, Download, Github, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import Image from "next/image"
+
 
 export default function HomePage() {
   return (
