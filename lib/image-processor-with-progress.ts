@@ -24,39 +24,20 @@ export async function processImageWithProgress(
             throw new Error("Processing cancelled");
         }
 
-        // Simulate loading phase
-        await new Promise(resolve => setTimeout(resolve, 100));
-
         if (onProgress && onProgress(15, "Analyzing colors...")) {
             throw new Error("Processing cancelled");
         }
-
-        // Simulate color analysis phase
-        await new Promise(resolve => setTimeout(resolve, 100));
 
         if (onProgress && onProgress(30, "Generating paths...")) {
             throw new Error("Processing cancelled");
         }
 
         // Start actual processing
-        const startTime = Date.now();
         const imageData = await processImageSync(options, settings);
-        const processingTime = Date.now() - startTime;
-
-        // Simulated progress updates based on processing time
-        // For slower operations, we show more progress steps
-        if (processingTime > 500) {
-            if (onProgress && onProgress(60, "Optimizing paths...")) {
-                throw new Error("Processing cancelled");
-            }
-            await new Promise(resolve => setTimeout(resolve, 50));
-        }
 
         if (onProgress && onProgress(85, "Finalizing...")) {
             throw new Error("Processing cancelled");
         }
-
-        await new Promise(resolve => setTimeout(resolve, 50));
 
         if (onProgress && onProgress(100, "Complete!")) {
             throw new Error("Processing cancelled");
