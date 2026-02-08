@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { Github, Book, Zap, Palette, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
