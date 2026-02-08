@@ -458,21 +458,19 @@ export default function Home() {
 
               <div className="space-y-6 mb-20  lg:mt-0 ">
                 {/* Add image thumbnail preview above settings panel */}
-                {originalImage && (
-                  <ImageThumbnail
-                    originalImage={originalImage}
-                    processedData={processedData}
-                    onNewImageUpload={handleNewImageUpload}
-                    svgContentPreview={svgContent}
-                    toggleSettingsPanel={toggleSettingsPanel}
-                    settings={settings}
-                  />
-                )}
+                <ImageThumbnail
+                  originalImage={originalImage}
+                  processedData={processedData}
+                  onNewImageUpload={handleNewImageUpload}
+                  svgContentPreview={svgContent}
+                  toggleSettingsPanel={toggleSettingsPanel}
+                  settings={settings}
+                />
                 <TooltipProvider>
                   <SettingsPanel
                     settings={settings}
                     onSettingsChange={handleSettingsChange}
-                    disabled={!originalImage || isProcessing}
+                    disabled={isProcessing}
                     curveControls={settings.curveControls}
                     onCurveControlsChange={handleCurveControlsChange}
                     processedData={processedData}
