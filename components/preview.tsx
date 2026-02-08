@@ -18,6 +18,7 @@ interface PreviewProps {
   animationSpeed?: number
   animationTrigger?: number
   stopTrigger?: number
+  maxHeight?: number
 }
 
 // Use memo to prevent unnecessary re-renders
@@ -29,6 +30,7 @@ const Preview = memo(function Preview({
   animationSpeed = 1.0,
   animationTrigger = 0,
   stopTrigger = 0,
+  maxHeight
 }: PreviewProps) {
   const svgContainerRef = useRef<HTMLDivElement>(null)
   const [shouldAnimate, setShouldAnimate] = useState(false)
@@ -218,9 +220,9 @@ const Preview = memo(function Preview({
 
   return (
     <>
-      <div className="relative h-full">
-        <div className="space-y-4 sticky top-0 max-h-screen  flex flex-col ">
-          <div className="flex-1 lg:w-full  border border-gray-700 rounded-2xl overflow-hidden p-2 relative">
+      <div className="relative h-full flex flex-col">
+        <div className="space-y-4 flex-1 flex flex-col ">
+          <div className="flex-1 lg:w-full  border border-gray-700 rounded-2xl overflow-hidden p-2 relative flex flex-col">
             <h3 className="text-lg font-medium  text-center mb-2">Output</h3>
             <div className=" absolute lg:top-auto bottom-2 lg:right-2 right-4  ">
               {svgContent && (
@@ -232,7 +234,7 @@ const Preview = memo(function Preview({
               )}
             </div>
 
-            <div className="flex items-center justify-center">
+            <div className="flex-1 flex items-center justify-center min-h-0">
               {isProcessing ? (
                 <div className="flex flex-col items-center justify-center">
                   <LoaderCircle className="h-10 w-10 text-primary animate-spin mb-2" />
@@ -245,10 +247,16 @@ const Preview = memo(function Preview({
                   maxScale={8}
                 >
                   <TransformComponent
-                    wrapperStyle={{ width: "100%", height: "75vh", backgroundColor: '#f1f1f1', borderRadius: '12px' }}
+                    wrapperStyle={{
+                      width: "100%",
+                      height: maxHeight ? `${maxHeight - 120}px` : "75vh",
+                      backgroundColor: '#f1f1f1',
+                      borderRadius: '12px',
+                      transition: 'height 0.1s ease-out'
+                    }}
                     contentStyle={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}
                   >
-                    <div ref={svgContainerRef} className="w-full h-full flex items-center justify-center bg-[#f1f1f1] rounded-xl p-1" style={{ minHeight: '200px' }}>
+                    <div ref={svgContainerRef} className="w-full h-full flex items-center justify-center bg-[#f1f1f1] rounded-xl p-1" style={{ minHeight: '100px' }}>
                     </div>
                   </TransformComponent>
                 </TransformWrapper>
@@ -314,7 +322,7 @@ export const ImageThumbnail = memo(function ImageThumbnail({
   }, [svgContentPreview]);
 
   return (
-    <div className=" bg-gray-800/80 backdrop-blur-md rounded-lg   sticky top-0 z-[45]  pt-12 lg:pt-0 px-4">
+    <div className=" bg-gray-800/80 backdrop-blur-md rounded-lg   sticky top-0 z-[45]  pt-20 lg:pt-0 px-4">
       {/* we should include this following div in a details/summary section */}
       <details className="" open>
         <summary className="cursor-pointer text-md font-bold  my-6 flex items-center justify-between ">

@@ -1,38 +1,23 @@
-import type { Metadata } from 'next'
-import './globals.css'
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import Navigation from "@/components/navigation";
+import Footer from "@/components/footer";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
-  title: 'Squigglify',
-  description: 'an image to SVG converter',
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
-  },
-  openGraph: {
-    title: 'Squigglify',
-    description: 'an image to SVG converter',
-    url: 'https://Squigglify.vercel.app',
-    siteName: 'Squigglify',
-    images: [
-      {
-        url: 'https://Squigglify.vercel.app/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'Squigglify - Image to SVG Converter',
-      },
-    ],
-    locale: 'en-US',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Squigglify',
-    description: 'an image to SVG converter',
-    images: ['https://Squigglify.vercel.app/og-image.png'],
-    creator: '@tapiwohb',
-    site: 'https://quigglify.vercel.app',
-  },
+  title: "Squigglify - Image to SVG Converter",
+  description: "Transform images into squiggly SVG art, optimized for pen plotters",
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
     { media: '(prefers-color-scheme: dark)', color: '#000000' },
@@ -51,7 +36,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen bg-gray-900 text-gray-100`}
+      >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Navigation />
+          <main className="flex-1 pt-16">
+            {children}
+          </main>
+          <Footer />
+        </ThemeProvider>
+      </body>
     </html>
   )
 }
