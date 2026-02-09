@@ -7,8 +7,6 @@ import {
     ErrorHandler,
     ImageProcessingError,
     ImageLoadError,
-    SVGGenerationError,
-    QuotaExceededError,
     validateImageFile,
     validateSettings,
     retry,
