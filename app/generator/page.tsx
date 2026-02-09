@@ -23,8 +23,8 @@ import {
 import "@/lib/utils/settings-debug" // Load debug utilities
 import { enablePerformanceDebugging } from "@/lib/utils/performance-profiler"
 
-// Enable performance debugging in console on load
-if (typeof window !== "undefined") {
+// Enable performance debugging in console on load (development only)
+if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
   enablePerformanceDebugging();
 }
 
