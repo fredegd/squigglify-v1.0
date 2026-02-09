@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Settings, CurveControlSettings } from "@/lib/types";
 import { DEFAULT_CURVE_CONTROLS } from "@/lib/types";
+import { getUrlSettings } from "@/lib/utils/url-config";
 
 // Default settings values
 const DEFAULT_SETTINGS: Settings = {
@@ -29,6 +30,7 @@ interface UseSettingsReturn {
   ) => void;
   resetSettings: () => void;
   isSettingsLoaded: boolean;
+  settingsSource: "default" | "localStorage" | "url";
 }
 
 /**
@@ -38,33 +40,50 @@ interface UseSettingsReturn {
 export function useSettings(): UseSettingsReturn {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
+  const [settingsSource, setSettingsSource] = useState<"default" | "localStorage" | "url">("default");
 
-  // Load settings from localStorage on mount
+  // Load settings on mount: URL params > localStorage > defaults
   useEffect(() => {
     try {
+      // Start with defaults
+      let mergedSettings: Settings = { ...DEFAULT_SETTINGS };
+      let source: "default" | "localStorage" | "url" = "default";
+
+      // Layer 1: Load from localStorage
       const savedSettings = localStorage.getItem(SETTINGS_STORAGE_KEY);
       if (savedSettings) {
         const parsedSettings = JSON.parse(savedSettings) as Settings;
-
-        // Merge with defaults to ensure all properties exist (in case new settings were added)
-        const mergedSettings: Settings = {
-          ...DEFAULT_SETTINGS,
+        mergedSettings = {
+          ...mergedSettings,
           ...parsedSettings,
-          // Ensure curve controls are properly merged
           curveControls: {
             ...DEFAULT_CURVE_CONTROLS,
             ...parsedSettings.curveControls,
           },
         };
-
-        setSettings(mergedSettings);
-        console.log("Settings loaded from localStorage:", mergedSettings);
-      } else {
-        console.log("No saved settings found, using defaults");
+        source = "localStorage";
       }
+
+      // Layer 2: URL params override everything (highest priority)
+      const urlSettings = getUrlSettings();
+      if (urlSettings) {
+        mergedSettings = {
+          ...mergedSettings,
+          ...urlSettings,
+          curveControls: {
+            ...mergedSettings.curveControls,
+            ...urlSettings.curveControls,
+          },
+        };
+        source = "url";
+        console.log("Settings loaded from URL:", urlSettings);
+      }
+
+      setSettings(mergedSettings);
+      setSettingsSource(source);
+      console.log(`Settings loaded from ${source}:`, mergedSettings);
     } catch (error) {
-      console.error("Failed to load settings from localStorage:", error);
-      // If loading fails, use defaults
+      console.error("Failed to load settings:", error);
     } finally {
       setIsSettingsLoaded(true);
     }
@@ -144,5 +163,6 @@ export function useSettings(): UseSettingsReturn {
     updateCurveControls,
     resetSettings,
     isSettingsLoaded,
+    settingsSource,
   };
 }

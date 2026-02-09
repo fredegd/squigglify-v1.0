@@ -16,6 +16,7 @@ import PathDensitySettings from "./settings/path-density-settings"
 import VectorGenerationSettings from "./settings/vector-generation-settings"
 import CurveStyleSettings from "./settings/curve-style-settings"
 import PathVisibilitySettings from "./settings/path-visibility-settings"
+import { ShareConfigButton } from "./share-config-button"
 
 interface SettingsPanelProps {
   settings: Settings
@@ -445,7 +446,8 @@ export default function SettingsPanel({
       {onResetSettings && (
         <>
           <Separator className="bg-gray-700" />
-          <div className="flex justify-center pt-2">
+          <div className="flex justify-center gap-2 pt-2">
+            <ShareConfigButton settings={settings} />
             <Button
               variant="outline"
               size="sm"
@@ -460,7 +462,7 @@ export default function SettingsPanel({
               className="text-gray-300 border-gray-600 hover:bg-gray-700 hover:text-white"
             >
               <RotateCcw className="h-4 w-4 mr-2" />
-              Reset All Settings
+              Reset Config
             </Button>
           </div>
         </>

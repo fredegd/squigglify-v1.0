@@ -35,9 +35,8 @@ export function generateSVG(imageData: ImageData, settings: Settings): string {
       const safeColorId = group.color.replace("#", "");
 
       // Create a group with id and custom data attributes for easier post-processing
-      svgContent += `<g id="color-group-${safeColorId}" data-color="${
-        group.color
-      }" data-name="${group.displayName}" data-index="${index + 1}">\n`;
+      svgContent += `<g id="color-group-${safeColorId}" data-color="${group.color
+        }" data-name="${group.displayName}" data-index="${index + 1}">\n`;
 
       if (continuousPaths) {
         // Generate continuous path for this color group
@@ -91,7 +90,7 @@ export function generateContinuousPath(
     const needNewPath =
       lastPoint &&
       calculateDistance(lastPoint.x, lastPoint.y, point.x, point.y) >
-        settings.pathDistanceThreshold;
+      settings.pathDistanceThreshold;
 
     if (needNewPath && pathVertices.length > 0) {
       // Create path from accumulated vertices
