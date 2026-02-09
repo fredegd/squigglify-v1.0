@@ -174,6 +174,16 @@ export async function retry<T>(
         onRetry = () => { },
     } = options;
 
+    // Validate maxRetries to ensure loop runs at least once
+    if (maxRetries < 1) {
+        throw new SquigglifyError(
+            `Invalid retry configuration: maxRetries must be at least 1, received ${maxRetries}.`,
+            'INVALID_RETRY_OPTIONS',
+            'An internal configuration error occurred.',
+            false
+        );
+    }
+
     let lastError: Error;
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
