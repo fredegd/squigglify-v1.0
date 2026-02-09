@@ -36,7 +36,7 @@ export class MemoCache<K, V> {
     set(key: K, value: V): void {
         const keyStr = this.getKey(key);
 
-        // Implement LRU eviction if cache is full
+        // Implement FIFO (oldest-first) eviction if cache is full
         if (this.cache.size >= this.maxSize && !this.cache.has(keyStr)) {
             const firstKey = this.cache.keys().next().value as string | undefined;
             if (firstKey !== undefined) {
