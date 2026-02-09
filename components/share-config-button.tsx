@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Share2, Check, Link } from "lucide-react";
+import { Check, Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
     Tooltip,
