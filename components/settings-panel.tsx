@@ -67,7 +67,7 @@ export default function SettingsPanel({
   };
 
   return (
-    <div className="space-y-6 px-4 py-2 ">
+    <div className="space-y-6 px-7 py-2 ">
 
 
       <ImageTilingSettings
@@ -376,7 +376,7 @@ export default function SettingsPanel({
       {/* Animation Controls */}
       {onPlayAnimation && (
         <>
-          <details className="group" open>
+          <details className="group">
             <summary className="cursor-pointer text-md font-bold  my-6 flex items-center justify-between ">
               <h3 className="flex items-center gap-2">Animation Controls</h3>
               <ChevronDown className="h-5 w-5 text-gray-300 transition-transform duration-200 group-open:rotate-180" />

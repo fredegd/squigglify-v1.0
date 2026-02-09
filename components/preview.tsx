@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, memo, useState, useCallback } from "react"
-import { ArrowUpToLine, ArrowUpRight, Maximize2, LoaderCircle, X, ChevronDown, Play, Square } from "lucide-react"
+import { ArrowUpToLine, ArrowUpRight, Maximize2, LoaderCircle, X, ChevronDown, Play, Square, Move, ZoomIn, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import SvgDownloadOptions from "@/components/svg-download-options"
@@ -33,6 +33,8 @@ const Preview = memo(function Preview({
   const svgContainerRef = useRef<HTMLDivElement>(null)
   const [shouldAnimate, setShouldAnimate] = useState(false)
   const currentSvgElementRef = useRef<SVGElement | null>(null)
+  const [isPanEnabled, setIsPanEnabled] = useState(true)
+  const [isZoomEnabled, setIsZoomEnabled] = useState(true)
 
   // Animation function separated from SVG rendering
   const animateSVGPaths = useCallback(() => {
@@ -235,24 +237,73 @@ const Preview = memo(function Preview({
             <div className="flex-1 flex items-center justify-center min-h-0 relative">
               {/* Show SVG even during processing for progressive rendering */}
               {svgContent ? (
-                <TransformWrapper
-                  initialScale={1}
-                  minScale={0.5}
-                  maxScale={8}
-                >
-                  <TransformComponent
-                    wrapperStyle={{
-                      width: "100%",
-                      height: "75vh",
-                      backgroundColor: '#f1f1f1',
-                      borderRadius: '12px'
-                    }}
-                    contentStyle={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}
+                <>
+                  <TransformWrapper
+                    initialScale={1}
+                    minScale={0.5}
+                    maxScale={8}
+                    panning={{ disabled: !isPanEnabled }}
+                    wheel={{ disabled: !isZoomEnabled }}
+                    pinch={{ disabled: !isZoomEnabled }}
+                    doubleClick={{ disabled: !isZoomEnabled }}
                   >
-                    <div ref={svgContainerRef} className="w-full h-full flex items-center justify-center bg-[#f1f1f1] rounded-xl p-1" style={{ minHeight: '100px' }}>
-                    </div>
-                  </TransformComponent>
-                </TransformWrapper>
+                    {({ resetTransform }) => (
+                      <>
+                        <TransformComponent
+                          wrapperStyle={{
+                            width: "100%",
+                            height: "75vh",
+                            backgroundColor: '#f1f1f1',
+                            borderRadius: '12px'
+                          }}
+                          contentStyle={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}
+                        >
+                          <div ref={svgContainerRef} className="w-full h-full flex items-center justify-center bg-[#f1f1f1] rounded-xl p-1" style={{ minHeight: '100px' }}>
+                          </div>
+                        </TransformComponent>
+
+                        {/* Pan, Reset & Zoom toggle buttons — desktop only */}
+                        <div className="absolute bottom-4 right-4 hidden lg:flex flex-col gap-2 z-10">
+                          <button
+                            onClick={() => setIsPanEnabled(prev => !prev)}
+                            title={isPanEnabled ? 'Disable panning' : 'Enable panning'}
+                            className={`w-9 h-9 flex items-center justify-center rounded-lg backdrop-blur-sm transition-all duration-200 ${isPanEnabled
+                              ? 'bg-gray-900/70 text-white hover:bg-gray-900/90'
+                              : 'bg-gray-900/40 text-gray-500 hover:bg-gray-900/60'
+                              }`}
+                          >
+                            <Move className="h-4 w-4" />
+                            {!isPanEnabled && (
+                              <span className="absolute w-5 h-0.5 bg-red-400/80 rotate-45 rounded-full" />
+                            )}
+                          </button>
+
+                          <button
+                            onClick={() => setIsZoomEnabled(prev => !prev)}
+                            title={isZoomEnabled ? 'Disable zooming' : 'Enable zooming'}
+                            className={`w-9 h-9 flex items-center justify-center rounded-lg backdrop-blur-sm transition-all duration-200 ${isZoomEnabled
+                              ? 'bg-gray-900/70 text-white hover:bg-gray-900/90'
+                              : 'bg-gray-900/40 text-gray-500 hover:bg-gray-900/60'
+                              }`}
+                          >
+                            <ZoomIn className="h-4 w-4" />
+                            {!isZoomEnabled && (
+                              <span className="absolute w-5 h-0.5 bg-red-400/80 rotate-45 rounded-full" />
+                            )}
+                          </button>
+
+                          <button
+                            onClick={() => resetTransform()}
+                            title="Reset view"
+                            className="w-9 h-9 flex items-center justify-center rounded-lg backdrop-blur-sm transition-all duration-200 bg-gray-900/70 text-white hover:bg-gray-900/90"
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </TransformWrapper>
+                </>
               ) : isProcessing ? (
                 <div className="flex flex-col items-center justify-center">
                   <LoaderCircle className="h-10 w-10 text-primary animate-spin mb-2" />
@@ -330,16 +381,16 @@ export const ImageThumbnail = memo(function ImageThumbnail({
   }, [svgContentPreview]);
 
   return (
-    <div className=" bg-gray-800/80 backdrop-blur-md rounded-lg   sticky top-0 z-[45]  pt-20 lg:pt-0 px-4">
+    <div className=" bg-gray-800/80 backdrop-blur-md rounded-lg   sticky top-0 z-[45]  pt-12 lg:pt-0 px-7">
       {/* we should include this following div in a details/summary section */}
       <details className="" open>
-        <summary className="cursor-pointer text-md font-bold  my-6 flex items-center justify-between ">
+        <summary className="cursor-pointer text-md font-bold  my-6 px-[0.125rem] flex items-center justify-between ">
           <h3 className="flex items-center gap-2">Image Details</h3>
           <ChevronDown className="h-4 w-4 transform transition-transform duration-200 group-open:rotate-180" />
         </summary>
-        <div className="flex flex-row gap-4 items-start p-4 pt-0 h-full">
+        <div className="flex flex-row gap-4 items-start pb-4 px-0 pt-0 h-full">
           {/* Original Image Section */}
-          <div className="flex-1 lg:w-full  border border-gray-700 rounded-2xl overflow-hidden p-2 relative">
+          <div className="flex-1 lg:w-full flex-1 border border-gray-700 rounded-2xl overflow-hidden p-2 relative  h-full">
             <h3 className="text-base md:text-lg font-medium mb-1 md:mb-2 text-center">Input</h3>
             <div className="  absolute top-2 right-2  ">
               <Button

@@ -371,16 +371,16 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-800 text-gray-100 no-scrollbar">
-      <div className="max-w-7xl mx-auto py-8">
+      <div className="max-w-8xl mx-auto py-8 px-2 md:px-4 lg:px-6">
         {/* Mobile settings menu button */}
         {originalImage && !showRandomImageLoader && !isSettingsPanelVisible && (
-          <div className="fixed top-16 z-40 lg:hidden w-full mx-auto">
+          <div className="fixed top-4 right-4 z-50 lg:hidden">
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleSettingsPanel}
               aria-label="Toggle settings panel"
-              className="p-2 bg-gray-900/80 backdrop-blur hover:text-purple-400 w-full"
+              className="backdrop-blur hover:text-purple-400"
             >
               <SettingsIcon className="h-6 w-6" />
             </Button>
@@ -482,14 +482,13 @@ export default function Home() {
             </div>
             {/* Close button - only visible on mobile, moved outside panel scroll for correct fixed behavior */}
             {isSettingsPanelVisible && (
-              <div className="fixed top-16 w-full z-[50] lg:hidden">
+              <div className="fixed top-4 right-4 z-50 lg:hidden">
                 <Button
-                  // variant="ghost"
+                  variant="ghost"
                   size="icon"
                   onClick={toggleSettingsPanel}
                   aria-label="Close settings panel"
-                  className="p-2 bg-gray-900/80 backdrop-blur text-gray-100  hover:text-red-400 w-full hover:!bg-transparent "
-
+                  className="p-2 backdrop-blur hover:text-red-400"
                 >
                   <X className="h-6 w-6" />
                 </Button>

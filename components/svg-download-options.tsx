@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -382,9 +381,12 @@ export default function SvgDownloadOptions({
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button className=" text-lg h-8 w-8 p-0 rounded-full !bg-transparent hover:text-red-400" disabled={isProcessing || isDownloading} >
-                    <ArrowDownToLine className="h-6 w-6" />
-                </Button>
+                <button
+                    className="w-9 h-9 flex items-center justify-center rounded-lg backdrop-blur-sm transition-all duration-200 bg-gray-900/70 text-white hover:bg-gray-900/90 disabled:opacity-40 disabled:cursor-not-allowed"
+                    disabled={isProcessing || isDownloading}
+                >
+                    <ArrowDownToLine className="h-4 w-4" />
+                </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56">
                 <DropdownMenuLabel>Download Options</DropdownMenuLabel>
