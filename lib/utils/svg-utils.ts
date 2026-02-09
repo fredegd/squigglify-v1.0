@@ -82,77 +82,79 @@ export function* generateSVGChunks(
 ): Generator<SVGChunk, void, unknown> {
   perfStart('svg-generation-progressive');
 
-  const { outputWidth, outputHeight, colorGroups } = imageData;
-  const { continuousPaths, visiblePaths } = settings;
+  try {
+    const { outputWidth, outputHeight, colorGroups } = imageData;
+    const { continuousPaths, visiblePaths } = settings;
 
-  // Calculate dimensions
-  const widthInMM = Math.round(outputWidth / 3.759);
-  const heightInMM = Math.round(outputHeight / 3.759);
-  const svgWidth = outputWidth;
-  const svgHeight = outputHeight;
+    // Calculate dimensions
+    const widthInMM = Math.round(outputWidth / 3.759);
+    const heightInMM = Math.round(outputHeight / 3.759);
+    const svgWidth = outputWidth;
+    const svgHeight = outputHeight;
 
-  // Get visible color groups for progress calculation
-  const colorEntries = colorGroups
-    ? Object.entries(colorGroups).filter(([colorKey]) => visiblePaths[colorKey] !== false)
-    : [];
-  const totalGroups = colorEntries.length;
+    // Get visible color groups for progress calculation
+    const colorEntries = colorGroups
+      ? Object.entries(colorGroups).filter(([colorKey]) => visiblePaths[colorKey] !== false)
+      : [];
+    const totalGroups = colorEntries.length;
 
-  // Yield SVG header
-  const svgHeader = `<svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision" style="stroke-linejoin: round; stroke-linecap: round;" data-width-mm="${widthInMM}" data-height-mm="${heightInMM}">
+    // Yield SVG header
+    const svgHeader = `<svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision" style="stroke-linejoin: round; stroke-linecap: round;" data-width-mm="${widthInMM}" data-height-mm="${heightInMM}">
   `;
 
-  yield {
-    type: 'header',
-    content: svgHeader,
-    progress: 0,
-    totalGroups,
-    currentGroup: 0,
-  };
+    yield {
+      type: 'header',
+      content: svgHeader,
+      progress: 0,
+      totalGroups,
+      currentGroup: 0,
+    };
 
-  // Yield each color group separately
-  if (colorGroups) {
-    let groupIndex = 0;
+    // Yield each color group separately
+    if (colorGroups) {
+      let groupIndex = 0;
 
-    for (const [colorKey, group] of colorEntries) {
-      groupIndex++;
+      for (const [colorKey, group] of colorEntries) {
+        groupIndex++;
 
-      // Generate group content
-      const safeColorId = group.color.replace("#", "");
-      let groupContent = `<g id="color-group-${safeColorId}" data-color="${group.color}" data-name="${group.displayName}" data-index="${groupIndex}">\n`;
+        // Generate group content
+        const safeColorId = group.color.replace("#", "");
+        let groupContent = `<g id="color-group-${safeColorId}" data-color="${group.color}" data-name="${group.displayName}" data-index="${groupIndex}">\n`;
 
-      if (continuousPaths) {
-        groupContent += generateContinuousPath(group, settings);
-      } else {
-        groupContent += generateIndividualPaths(group, settings);
+        if (continuousPaths) {
+          groupContent += generateContinuousPath(group, settings);
+        } else {
+          groupContent += generateIndividualPaths(group, settings);
+        }
+
+        groupContent += `</g>\n`;
+
+        // Calculate progress percentage
+        const progress = Math.round((groupIndex / totalGroups) * 100);
+
+        yield {
+          type: 'colorGroup',
+          content: groupContent,
+          colorKey,
+          colorName: group.displayName,
+          progress,
+          totalGroups,
+          currentGroup: groupIndex,
+        };
       }
-
-      groupContent += `</g>\n`;
-
-      // Calculate progress percentage
-      const progress = Math.round((groupIndex / totalGroups) * 100);
-
-      yield {
-        type: 'colorGroup',
-        content: groupContent,
-        colorKey,
-        colorName: group.displayName,
-        progress,
-        totalGroups,
-        currentGroup: groupIndex,
-      };
     }
+
+    // Yield SVG footer
+    yield {
+      type: 'footer',
+      content: `</svg>`,
+      progress: 100,
+      totalGroups,
+      currentGroup: totalGroups,
+    };
+  } finally {
+    perfEnd('svg-generation-progressive');
   }
-
-  // Yield SVG footer
-  yield {
-    type: 'footer',
-    content: `</svg>`,
-    progress: 100,
-    totalGroups,
-    currentGroup: totalGroups,
-  };
-
-  perfEnd('svg-generation-progressive');
 }
 
 /**
