@@ -1,4 +1,5 @@
 import { calculateDistance } from "./math-utils";
+import { perfStart, perfEnd } from "./performance-profiler";
 import type {
   ColorGroup,
   ImageData,
@@ -9,6 +10,7 @@ import type {
 
 // Generate SVG from processed image data
 export function generateSVG(imageData: ImageData, settings: Settings): string {
+  perfStart('svg-generation');
   const { outputWidth, outputHeight, colorGroups } = imageData;
   const { continuousPaths, visiblePaths } = settings;
 
@@ -54,9 +56,143 @@ export function generateSVG(imageData: ImageData, settings: Settings): string {
   // Close SVG
   svgContent += `</svg>`;
 
+  perfEnd('svg-generation');
   return svgContent;
 }
 
+// Type for progressive SVG chunks
+export interface SVGChunk {
+  type: 'header' | 'colorGroup' | 'footer';
+  content: string;
+  colorKey?: string;
+  colorName?: string;
+  progress: number; // 0-100 percentage
+  totalGroups: number;
+  currentGroup: number;
+}
+
+/**
+ * Generator function for progressive SVG rendering
+ * Yields SVG content in chunks (header, each color group, footer)
+ * This allows the UI to show partial results during processing
+ */
+export function* generateSVGChunks(
+  imageData: ImageData,
+  settings: Settings
+): Generator<SVGChunk, void, unknown> {
+  perfStart('svg-generation-progressive');
+
+  const { outputWidth, outputHeight, colorGroups } = imageData;
+  const { continuousPaths, visiblePaths } = settings;
+
+  // Calculate dimensions
+  const widthInMM = Math.round(outputWidth / 3.759);
+  const heightInMM = Math.round(outputHeight / 3.759);
+  const svgWidth = outputWidth;
+  const svgHeight = outputHeight;
+
+  // Get visible color groups for progress calculation
+  const colorEntries = colorGroups
+    ? Object.entries(colorGroups).filter(([colorKey]) => visiblePaths[colorKey] !== false)
+    : [];
+  const totalGroups = colorEntries.length;
+
+  // Yield SVG header
+  const svgHeader = `<svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision" style="stroke-linejoin: round; stroke-linecap: round;" data-width-mm="${widthInMM}" data-height-mm="${heightInMM}">
+  `;
+
+  yield {
+    type: 'header',
+    content: svgHeader,
+    progress: 0,
+    totalGroups,
+    currentGroup: 0,
+  };
+
+  // Yield each color group separately
+  if (colorGroups) {
+    let groupIndex = 0;
+
+    for (const [colorKey, group] of colorEntries) {
+      groupIndex++;
+
+      // Generate group content
+      const safeColorId = group.color.replace("#", "");
+      let groupContent = `<g id="color-group-${safeColorId}" data-color="${group.color}" data-name="${group.displayName}" data-index="${groupIndex}">\n`;
+
+      if (continuousPaths) {
+        groupContent += generateContinuousPath(group, settings);
+      } else {
+        groupContent += generateIndividualPaths(group, settings);
+      }
+
+      groupContent += `</g>\n`;
+
+      // Calculate progress percentage
+      const progress = Math.round((groupIndex / totalGroups) * 100);
+
+      yield {
+        type: 'colorGroup',
+        content: groupContent,
+        colorKey,
+        colorName: group.displayName,
+        progress,
+        totalGroups,
+        currentGroup: groupIndex,
+      };
+    }
+  }
+
+  // Yield SVG footer
+  yield {
+    type: 'footer',
+    content: `</svg>`,
+    progress: 100,
+    totalGroups,
+    currentGroup: totalGroups,
+  };
+
+  perfEnd('svg-generation-progressive');
+}
+
+/**
+ * Helper to assemble SVG from chunks
+ * Use this to combine all yielded chunks into final SVG string
+ */
+export function assembleSVGFromChunks(chunks: SVGChunk[]): string {
+  return chunks.map(chunk => chunk.content).join('');
+}
+
+/**
+ * Generate SVG progressively with callback for each chunk
+ * Provides an easier API for integration with React components
+ */
+export async function generateSVGProgressively(
+  imageData: ImageData,
+  settings: Settings,
+  onChunk: (chunk: SVGChunk, partialSvg: string) => void,
+  delayBetweenChunks: number = 0
+): Promise<string> {
+  const chunks: SVGChunk[] = [];
+  let partialSvg = '';
+
+  for (const chunk of generateSVGChunks(imageData, settings)) {
+    chunks.push(chunk);
+    partialSvg += chunk.content;
+
+    onChunk(chunk, partialSvg);
+
+    // Allow UI to update between chunks
+    if (delayBetweenChunks > 0) {
+      await new Promise(resolve => setTimeout(resolve, delayBetweenChunks));
+    } else {
+      // Yield to event loop even with 0 delay
+      await new Promise(resolve => setTimeout(resolve, 0));
+    }
+  }
+
+  return partialSvg;
+}
 // Generate continuous path for a color group
 export function generateContinuousPath(
   colorGroup: ColorGroup,

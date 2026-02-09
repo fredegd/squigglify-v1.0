@@ -13,6 +13,7 @@ import {
   extractAllColorGroups,
 } from "./utils/svg-utils";
 import { ColorQuantizer } from "./processors/color-quantizer";
+import { perfStart, perfEnd } from "./utils/performance-profiler";
 
 // Cache für die Farbquantisierung
 let colorQuantizerCache: {
@@ -53,6 +54,8 @@ export async function processImage(
     img.crossOrigin = "anonymous";
     img.onload = () => {
       try {
+        perfStart('total-image-processing');
+        perfStart('image-setup');
         // Berechne optimale Bildgröße
         const { width: optimalWidth, height: optimalHeight } =
           calculateOptimalDimensions(img.width, img.height);
@@ -111,6 +114,7 @@ export async function processImage(
               }
             }
 
+            perfStart('create-color-quantizer');
             // Erstelle und cache neuen ColorQuantizer
             colorQuantizerCache = {
               imageHash: currentImageHash,
@@ -134,6 +138,7 @@ export async function processImage(
               ),
               lastColorsAmt: settings.colorsAmt,
             };
+            perfEnd('create-color-quantizer');
           }
           // Wenn nur die Farbanzahl anders ist, aktualisiere den existierenden Quantizer
           else if (colorQuantizerCache.lastColorsAmt !== settings.colorsAmt) {
@@ -158,7 +163,9 @@ export async function processImage(
             colorQuantizerCache.lastColorsAmt = settings.colorsAmt;
           }
         }
+        perfEnd('image-setup');
 
+        perfStart('pixel-processing');
         // Calculate resize dimensions based on optimized size
         const {
           resizedWidth,
@@ -293,7 +300,10 @@ export async function processImage(
           sourceUrl: options.sourceUrl,
         };
 
+        perfEnd('pixel-processing');
+
         // Process the image according to the selected mode
+        perfStart('mode-processing');
         let newColorGroups: Record<string, ColorGroup>;
         switch (settings.processingMode) {
           case "grayscale":
@@ -321,6 +331,8 @@ export async function processImage(
         } else {
           processedImageData.colorGroups = newColorGroups;
         }
+        perfEnd('mode-processing');
+        perfEnd('total-image-processing');
 
         resolve(processedImageData);
       } catch (error) {
@@ -341,3 +353,11 @@ export const generateSVG = generateSvgFromImageData;
 
 // Re-export wichtiger Funktionen für externe Nutzung
 export { extractColorGroupSVG, extractAllColorGroups };
+
+// Export progressive SVG generation functions
+export {
+  generateSVGChunks,
+  generateSVGProgressively,
+  assembleSVGFromChunks,
+  type SVGChunk
+} from "./utils/svg-utils";

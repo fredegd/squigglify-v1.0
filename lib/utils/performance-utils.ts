@@ -38,8 +38,10 @@ export class MemoCache<K, V> {
 
         // Implement LRU eviction if cache is full
         if (this.cache.size >= this.maxSize && !this.cache.has(keyStr)) {
-            const firstKey = this.cache.keys().next().value;
-            this.cache.delete(firstKey);
+            const firstKey = this.cache.keys().next().value as string | undefined;
+            if (firstKey !== undefined) {
+                this.cache.delete(firstKey);
+            }
         }
 
         this.cache.set(keyStr, { value, timestamp: Date.now() });

@@ -1,4 +1,5 @@
 import type { PixelData } from "../types";
+import { perfStart, perfEnd } from "./performance-profiler";
 
 /**
  * K-means clustering with K-means++ initialization for better performance
@@ -8,8 +9,16 @@ export function kMeansClustering(
   colors: [number, number, number][],
   k: number
 ): [number, number, number][] {
-  if (colors.length === 0) return [];
-  if (colors.length <= k) return colors.slice(0, k);
+  perfStart('kmeans-clustering');
+
+  if (colors.length === 0) {
+    perfEnd('kmeans-clustering');
+    return [];
+  }
+  if (colors.length <= k) {
+    perfEnd('kmeans-clustering');
+    return colors.slice(0, k);
+  }
 
   // Use K-means++ initialization for better starting centroids
   let centroids = kMeansPlusPlusInit(colors, k);
@@ -44,7 +53,7 @@ export function kMeansClustering(
   }
 
   // Round the centroids to integers
-  return centroids.map(
+  const result = centroids.map(
     (c) =>
       [Math.round(c[0]), Math.round(c[1]), Math.round(c[2])] as [
         number,
@@ -52,6 +61,9 @@ export function kMeansClustering(
         number
       ]
   );
+
+  perfEnd('kmeans-clustering');
+  return result;
 }
 
 /**
