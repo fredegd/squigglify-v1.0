@@ -45,8 +45,8 @@ export default function CurveStyleSettings({
 
 
 
-                <summary className="cursor-pointer text-md font-bold mb-4 flex items-center justify-between">
-                    <h3 className="flex items-center gap-2">
+                <summary className="cursor-pointer text-lg font-bold mb-4 flex items-center justify-between">
+                    <h3 className="flex items-center gap-2 text-gradient">
                         {settings.curvedPaths ? "Curved" : "Square"} Paths
                         <Tooltip>
                             <TooltipTrigger>

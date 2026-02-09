@@ -106,8 +106,8 @@ export default function SettingsPanel({
       <>
         <Separator className="bg-gray-700" />
         <details className="group" >
-          <summary className="cursor-pointer text-md font-bold  my-6 flex items-center justify-between ">
-            <h3 className="flex items-center gap-2">Advanced Shape Controls</h3>
+          <summary className="cursor-pointer text-lg font-bold  my-6 flex items-center justify-between ">
+            <h3 className="flex items-center gap-2 text-gradient">Advanced Shape Controls</h3>
             <ChevronDown className="h-5 w-5 text-gray-300 transition-transform duration-200 group-open:rotate-180" />
           </summary>
 
@@ -377,8 +377,8 @@ export default function SettingsPanel({
       {onPlayAnimation && (
         <>
           <details className="group">
-            <summary className="cursor-pointer text-md font-bold  my-6 flex items-center justify-between ">
-              <h3 className="flex items-center gap-2">Animation Controls</h3>
+            <summary className="cursor-pointer text-lg font-bold  my-6 flex items-center justify-between ">
+              <h3 className="flex items-center gap-2 text-gradient">Animation Controls</h3>
               <ChevronDown className="h-5 w-5 text-gray-300 transition-transform duration-200 group-open:rotate-180" />
             </summary>
 
@@ -446,6 +446,7 @@ export default function SettingsPanel({
       {onResetSettings && (
         <>
           <Separator className="bg-gray-700" />
+          <h3 className="flex items-center gap-2 text-gradient font-bold">Current Settings</h3>
           <div className="flex justify-between gap-2 pt-2">
             <ShareConfigButton settings={settings} />
             <Button
@@ -462,7 +463,7 @@ export default function SettingsPanel({
               className="text-gray-300 border-gray-600 hover:bg-gray-700 hover:text-white"
             >
               <RotateCcw className="h-4 w-4 mr-2" />
-              Reset Config
+              Reset
             </Button>
           </div>
         </>

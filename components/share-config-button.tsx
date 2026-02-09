@@ -52,7 +52,7 @@ export function ShareConfigButton({
                     ) : (
                         <>
                             <Link className="h-4 w-4 mr-1" />
-                            <span>Share Config</span>
+                            <span>Share</span>
                         </>
                     )}
                 </Button>

@@ -43,8 +43,8 @@ export default function PathDensitySettings({ settings, onSettingsChange, disabl
     return (
         <TooltipProvider>
             <details className="group" >
-                <summary className="cursor-pointer my-6 text-md font-bold flex items-center justify-between">
-                    <h3 className="flex items-center gap-2">
+                <summary className="cursor-pointer my-6 text-lg font-bold flex items-center justify-between">
+                    <h3 className="flex items-center gap-2 text-gradient">
                         Path Density
                         <Tooltip>
                             <TooltipTrigger>

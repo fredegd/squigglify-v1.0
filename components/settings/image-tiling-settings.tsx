@@ -36,8 +36,8 @@ export default function ImageTilingSettings({ settings, onSettingsChange, disabl
     }
     return (
         <details className="group" >
-            <summary className="cursor-pointer text-md font-bold  my-6 flex items-center justify-between ">
-                <h3 className="flex items-center gap-2">Image Tiling</h3>
+            <summary className="cursor-pointer text-lg font-bold  my-6 flex items-center justify-between ">
+                <h3 className="flex items-center gap-2 text-gradient">Image Tiling</h3>
                 <ChevronDown className="h-5 w-5 text-gray-300 transition-transform duration-200 group-open:rotate-180" />
             </summary>
             <div className="flex flex-col gap-8 mt-4 text-gray-300 lg:px-4 px-8">

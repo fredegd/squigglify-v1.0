@@ -223,7 +223,7 @@ const Preview = memo(function Preview({
       <div className="relative h-full flex flex-col">
         <div className="space-y-4 flex-1 flex flex-col ">
           <div className="flex-1 lg:w-full  border border-gray-700 rounded-2xl overflow-hidden p-2 relative flex flex-col">
-            <h3 className="text-lg font-medium  text-center mb-2">Output</h3>
+            <h3 className="text-lg font-bold text-center mb-2 text-gradient">Output</h3>
             <div className=" absolute lg:top-auto bottom-4 lg:right-6 right-6  ">
               {svgContent && (
                 <SvgDownloadOptions
@@ -384,18 +384,18 @@ export const ImageThumbnail = memo(function ImageThumbnail({
   }, [svgContentPreview]);
 
   return (
-    <div className=" bg-gray-800/80 backdrop-blur-md rounded-lg   sticky top-0 z-[45]  pt-12 lg:pt-0 px-7 lg:px-0">
+    <div className="bg-gray-800/95 backdrop-blur-md rounded-b-lg sticky top-16 z-[45] pt-12 lg:pt-0 px-7 lg:px-0  shadow-xl">
       {/* we should include this following div in a details/summary section */}
       <details className="" open>
-        <summary className="cursor-pointer text-md font-bold  my-6 px-[0.125rem] flex items-center justify-between ">
-          <h3 className="flex items-center gap-2">Image Details</h3>
+        <summary className="cursor-pointer text-lg font-bold  mb-6 mt-4 flex items-center justify-between ">
+          <h3 className="flex items-center gap-2 text-gradient">Image Details</h3>
           <ChevronDown className="h-4 w-4 transform transition-transform duration-200 group-open:rotate-180" />
         </summary>
-        <div className="flex flex-row gap-4 items-start pb-4 px-0 pt-0 h-full">
+        <div className="flex flex-row gap-4 items-start  p-0 h-full">
           {/* Mini SVG Preview Section (only on mobile/when svgContentPreview is present) */}
           {svgContentPreview && (
             <div className="flex-1  lg:hidden border border-gray-700 rounded-2xl overflow-hidden p-2 relative  h-full" >
-              <h3 className="text-base md:text-lg font-medium mb-1 md:mb-2 text-center">Preview</h3>
+              <h3 className="text-base md:text-lg font-bold mb-1 md:mb-2 text-center text-gradient">Preview</h3>
               <Maximize2 className="absolute top-2 right-2 h-4 w-4 text-gray-400 cursor-pointer hover:text-gray-300" onClick={toggleSettingsPanel} />
               <div ref={svgPreviewContainerRef} className="aspect-square bg-[#f1f1f1] rounded-lg overflow-hidden flex items-center justify-center max-h-40  mx-auto p-1" onClick={toggleSettingsPanel}>
                 {/* Mini SVG will be injected here */}
@@ -419,7 +419,7 @@ export const ImageThumbnail = memo(function ImageThumbnail({
 
           {/* Original Image Section */}
           <div className="flex-1 lg:w-full flex-1 border border-gray-700 rounded-2xl overflow-hidden p-2 relative  h-full">
-            <h3 className="text-base md:text-lg font-medium mb-1 md:mb-2 text-center">Input</h3>
+            <h3 className="text-base md:text-lg font-bold mb-1 md:mb-2 text-center text-gradient">Input</h3>
             <div className="  absolute top-2 right-2  ">
               <Button
 

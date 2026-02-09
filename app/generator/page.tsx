@@ -448,8 +448,11 @@ export default function Home() {
           {!showRandomImageLoader && originalImage && (<>
             <div className={`
               ${isSettingsPanelVisible ? 'block' : 'hidden lg:block'}
-              ${isSettingsPanelVisible ? 'fixed right-0 top-0 bottom-0 w-full  z-50  overflow-y-auto md:p-4 p-0 transition-all duration-300 ease-in-out     bg-gray-800/60 backdrop-blur rounded-lg' : ''}
-              lg:static lg:z-auto lg:overflow-visible lg:p-0 lg:space-y-6 lg:w-auto lg:shadow-none no-scrollbar
+              ${isSettingsPanelVisible
+                ? 'fixed inset-0 z-50 overflow-y-auto bg-gray-900/98 backdrop-blur-xl'
+                : 'lg:bg-gray-800/40 lg:backdrop-blur-md lg:border lg:border-gray-700 lg:rounded-2xl lg:shadow-2xl lg:ring-1 lg:ring-white/5 lg:px-2'
+              }
+              lg:static lg:z-auto lg:overflow-visible lg:w-auto no-scrollbar
             `}
             >
 
