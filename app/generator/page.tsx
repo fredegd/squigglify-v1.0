@@ -9,7 +9,7 @@ import { useSettings } from "@/hooks/use-settings"
 import { useIsMobile } from "@/hooks/use-mobile"
 import type { ProcessImageOptions } from "@/lib/image-processor"
 import { Button } from "@/components/ui/button"
-import { generateSVG } from "@/lib/image-processor"
+import { generateSVG, generateSVGProgressively, type SVGChunk } from "@/lib/image-processor"
 import { processImageWithProgress } from "@/lib/image-processor-with-progress"
 import type { ImageData, Settings } from "@/lib/types"
 import ProcessingProgress from "@/components/processing-progress"
@@ -21,6 +21,12 @@ import {
   clearStoredImage
 } from "@/lib/utils/image-storage"
 import "@/lib/utils/settings-debug" // Load debug utilities
+import { enablePerformanceDebugging } from "@/lib/utils/performance-profiler"
+
+// Enable performance debugging in console on load (development only)
+if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+  enablePerformanceDebugging();
+}
 
 export default function Home() {
   const [originalImage, setOriginalImage] = useState<string | null>(null)
@@ -301,12 +307,13 @@ export default function Home() {
       // Use the appropriate settings
       const processingSettings = 'imageDataUrl' in input ? settings : input as Settings;
 
-      // Process with progress updates
+      // Process with progress updates (0-70% for image processing)
       const imageData = await processImageWithProgress(
         imageOptions,
         processingSettings,
         (progress, status) => {
-          setProcessingProgress(progress)
+          // Scale image processing to 0-70%
+          setProcessingProgress(progress * 0.7)
           setProcessingStatus(status)
           return false // Don't cancel
         }
@@ -328,9 +335,35 @@ export default function Home() {
 
       setProcessedData(imageData)
 
-      // Generate SVG from the processed data
-      const svg = generateSVG(imageData, { ...processingSettings, visiblePaths: settings.visiblePaths })
-      setSvgContent(svg)
+      // Progressive SVG generation (70-100%)
+      setProcessingStatus("Generating SVG paths...")
+      setProcessingProgress(70)
+
+      await generateSVGProgressively(
+        imageData,
+        { ...processingSettings, visiblePaths: settings.visiblePaths },
+        (chunk: SVGChunk, partialSvg: string) => {
+          // Update SVG in real-time to show partial results
+          setSvgContent(partialSvg)
+
+          // Scale SVG progress from 70-100%
+          const svgProgress = 70 + (chunk.progress * 0.3)
+          setProcessingProgress(svgProgress)
+
+          // Show which color is being processed
+          if (chunk.type === 'colorGroup' && chunk.colorName) {
+            setProcessingStatus(`Generating SVG: ${chunk.colorName} (${chunk.currentGroup}/${chunk.totalGroups})`)
+          } else if (chunk.type === 'header') {
+            setProcessingStatus("Generating SVG: Starting...")
+          } else if (chunk.type === 'footer') {
+            setProcessingStatus("Generating SVG: Finalizing...")
+          }
+        },
+        16 // Small delay between chunks to allow UI updates
+      )
+
+      setProcessingProgress(100)
+      setProcessingStatus("Complete!")
     } catch (error) {
       console.error("Error processing image:", error)
       // Handle error state here

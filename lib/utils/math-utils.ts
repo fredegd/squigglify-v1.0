@@ -1,19 +1,35 @@
 import type { PixelData } from "../types";
+import { perfStart, perfEnd } from "./performance-profiler";
 
-// K-means clustering für Farbreduktion
+/**
+ * K-means clustering with K-means++ initialization for better performance
+ * This optimized version converges faster and produces better results
+ */
 export function kMeansClustering(
   colors: [number, number, number][],
   k: number
 ): [number, number, number][] {
-  // Verwende die ursprüngliche Zentroid-Initialisierung
-  let centroids = colors.slice(0, k);
+  perfStart('kmeans-clustering');
+
+  if (colors.length === 0) {
+    perfEnd('kmeans-clustering');
+    return [];
+  }
+  if (colors.length <= k) {
+    perfEnd('kmeans-clustering');
+    return colors.slice(0, k);
+  }
+
+  // Use K-means++ initialization for better starting centroids
+  let centroids = kMeansPlusPlusInit(colors, k);
   let oldCentroids: [number, number, number][] = [];
   let iterations = 0;
   const maxIterations = 10;
+  const convergenceThreshold = 1; // Stop if centroids change less than this
 
   while (
     iterations < maxIterations &&
-    !centroidsEqual(centroids, oldCentroids)
+    !centroidsConverged(centroids, oldCentroids, convergenceThreshold)
   ) {
     oldCentroids = centroids.map((c) => [...c] as [number, number, number]);
 
@@ -37,13 +53,77 @@ export function kMeansClustering(
   }
 
   // Round the centroids to integers
-  return centroids.map(
+  const result = centroids.map(
     (c) =>
       [Math.round(c[0]), Math.round(c[1]), Math.round(c[2])] as [
         number,
         number,
         number
       ]
+  );
+
+  perfEnd('kmeans-clustering');
+  return result;
+}
+
+/**
+ * K-means++ initialization - chooses initial centroids that are far apart
+ * This significantly improves clustering quality and convergence speed
+ */
+function kMeansPlusPlusInit(
+  colors: [number, number, number][],
+  k: number
+): [number, number, number][] {
+  const centroids: [number, number, number][] = [];
+
+  // Choose first centroid randomly
+  const firstIndex = Math.floor(Math.random() * colors.length);
+  centroids.push([...colors[firstIndex]]);
+
+  // Choose remaining centroids
+  for (let i = 1; i < k; i++) {
+    const distances: number[] = colors.map((color) => {
+      // Find distance to nearest existing centroid
+      let minDist = Number.POSITIVE_INFINITY;
+      centroids.forEach((centroid) => {
+        const dist = colorDistance(color, centroid);
+        if (dist < minDist) minDist = dist;
+      });
+      return minDist * minDist; // Square for weighted probability
+    });
+
+    // Choose next centroid with probability proportional to distance²
+    const sumDistances = distances.reduce((a, b) => a + b, 0);
+    let random = Math.random() * sumDistances;
+
+    for (let j = 0; j < colors.length; j++) {
+      random -= distances[j];
+      if (random <= 0) {
+        centroids.push([...colors[j]]);
+        break;
+      }
+    }
+  }
+
+  return centroids;
+}
+
+/**
+ * Check if centroids have converged (changed less than threshold)
+ */
+function centroidsConverged(
+  c1: [number, number, number][],
+  c2: [number, number, number][],
+  threshold: number
+): boolean {
+  if (c1.length !== c2.length) return false;
+  if (c2.length === 0) return false; // Not converged on first iteration
+
+  return c1.every(
+    (cent, i) =>
+      Math.abs(cent[0] - c2[i][0]) < threshold &&
+      Math.abs(cent[1] - c2[i][1]) < threshold &&
+      Math.abs(cent[2] - c2[i][2]) < threshold
   );
 }
 
@@ -82,9 +162,23 @@ export function colorDistance(
   // Simple Euclidean distance in RGB space
   return Math.sqrt(
     Math.pow(c1[0] - c2[0], 2) +
-      Math.pow(c1[1] - c2[1], 2) +
-      Math.pow(c1[2] - c2[2], 2)
+    Math.pow(c1[1] - c2[1], 2) +
+    Math.pow(c1[2] - c2[2], 2)
   );
+}
+
+/**
+ * Squared color distance - faster for comparisons since it avoids sqrt
+ * Use this when you only need to compare distances, not the actual value
+ */
+export function colorDistanceSquared(
+  c1: [number, number, number],
+  c2: [number, number, number]
+): number {
+  const dr = c1[0] - c2[0];
+  const dg = c1[1] - c2[1];
+  const db = c1[2] - c2[2];
+  return dr * dr + dg * dg + db * db;
 }
 
 // Calculate the average color of a cluster
@@ -200,7 +294,7 @@ export function calculateContextAwareDensity(
     // Weighted average of current density and neighbor density
     const smoothedDensity = Math.round(
       baseDensity * (1 - smoothingFactor) +
-        neighborBaseDensity * smoothingFactor
+      neighborBaseDensity * smoothingFactor
     );
 
     return smoothedDensity;

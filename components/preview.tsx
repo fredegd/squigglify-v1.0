@@ -234,13 +234,9 @@ const Preview = memo(function Preview({
               )}
             </div>
 
-            <div className="flex-1 flex items-center justify-center min-h-0">
-              {isProcessing ? (
-                <div className="flex flex-col items-center justify-center">
-                  <LoaderCircle className="h-10 w-10 text-primary animate-spin mb-2" />
-                  <p className="text-gray-300">Processing image...</p>
-                </div>
-              ) : svgContent ? (
+            <div className="flex-1 flex items-center justify-center min-h-0 relative">
+              {/* Show SVG even during processing for progressive rendering */}
+              {svgContent ? (
                 <TransformWrapper
                   initialScale={1}
                   minScale={0.5}
@@ -260,8 +256,23 @@ const Preview = memo(function Preview({
                     </div>
                   </TransformComponent>
                 </TransformWrapper>
+              ) : isProcessing ? (
+                <div className="flex flex-col items-center justify-center">
+                  <LoaderCircle className="h-10 w-10 text-primary animate-spin mb-2" />
+                  <p className="text-gray-300">Processing image...</p>
+                </div>
               ) : (
                 <p className="text-gray-300">Vector preview will appear here</p>
+              )}
+
+              {/* Processing overlay - shown over SVG during generation */}
+              {isProcessing && svgContent && (
+                <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] rounded-xl flex items-center justify-center pointer-events-none">
+                  <div className="bg-gray-900/90 rounded-lg px-4 py-2 flex items-center gap-2">
+                    <LoaderCircle className="h-5 w-5 text-primary animate-spin" />
+                    <span className="text-sm text-gray-200">Generating...</span>
+                  </div>
+                </div>
               )}
             </div>
             {processedData && (
