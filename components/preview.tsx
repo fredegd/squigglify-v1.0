@@ -18,7 +18,6 @@ interface PreviewProps {
   animationSpeed?: number
   animationTrigger?: number
   stopTrigger?: number
-  maxHeight?: number
 }
 
 // Use memo to prevent unnecessary re-renders
@@ -29,8 +28,7 @@ const Preview = memo(function Preview({
   settings,
   animationSpeed = 1.0,
   animationTrigger = 0,
-  stopTrigger = 0,
-  maxHeight
+  stopTrigger = 0
 }: PreviewProps) {
   const svgContainerRef = useRef<HTMLDivElement>(null)
   const [shouldAnimate, setShouldAnimate] = useState(false)
@@ -245,10 +243,9 @@ const Preview = memo(function Preview({
                   <TransformComponent
                     wrapperStyle={{
                       width: "100%",
-                      height: maxHeight ? `${maxHeight - 120}px` : "75vh",
+                      height: "75vh",
                       backgroundColor: '#f1f1f1',
-                      borderRadius: '12px',
-                      transition: 'height 0.1s ease-out'
+                      borderRadius: '12px'
                     }}
                     contentStyle={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}
                   >

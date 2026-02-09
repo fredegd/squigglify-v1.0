@@ -45,60 +45,9 @@ export default function Home() {
   const [processingProgress, setProcessingProgress] = useState(0)
   const [processingStatus, setProcessingStatus] = useState("")
   const [showProgress, setShowProgress] = useState(false)
-  const [maxPreviewHeight, setMaxPreviewHeight] = useState<number | undefined>(undefined)
   const isMobile = useIsMobile()
 
-  // Track max preview height based on footer position using IntersectionObserver
-  useEffect(() => {
-    const footer = document.querySelector('footer');
-    if (!footer) return;
 
-    const navbarHeight = 64; // Height of the fixed navigation
-    const padding = 32; // Extra padding from bottom
-
-    const updateMaxHeight = (entries: IntersectionObserverEntry[]) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          // Footer is visible - calculate available space
-          const footerRect = entry.boundingClientRect;
-          const availableSpace = footerRect.top - navbarHeight - padding;
-          setMaxPreviewHeight(Math.max(availableSpace, 240)); // Ensure a minimum height
-        } else {
-          // Footer not visible - reset to default
-          setMaxPreviewHeight(undefined);
-        }
-      });
-    };
-
-    // Create IntersectionObserver with a threshold to detect when footer enters viewport
-    const observer = new IntersectionObserver(updateMaxHeight, {
-      root: null, // viewport
-      rootMargin: '0px',
-      threshold: [0, 0.1, 1] // Trigger at different intersection points
-    });
-
-    observer.observe(footer);
-
-    // Handle resize events separately (less frequent than scroll)
-    const handleResize = () => {
-      const footerRect = footer.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-
-      if (footerRect.top < viewportHeight) {
-        const availableSpace = footerRect.top - navbarHeight - padding;
-        setMaxPreviewHeight(Math.max(availableSpace, 240));
-      } else {
-        setMaxPreviewHeight(undefined);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
 
   // Check localStorage on mount and load stored image or fallback to default
   useEffect(() => {
@@ -479,10 +428,7 @@ export default function Home() {
             )}
 
             {!showRandomImageLoader && originalImage && (
-              <div
-                className="sticky top-16 z-10 overflow-hidden"
-                style={maxPreviewHeight ? { maxHeight: `${maxPreviewHeight}px` } : {}}
-              >
+              <div className="sticky top-16 z-10 overflow-hidden">
                 <Preview
                   originalImage={originalImage!}
                   svgContent={svgContent}
@@ -493,7 +439,6 @@ export default function Home() {
                   animationSpeed={animationSpeed}
                   animationTrigger={animationTrigger}
                   stopTrigger={stopTrigger}
-                  maxHeight={maxPreviewHeight}
                 />
               </div>
             )}
