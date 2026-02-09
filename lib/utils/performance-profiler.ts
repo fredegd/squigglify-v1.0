@@ -20,7 +20,7 @@ export function perfStart(name: string): void {
 /**
  * End a performance measurement and log the result
  */
-export function perfEnd(name: string, log = true): number {
+export function perfEnd(name: string, log = false): number {
     if (typeof performance === 'undefined') return 0;
 
     performance.mark(`${name}-end`);
