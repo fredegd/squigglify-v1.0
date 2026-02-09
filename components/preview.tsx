@@ -224,7 +224,7 @@ const Preview = memo(function Preview({
         <div className="space-y-4 flex-1 flex flex-col ">
           <div className="flex-1 lg:w-full  border border-gray-700 rounded-2xl overflow-hidden p-2 relative flex flex-col">
             <h3 className="text-lg font-medium  text-center mb-2">Output</h3>
-            <div className=" absolute lg:top-auto bottom-2 lg:right-2 right-4  ">
+            <div className=" absolute lg:top-auto bottom-4 lg:right-6 right-6  ">
               {svgContent && (
                 <SvgDownloadOptions
                   svgContent={svgContent}
@@ -262,8 +262,8 @@ const Preview = memo(function Preview({
                           </div>
                         </TransformComponent>
 
-                        {/* Pan, Reset & Zoom toggle buttons — desktop only */}
-                        <div className="absolute bottom-4 right-4 hidden lg:flex flex-col gap-2 z-10">
+                        {/* Pan & Zoom toggle buttons — desktop only */}
+                        <div className="absolute bottom-16 right-4 hidden lg:flex flex-col gap-2 z-10">
                           <button
                             onClick={() => setIsPanEnabled(prev => !prev)}
                             title={isPanEnabled ? 'Disable panning' : 'Enable panning'}
@@ -291,7 +291,10 @@ const Preview = memo(function Preview({
                               <span className="absolute w-5 h-0.5 bg-red-400/80 rotate-45 rounded-full" />
                             )}
                           </button>
+                        </div>
 
+                        {/* Reset view button — visible on all screens */}
+                        <div className="absolute bottom-4 right-4 flex z-10">
                           <button
                             onClick={() => resetTransform()}
                             title="Reset view"
@@ -381,7 +384,7 @@ export const ImageThumbnail = memo(function ImageThumbnail({
   }, [svgContentPreview]);
 
   return (
-    <div className=" bg-gray-800/80 backdrop-blur-md rounded-lg   sticky top-0 z-[45]  pt-12 lg:pt-0 px-7">
+    <div className=" bg-gray-800/80 backdrop-blur-md rounded-lg   sticky top-0 z-[45]  pt-12 lg:pt-0 px-7 lg:px-0">
       {/* we should include this following div in a details/summary section */}
       <details className="" open>
         <summary className="cursor-pointer text-md font-bold  my-6 px-[0.125rem] flex items-center justify-between ">
@@ -389,13 +392,40 @@ export const ImageThumbnail = memo(function ImageThumbnail({
           <ChevronDown className="h-4 w-4 transform transition-transform duration-200 group-open:rotate-180" />
         </summary>
         <div className="flex flex-row gap-4 items-start pb-4 px-0 pt-0 h-full">
+          {/* Mini SVG Preview Section (only on mobile/when svgContentPreview is present) */}
+          {svgContentPreview && (
+            <div className="flex-1  lg:hidden border border-gray-700 rounded-2xl overflow-hidden p-2 relative  h-full" >
+              <h3 className="text-base md:text-lg font-medium mb-1 md:mb-2 text-center">Preview</h3>
+              <Maximize2 className="absolute top-2 right-2 h-4 w-4 text-gray-400 cursor-pointer hover:text-gray-300" onClick={toggleSettingsPanel} />
+              <div ref={svgPreviewContainerRef} className="aspect-square bg-[#f1f1f1] rounded-lg overflow-hidden flex items-center justify-center max-h-40  mx-auto p-1" onClick={toggleSettingsPanel}>
+                {/* Mini SVG will be injected here */}
+              </div>
+              {/* Optional: Add tile info for preview if needed */}
+              {processedData && (
+                <p className="mt-1 text-center text-xs text-gray-300">
+                  {processedData.columnsCount} × {processedData.rowsCount} tiles
+                </p>
+              )}
+              {/* display density information */}
+              <p className="mt-1 text-center text-xs text-gray-300">
+                Density: {settings.minDensity} - {settings.maxDensity}
+              </p>
+              {/* display current processing mode */}
+              <p className="mt-1 text-center text-xs text-gray-300">
+                Processing Mode: {settings.processingMode}
+              </p>
+            </div>
+          )}
+
           {/* Original Image Section */}
           <div className="flex-1 lg:w-full flex-1 border border-gray-700 rounded-2xl overflow-hidden p-2 relative  h-full">
             <h3 className="text-base md:text-lg font-medium mb-1 md:mb-2 text-center">Input</h3>
             <div className="  absolute top-2 right-2  ">
               <Button
+
+                variant="ghost"
                 onClick={onNewImageUpload}
-                className="h-7 w-7 md:h-8 md:w-8 p-0 !bg-transparent hover:text-red-500"
+                className="h-7 w-7 md:h-8 md:w-8 p-0 hover:text-purple-500"
                 size="sm"
                 title="Upload new image"
               >
@@ -438,30 +468,7 @@ export const ImageThumbnail = memo(function ImageThumbnail({
               </div>
             )}
           </div>
-          {/* Mini SVG Preview Section (only on mobile/when svgContentPreview is present) */}
-          {svgContentPreview && (
-            <div className="flex-1  lg:hidden border border-gray-700 rounded-2xl overflow-hidden p-2 relative  h-full" >
-              <h3 className="text-base md:text-lg font-medium mb-1 md:mb-2 text-center">Preview</h3>
-              <Maximize2 className="absolute top-2 right-2 h-4 w-4 text-gray-400 cursor-pointer hover:text-gray-300" onClick={toggleSettingsPanel} />
-              <div ref={svgPreviewContainerRef} className="aspect-square bg-[#f1f1f1] rounded-lg overflow-hidden flex items-center justify-center max-h-40  mx-auto p-1" onClick={toggleSettingsPanel}>
-                {/* Mini SVG will be injected here */}
-              </div>
-              {/* Optional: Add tile info for preview if needed */}
-              {processedData && (
-                <p className="mt-1 text-center text-xs text-gray-300">
-                  {processedData.columnsCount} × {processedData.rowsCount} tiles
-                </p>
-              )}
-              {/* display density information */}
-              <p className="mt-1 text-center text-xs text-gray-300">
-                Density: {settings.minDensity} - {settings.maxDensity}
-              </p>
-              {/* display current processing mode */}
-              <p className="mt-1 text-center text-xs text-gray-300">
-                Processing Mode: {settings.processingMode}
-              </p>
-            </div>
-          )}
+
         </div>
       </details>
 
@@ -469,16 +476,7 @@ export const ImageThumbnail = memo(function ImageThumbnail({
       <Dialog open={isFullscreenOpen} onOpenChange={setIsFullscreenOpen}>
         <DialogContent className="max-w-[100vw] max-h-[100vh] w-screen h-screen p-0 border-0 bg-black/95">
           <div className="relative w-full h-full flex items-center justify-center">
-            {/* Close button */}
-            <Button
-              onClick={() => setIsFullscreenOpen(false)}
-              className="absolute top-4 right-4 z-50  h-8 w-8 p-0 hover:!text-red-500 !bg-transparent"
-              title="Close Fullscreen"
-              size="sm"
 
-            >
-              <X className="h-5 w-5 text-white" />
-            </Button>
 
             {/* Fullscreen image */}
             <img

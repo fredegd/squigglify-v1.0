@@ -67,7 +67,7 @@ export default function SettingsPanel({
   };
 
   return (
-    <div className="space-y-6 px-7 py-2 ">
+    <div className="space-y-6 px-7 lg:px-0 py-2 ">
 
 
       <ImageTilingSettings
@@ -446,7 +446,7 @@ export default function SettingsPanel({
       {onResetSettings && (
         <>
           <Separator className="bg-gray-700" />
-          <div className="flex justify-center gap-2 pt-2">
+          <div className="flex justify-between gap-2 pt-2">
             <ShareConfigButton settings={settings} />
             <Button
               variant="outline"

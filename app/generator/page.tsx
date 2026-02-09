@@ -371,7 +371,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-800 text-gray-100 no-scrollbar">
-      <div className="max-w-8xl mx-auto py-8 px-2 md:px-4 lg:px-6">
+      <div className="max-w-7xl mx-auto py-8 px-3 md:px-4 lg:px-20">
         {/* Mobile settings menu button */}
         {originalImage && !showRandomImageLoader && !isSettingsPanelVisible && (
           <div className="fixed top-4 right-4 z-50 lg:hidden">
@@ -380,7 +380,7 @@ export default function Home() {
               size="icon"
               onClick={toggleSettingsPanel}
               aria-label="Toggle settings panel"
-              className="backdrop-blur hover:text-purple-400"
+              className="backdrop-blur hover:text-purple-400 "
             >
               <SettingsIcon className="h-6 w-6" />
             </Button>
