@@ -296,7 +296,10 @@ const Preview = memo(function Preview({
                         {/* Reset view button — visible on all screens */}
                         <div className="absolute bottom-4 right-4 flex z-10">
                           <button
-                            onClick={() => resetTransform()}
+                            onClick={() => {
+                              resetTransform();
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
                             title="Reset view"
                             className="w-9 h-9 flex items-center justify-center rounded-lg backdrop-blur-sm transition-all duration-200 bg-gray-900/70 text-white hover:bg-gray-900/90"
                           >
