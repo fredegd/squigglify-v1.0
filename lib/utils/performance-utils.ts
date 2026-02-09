@@ -161,10 +161,10 @@ export async function batchAsync<T, R>(
  * Request idle callback wrapper for non-critical work
  */
 export function runWhenIdle(callback: () => void): void {
-    if ('requestIdleCallback' in window) {
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
         requestIdleCallback(callback);
     } else {
-        // Fallback for browsers without requestIdleCallback
+        // Fallback for non-browser environments or browsers without requestIdleCallback
         setTimeout(callback, 1);
     }
 }
