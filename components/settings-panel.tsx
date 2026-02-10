@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { RotateCcw, Info, ChevronDown, Play, Square } from "lucide-react"
 import type { Settings, CurveControlSettings, ImageData as ProcessedDataType } from "@/lib/types"
 import { DEFAULT_CURVE_CONTROLS } from "@/lib/types"
-import { useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect } from "react"
 
 import ProcessingModeSettings from "./settings/processing-mode-settings"
 import ImageTilingSettings from "./settings/image-tiling-settings"
@@ -45,6 +45,12 @@ export default function SettingsPanel({
   animationSpeed = 1.0,
   onAnimationSpeedChange
 }: SettingsPanelProps) {
+  const [curveControlsLocal, setCurveControlsLocal] = useState(curveControls);
+
+  useEffect(() => {
+    setCurveControlsLocal(curveControls);
+  }, [curveControls]);
+
   const calculatedDensity = useMemo(() => {
     const MAX_DIMENSION = 560;
     let outputWidth = MAX_DIMENSION;
@@ -124,7 +130,7 @@ export default function SettingsPanel({
               <div className="space-y-2">
                 <div className="flex gap-2">
                   <Label htmlFor="junctionContinuityFactor-panel">
-                    Curve Smoothness: {curveControls.junctionContinuityFactor.toFixed(2)}
+                    Curve Smoothness: {curveControlsLocal.junctionContinuityFactor.toFixed(2)}
                   </Label>
                   <Tooltip>
                     <TooltipTrigger>
@@ -142,46 +148,18 @@ export default function SettingsPanel({
                   min={0.01}
                   max={0.50}
                   step={0.01}
-                  value={[curveControls.junctionContinuityFactor]}
-                  onValueChange={(value) => onCurveControlsChange({ junctionContinuityFactor: value[0] })}
+                  value={[curveControlsLocal.junctionContinuityFactor]}
+                  onValueChange={(value) => setCurveControlsLocal(prev => ({ ...prev, junctionContinuityFactor: value[0] }))}
+                  onValueCommit={(value) => onCurveControlsChange({ junctionContinuityFactor: value[0] })}
                   disabled={disabled}
                 />
               </div>
             )}
 
-            {/* {settings.curvedPaths && (
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <Label htmlFor="handleRotationAngle-panel">
-                    Handle Rotation: {curveControls.handleRotationAngle?.toFixed(0)}°
-                  </Label>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="h-4 w-4 text-gray-300" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-xs">
-                        Adjusts the rotation of control point handles at each vertex (in degrees).
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <Slider
-                  id="handleRotationAngle-panel"
-                  min={-90}
-                  max={90}
-                  step={1}
-                  value={[curveControls.handleRotationAngle || 0]}
-                  onValueChange={(value) => onCurveControlsChange({ handleRotationAngle: value[0] })}
-                  disabled={disabled}
-                />
-              </div>
-            )} */}
-
             <div className="space-y-2">
               <div className="flex gap-2">
                 <Label htmlFor="lowerKnotXShift-panel">
-                  Lower Knot X Shift: {curveControls.lowerKnotXShift?.toFixed(2)}
+                  Lower Knot X Shift: {curveControlsLocal.lowerKnotXShift?.toFixed(2)}
                 </Label>
                 <Tooltip>
                   <TooltipTrigger>
@@ -199,8 +177,9 @@ export default function SettingsPanel({
                 min={-(processedData?.tileWidth ?? 0) / 2}
                 max={(processedData?.tileWidth ?? 0) / 2}
                 step={0.1}
-                value={[curveControls.lowerKnotXShift || 0]}
-                onValueChange={(value) => onCurveControlsChange({ lowerKnotXShift: value[0] })}
+                value={[curveControlsLocal.lowerKnotXShift || 0]}
+                onValueChange={(value) => setCurveControlsLocal(prev => ({ ...prev, lowerKnotXShift: value[0] }))}
+                onValueCommit={(value) => onCurveControlsChange({ lowerKnotXShift: value[0] })}
                 disabled={disabled}
               />
             </div>
@@ -208,7 +187,7 @@ export default function SettingsPanel({
             <div className="space-y-2">
               <div className="flex gap-2">
                 <Label htmlFor="upperKnotShiftFactor-panel">
-                  Upper Knot Explode: {((curveControls.upperKnotShiftFactor || 0) * 100).toFixed(0)}%
+                  Upper Knot Explode: {((curveControlsLocal.upperKnotShiftFactor || 0) * 100).toFixed(0)}%
                 </Label>
                 <Tooltip>
                   <TooltipTrigger>
@@ -226,8 +205,9 @@ export default function SettingsPanel({
                 min={0}
                 max={1}
                 step={0.01}
-                value={[curveControls.upperKnotShiftFactor || 0]}
-                onValueChange={(value) => onCurveControlsChange({ upperKnotShiftFactor: value[0] })}
+                value={[curveControlsLocal.upperKnotShiftFactor || 0]}
+                onValueChange={(value) => setCurveControlsLocal(prev => ({ ...prev, upperKnotShiftFactor: value[0] }))}
+                onValueCommit={(value) => onCurveControlsChange({ upperKnotShiftFactor: value[0] })}
                 disabled={disabled}
               />
             </div>
@@ -235,7 +215,7 @@ export default function SettingsPanel({
             <div className="space-y-2">
               <div className="flex gap-2">
                 <Label htmlFor="disorganizeFactor-panel">
-                  Disorganize: {((curveControls.disorganizeFactor || 0) * 100).toFixed(0)}%
+                  Disorganize: {((curveControlsLocal.disorganizeFactor || 0) * 100).toFixed(0)}%
                 </Label>
                 <Tooltip>
                   <TooltipTrigger>
@@ -253,8 +233,9 @@ export default function SettingsPanel({
                 min={0}
                 max={1}
                 step={0.01}
-                value={[curveControls.disorganizeFactor || 0.0]}
-                onValueChange={(value) => onCurveControlsChange({ disorganizeFactor: value[0] })}
+                value={[curveControlsLocal.disorganizeFactor || 0.0]}
+                onValueChange={(value) => setCurveControlsLocal(prev => ({ ...prev, disorganizeFactor: value[0] }))}
+                onValueCommit={(value) => onCurveControlsChange({ disorganizeFactor: value[0] })}
                 disabled={disabled}
               />
             </div>
@@ -262,7 +243,7 @@ export default function SettingsPanel({
             <div className="space-y-2">
               <div className="flex gap-2">
                 <Label htmlFor="rowWaveShift-panel">
-                  Row wave height: {((curveControls.rowWaveShift || 0) * 100).toFixed(0)}%
+                  Row wave height: {((curveControlsLocal.rowWaveShift || 0) * 100).toFixed(0)}%
                 </Label>
                 <Tooltip>
                   <TooltipTrigger>
@@ -280,8 +261,9 @@ export default function SettingsPanel({
                 min={-1}
                 max={1}
                 step={0.01}
-                value={[curveControls.rowWaveShift || 0.0]}
-                onValueChange={(value) => onCurveControlsChange({ rowWaveShift: value[0] })}
+                value={[curveControlsLocal.rowWaveShift || 0.0]}
+                onValueChange={(value) => setCurveControlsLocal(prev => ({ ...prev, rowWaveShift: value[0] }))}
+                onValueCommit={(value) => onCurveControlsChange({ rowWaveShift: value[0] })}
                 disabled={disabled}
               />
             </div>
@@ -289,7 +271,7 @@ export default function SettingsPanel({
             <div className="space-y-2">
               <div className="flex gap-2">
                 <Label htmlFor="columnWaveShift-panel">
-                  Column Wave Shift: {((curveControls.columnWaveShift || 0) * 100).toFixed(0)}%
+                  Column Wave Shift: {((curveControlsLocal.columnWaveShift || 0) * 100).toFixed(0)}%
                 </Label>
                 <Tooltip>
                   <TooltipTrigger>
@@ -307,8 +289,9 @@ export default function SettingsPanel({
                 min={-1}
                 max={1}
                 step={0.01}
-                value={[curveControls.columnWaveShift || 0.0]}
-                onValueChange={(value) => onCurveControlsChange({ columnWaveShift: value[0] })}
+                value={[curveControlsLocal.columnWaveShift || 0.0]}
+                onValueChange={(value) => setCurveControlsLocal(prev => ({ ...prev, columnWaveShift: value[0] }))}
+                onValueCommit={(value) => onCurveControlsChange({ columnWaveShift: value[0] })}
                 disabled={disabled}
               />
             </div>
@@ -316,7 +299,7 @@ export default function SettingsPanel({
             <div className="space-y-2">
               <div className="flex gap-2">
                 <Label htmlFor="waveShiftFrequency-panel">
-                  Wave Frequency: {(curveControls.waveShiftFrequency || 2.0).toFixed(1)}
+                  Wave Frequency: {(curveControlsLocal.waveShiftFrequency || 2.0).toFixed(1)}
                 </Label>
                 <Tooltip>
                   <TooltipTrigger>
@@ -335,8 +318,9 @@ export default function SettingsPanel({
                 // max value should be the same as the columnsCount
                 max={Math.max(settings.columnsCount * 0.1, 10)}
                 step={0.1}
-                value={[curveControls.waveShiftFrequency || 2.0]}
-                onValueChange={(value) => onCurveControlsChange({ waveShiftFrequency: value[0] })}
+                value={[curveControlsLocal.waveShiftFrequency || 2.0]}
+                onValueChange={(value) => setCurveControlsLocal(prev => ({ ...prev, waveShiftFrequency: value[0] }))}
+                onValueCommit={(value) => onCurveControlsChange({ waveShiftFrequency: value[0] })}
                 disabled={disabled}
               />
             </div>

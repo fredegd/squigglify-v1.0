@@ -1,6 +1,4 @@
-"use client"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Slider } from "@/components/ui/slider-w-buttons"
 import { Label } from "@/components/ui/label"
 import { ChevronDown, Link, Link2, Unlink2 } from "lucide-react"
@@ -14,8 +12,26 @@ interface ImageTilingSettingsProps {
 
 export default function ImageTilingSettings({ settings, onSettingsChange, disabled }: ImageTilingSettingsProps) {
     const [isValueLinked, setIsValueLinked] = useState(false)
+    const [columns, setColumns] = useState(settings.columnsCount)
+    const [rows, setRows] = useState(settings.rowsCount)
+
+    // Sync local state with settings when they change externally
+    useEffect(() => {
+        setColumns(settings.columnsCount)
+    }, [settings.columnsCount])
+
+    useEffect(() => {
+        setRows(settings.rowsCount)
+    }, [settings.rowsCount])
 
     const handleColumnsChange = (value: number) => {
+        setColumns(value)
+        if (isValueLinked) {
+            setRows(value)
+        }
+    }
+
+    const commitColumnsChange = (value: number) => {
         if (isValueLinked) {
             onSettingsChange({ columnsCount: value, rowsCount: value })
         } else {
@@ -24,6 +40,13 @@ export default function ImageTilingSettings({ settings, onSettingsChange, disabl
     }
 
     const handleRowsChange = (value: number) => {
+        setRows(value)
+        if (isValueLinked) {
+            setColumns(value)
+        }
+    }
+
+    const commitRowsChange = (value: number) => {
         if (isValueLinked) {
             onSettingsChange({ columnsCount: value, rowsCount: value })
         } else {
@@ -43,15 +66,16 @@ export default function ImageTilingSettings({ settings, onSettingsChange, disabl
             <div className="flex flex-col gap-8 mt-4 text-gray-300 lg:px-4 px-8">
                 <div className="space-y-2">
                     <div className="flex justify-between">
-                        <Label htmlFor="columnsCount-setting">Columns: {settings.columnsCount}</Label>
+                        <Label htmlFor="columnsCount-setting">Columns: {columns}</Label>
                     </div>
                     <Slider
                         id="columnsCount-setting"
                         min={1}
                         max={128}
                         step={1}
-                        value={[settings.columnsCount]}
+                        value={[columns]}
                         onValueChange={(value) => handleColumnsChange(value[0])}
+                        onValueCommit={(value) => commitColumnsChange(value[0])}
                         disabled={disabled}
                     />
                     <p className="text-xs text-gray-300">Number of horizontal tiles</p>
@@ -59,15 +83,16 @@ export default function ImageTilingSettings({ settings, onSettingsChange, disabl
 
                 <div className="space-y-2">
                     <div className="flex justify-between">
-                        <Label htmlFor="rowsCount-setting">Rows: {settings.rowsCount}</Label>
+                        <Label htmlFor="rowsCount-setting">Rows: {rows}</Label>
                     </div>
                     <Slider
                         id="rowsCount-setting"
                         min={1}
                         max={128}
                         step={1}
-                        value={[settings.rowsCount]}
+                        value={[rows]}
                         onValueChange={(value) => handleRowsChange(value[0])}
+                        onValueCommit={(value) => commitRowsChange(value[0])}
                         disabled={disabled}
                     />
                     <p className="text-xs text-gray-300">Number of vertical tiles</p>

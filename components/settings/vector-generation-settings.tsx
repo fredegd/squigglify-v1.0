@@ -7,6 +7,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Info, ChevronDown } from "lucide-react"
 import type { Settings } from "@/lib/types"
 
+import { useState, useEffect } from "react"
+
 interface VectorGenerationSettingsProps {
     settings: Settings
     onSettingsChange: (newSettings: Partial<Settings>) => void
@@ -14,6 +16,17 @@ interface VectorGenerationSettingsProps {
 }
 
 export default function VectorGenerationSettings({ settings, onSettingsChange, disabled }: VectorGenerationSettingsProps) {
+    const [brightness, setBrightness] = useState(settings.brightnessThreshold)
+    const [pathDistance, setPathDistance] = useState(settings.pathDistanceThreshold)
+
+    useEffect(() => {
+        setBrightness(settings.brightnessThreshold)
+    }, [settings.brightnessThreshold])
+
+    useEffect(() => {
+        setPathDistance(settings.pathDistanceThreshold)
+    }, [settings.pathDistanceThreshold])
+
     return (
         <TooltipProvider>
             <details className="group" >
@@ -23,7 +36,7 @@ export default function VectorGenerationSettings({ settings, onSettingsChange, d
                 </summary>                <div className="flex flex-col gap-8 mt-4 text-gray-300 lg:px-4 px-8">
                     <div className="space-y-2">
                         <div className="flex justify-between">
-                            <Label htmlFor="brightnessThreshold-vec-setting">Brightness Threshold: {settings.brightnessThreshold}</Label>
+                            <Label htmlFor="brightnessThreshold-vec-setting">Brightness Threshold: {brightness}</Label>
                             <Tooltip>
                                 <TooltipTrigger>
                                     <Info className="h-4 w-4 text-gray-300" />
@@ -40,8 +53,9 @@ export default function VectorGenerationSettings({ settings, onSettingsChange, d
                             min={0}
                             max={255}
                             step={1}
-                            value={[settings.brightnessThreshold]}
-                            onValueChange={(value) => onSettingsChange({ brightnessThreshold: value[0] })}
+                            value={[brightness]}
+                            onValueChange={(value) => setBrightness(value[0])}
+                            onValueCommit={(value) => onSettingsChange({ brightnessThreshold: value[0] })}
                             disabled={disabled}
                         />
                     </div>
@@ -72,7 +86,7 @@ export default function VectorGenerationSettings({ settings, onSettingsChange, d
                         <div className="space-y-2">
                             <div className="flex justify-between">
                                 <Label htmlFor="pathDistanceThreshold-setting">
-                                    Path Connection Threshold: {settings.pathDistanceThreshold}px
+                                    Path Connection Threshold: {pathDistance}px
                                 </Label>
                                 <Tooltip>
                                     <TooltipTrigger>
@@ -90,8 +104,9 @@ export default function VectorGenerationSettings({ settings, onSettingsChange, d
                                 min={1}
                                 max={140}
                                 step={1}
-                                value={[settings.pathDistanceThreshold]}
-                                onValueChange={(value) => onSettingsChange({ pathDistanceThreshold: value[0] })}
+                                value={[pathDistance]}
+                                onValueChange={(value) => setPathDistance(value[0])}
+                                onValueCommit={(value) => onSettingsChange({ pathDistanceThreshold: value[0] })}
                                 disabled={disabled}
                             />
                         </div>

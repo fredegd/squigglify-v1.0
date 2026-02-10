@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Slider } from "@/components/ui/slider-w-buttons"
 import { Label } from "@/components/ui/label"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
@@ -16,8 +16,26 @@ interface PathDensitySettingsProps {
 
 export default function PathDensitySettings({ settings, onSettingsChange, disabled, calculatedDensity }: PathDensitySettingsProps) {
     const [isValueLinked, setIsValueLinked] = useState(false)
+    const [minDensity, setMinDensity] = useState(settings.minDensity)
+    const [maxDensity, setMaxDensity] = useState(settings.maxDensity)
+
+    // Sync local state
+    useEffect(() => {
+        setMinDensity(settings.minDensity)
+    }, [settings.minDensity])
+
+    useEffect(() => {
+        setMaxDensity(settings.maxDensity)
+    }, [settings.maxDensity])
 
     const handleMinDensityChange = (value: number) => {
+        setMinDensity(value)
+        if (isValueLinked) {
+            setMaxDensity(value)
+        }
+    }
+
+    const commitMinDensityChange = (value: number) => {
         if (isValueLinked) {
             // When linked, both min and max density should be the same
             onSettingsChange({ minDensity: value, maxDensity: value })
@@ -27,6 +45,13 @@ export default function PathDensitySettings({ settings, onSettingsChange, disabl
     }
 
     const handleMaxDensityChange = (value: number) => {
+        setMaxDensity(value)
+        if (isValueLinked) {
+            setMinDensity(value)
+        }
+    }
+
+    const commitMaxDensityChange = (value: number) => {
         if (isValueLinked) {
             // When linked, both min and max density should be the same
             onSettingsChange({ minDensity: value, maxDensity: value })
@@ -70,29 +95,31 @@ export default function PathDensitySettings({ settings, onSettingsChange, disabl
                 <div className="flex flex-col gap-8 mt-4 text-gray-300 lg:px-4 px-8">
                     <div className="space-y-2">
                         <div className="flex justify-between">
-                            <Label htmlFor="minDensity-setting">Min Density: {settings.minDensity}</Label>
+                            <Label htmlFor="minDensity-setting">Min Density: {minDensity}</Label>
                         </div>
                         <Slider
                             id="minDensity-setting"
                             min={0}
                             max={calculatedDensity} // Use calculatedDensity here
                             step={1}
-                            value={[settings.minDensity]}
+                            value={[minDensity]}
                             onValueChange={(value) => handleMinDensityChange(value[0])}
+                            onValueCommit={(value) => commitMinDensityChange(value[0])}
                             disabled={disabled}
                         />
                     </div>
                     <div className="space-y-2">
                         <div className="flex justify-between">
-                            <Label htmlFor="maxDensity-setting">Max Density: {settings.maxDensity}</Label>
+                            <Label htmlFor="maxDensity-setting">Max Density: {maxDensity}</Label>
                         </div>
                         <Slider
                             id="maxDensity-setting"
                             min={0}
                             max={calculatedDensity} // Use calculatedDensity here
                             step={1}
-                            value={[settings.maxDensity]}
+                            value={[maxDensity]}
                             onValueChange={(value) => handleMaxDensityChange(value[0])}
+                            onValueCommit={(value) => commitMaxDensityChange(value[0])}
                             disabled={disabled}
                         />
                     </div>

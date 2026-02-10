@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils"
 const Slider = React.forwardRef<
   React.ElementRef<typeof SliderPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
->(({ className, value, onValueChange, min = 0, max = 100, step = 1, ...props }, ref) => {
+>(({ className, value, onValueChange, onValueCommit, min = 0, max = 100, step = 1, ...props }, ref) => {
   const [internalValue, setInternalValue] = React.useState<number[]>(value || [min])
 
   const currentValue = value || internalValue
@@ -18,11 +18,13 @@ const Slider = React.forwardRef<
   const handleDecrement = () => {
     const newValue = Math.max(min, currentValue[0] - step)
     handleValueChange([newValue])
+    onValueCommit?.([newValue])
   }
 
   const handleIncrement = () => {
     const newValue = Math.min(max, currentValue[0] + step)
     handleValueChange([newValue])
+    onValueCommit?.([newValue])
   }
 
   return (
@@ -46,6 +48,7 @@ const Slider = React.forwardRef<
         )}
         value={currentValue}
         onValueChange={handleValueChange}
+        onValueCommit={onValueCommit}
         min={min}
         max={max}
         step={step}
