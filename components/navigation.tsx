@@ -6,6 +6,8 @@ import { useState } from "react"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+import { Logo } from "@/components/logo"
+
 export default function Navigation() {
     const pathname = usePathname()
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -30,9 +32,7 @@ export default function Navigation() {
                 <div className="flex flex-row-reverse md:flex-row items-center md:justify-between h-16 justify-end gap-4">
                     {/* Logo/Brand */}
                     <Link href="/" className="flex items-center space-x-2">
-                        <div className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                            Squigglify
-                        </div>
+                        <Logo className="h-8 w-auto" />
                     </Link>
 
                     {/* Desktop Navigation */}

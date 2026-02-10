@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { ArrowRight, Zap, Palette, Download, Github, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
-
+import { Logo } from "@/components/logo"
 
 export default function HomePage() {
   return (
@@ -24,9 +24,9 @@ export default function HomePage() {
               </div>
             </div>
 
-            <h1 className=" p-4 text-5xl sm:text-6xl lg:text-7xl font-bold  bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent animate-gradient">
-              Squigglify
-            </h1>
+            <div className="w-full max-w-2xl px-4 animate-gradient">
+              <Logo className="w-full h-auto" animated={true} duration={4} />
+            </div>
 
             <p className="text-2xl sm:text-3xl text-gray-300 mb-4 max-w-3xl mx-auto">
               Turn any image into squiggly vector art

@@ -4,9 +4,9 @@
 
 A powerful web-based tool to convert images into SVG vector graphics with customizable wave paths, perfect for pen plotters and digital art.
 
-## Live Demo
+## Web App
 
-Visit the live application at: [https://squigglify.vercel.app/](https://squigglify.vercel.app/)
+Visit the live application at: [https://squigglify.cc/](https://squigglify.cc/)
 
 ## Overview
 
