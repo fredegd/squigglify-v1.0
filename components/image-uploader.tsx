@@ -93,11 +93,11 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
 
   return (
     <div
-      className={`border-2 border-dashed rounded-lg p-12 flex flex-col items-center justify-center h-96 transition-colors ${isUploading
-        ? "border-blue-500 bg-blue-500/20"
+      className={`relative group border-2 border-dashed rounded-xl p-12 flex flex-col items-center justify-center h-96 transition-all duration-300 ${isUploading
+        ? "border-blue-500 bg-blue-500/10"
         : isDragging
-          ? "border-primary bg-primary/40"
-          : "border-gray-700 hover:border-gray-500 max-h-64 w-full max-w-lg"
+          ? "border-purple-500 bg-purple-500/10"
+          : "border-gray-700 bg-gray-900/50 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/20"
         }`}
       onDragOver={!isUploading ? handleDragOver : undefined}
       onDragLeave={!isUploading ? handleDragLeave : undefined}
@@ -105,28 +105,29 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
     >
       <input type="file" ref={fileInputRef} onChange={handleFileInput} accept="image/*" className="hidden" />
 
-      <div className="text-center">
-        <div className="mb-4 bg-gray-800 p-4 rounded-full inline-block">
+      <div className="text-center z-10">
+        <div className={`mb-6 p-4 rounded-2xl inline-block transition-colors duration-300 ${isDragging ? "bg-purple-500/20" : "bg-gray-800 group-hover:bg-gray-800/80"
+          }`}>
           {isDragging ? (
-            <Upload className="h-10 w-10 text-primary" />
+            <Upload className="h-10 w-10 text-purple-400 animate-bounce" />
           ) : (
-            <ImageIcon className="h-10 w-10 text-gray-300" />
+            <ImageIcon className="h-10 w-10 text-gray-400 group-hover:text-purple-400 transition-colors duration-300" />
           )}
         </div>
-        <h3 className="text-xl font-medium mb-2">
+        <h3 className="text-xl font-bold text-white mb-3">
           {isUploading ? "Processing image..." : isDragging ? "Drop your image here" : "Upload an image"}
         </h3>
-        <p className="text-gray-300 mb-4">
+        <p className="text-gray-400 mb-8 max-w-sm mx-auto leading-relaxed">
           {isUploading
             ? "Compressing and saving to local storage..."
-            : "Upload an image and convert it into a vector wave paths"
+            : "Upload an image and convert it into a vector wave"
           }
         </p>
 
         <Button
           onClick={handleButtonClick}
-          variant="outline"
-          className="border-gray-500 text-black hover:bg-gray-500 hover:text-white"
+          size="lg"
+          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 shadow-lg shadow-purple-500/25 transition-all duration-300 hover:scale-105"
           disabled={isUploading}
         >
           {isUploading ? "Processing..." : "Select Image"}

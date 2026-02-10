@@ -139,42 +139,54 @@ const RandomImageLoader: React.FC<RandomImageLoaderProps> = ({ onImageSelected, 
 
     if (!isActive) {
         return (
-            <div className="flex flex-col items-center justify-center h-96 min-h-[300px] border border-dashed border-gray-600 rounded-lg p-8 bg-gray-800 text-gray-300">
-                <Info size={48} className="mb-4 text-blue-400" />
-                <p className="text-xl mb-4 text-center">Load a random image from Wikimedia Commons?</p>
-                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 mb-4">
-                    <Button onClick={handleActivateAndLoad} variant="default">
+            <div className="group relative flex flex-col items-center justify-center h-96 min-h-[300px] border-2 border-dashed border-gray-700 bg-gray-900/50 rounded-xl p-8 transition-all duration-300 hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/20">
+                <div className="mb-6 p-4 rounded-2xl bg-gray-800 group-hover:bg-gray-800/80 transition-colors duration-300">
+                    <Info className="h-10 w-10 text-gray-400 group-hover:text-purple-400 transition-colors duration-300" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3 text-center">Random Image</h3>
+                <p className="text-gray-400 mb-8 text-center max-w-sm leading-relaxed">Load a random image from Wikimedia Commons?</p>
+                <div className="flex flex-col sm:flex-row items-center gap-4 mb-4 w-full justify-center">
+                    <Button
+                        onClick={handleActivateAndLoad}
+                        size="lg"
+                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 shadow-lg shadow-purple-500/25 transition-all duration-300 hover:scale-105"
+                    >
                         Load Random Image
                     </Button>
-                    <Button onClick={onCancel} variant="secondary">
+                    <Button
+                        onClick={onCancel}
+                        variant="ghost"
+                        className="text-gray-400 hover:text-white hover:bg-white/10"
+                    >
                         Cancel
                     </Button>
                 </div>
-                <p className="text-xs text-gray-500">Alternatively, upload an image manually or use other options.</p>
+                <p className="text-xs text-gray-500">Alternatively, upload an image manually above.</p>
             </div>
         );
     }
 
     if (isLoading && !currentImage) {
         return (
-            <div className="flex flex-col items-center justify-center h-96 min-h-[300px] border border-dashed border-gray-600 rounded-lg p-8 bg-gray-800 text-gray-300">
-                <p className="text-xl mb-3">Fetching a random image from Wikimedia Commons...</p>
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-100 mb-3"></div>
-                {retries > 0 && <p className="text-sm text-gray-300">Attempt {retries + 1} of {MAX_RETRIES}. Please wait...</p>}
-                <p className="text-xs text-gray-500 mt-4">You can also upload an image manually below or cancel.</p>
-                <Button onClick={onCancel} variant="outline" className="mt-4">Cancel</Button>
+            <div className="flex flex-col items-center justify-center h-96 min-h-[300px] border-2 border-dashed border-gray-700 bg-gray-900/50 rounded-xl p-8">
+                <p className="text-xl font-bold text-white mb-4">Fetching Image...</p>
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 mb-4"></div>
+                <p className="text-gray-400 mb-2">Searching Wikimedia Commons</p>
+                {retries > 0 && <p className="text-sm text-yellow-500">Attempt {retries + 1} of {MAX_RETRIES}...</p>}
+
+                <Button onClick={onCancel} variant="ghost" className="mt-6 text-gray-400 hover:text-white">Cancel</Button>
             </div>
         );
     }
 
     if (error && !currentImage) {
         return (
-            <div className="flex flex-col items-center justify-center h-96 min-h-[300px] border border-dashed border-red-500 rounded-lg p-8 bg-gray-800 text-red-300">
-                <p className="text-xl font-semibold mb-2">Oops! Failed to load an image.</p>
-                <p className="text-sm mb-4 text-center max-w-md">{error}</p>
-                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-                    <Button onClick={handleReloadImage} variant="default">Try Again</Button>
-                    <Button onClick={onCancel} variant="secondary">Cancel</Button>
+            <div className="flex flex-col items-center justify-center h-96 min-h-[300px] border-2 border-dashed border-red-500/50 bg-red-900/10 rounded-xl p-8 text-center">
+                <p className="text-xl font-semibold text-red-400 mb-2">Oops! Failed to load</p>
+                <p className="text-sm text-gray-400 mb-6 max-w-md">{error}</p>
+                <div className="flex gap-4">
+                    <Button onClick={handleReloadImage} variant="default" className="bg-red-600 hover:bg-red-700">Try Again</Button>
+                    <Button onClick={onCancel} variant="ghost" className="text-gray-400 hover:text-white">Cancel</Button>
                 </div>
             </div>
         );
@@ -182,12 +194,12 @@ const RandomImageLoader: React.FC<RandomImageLoaderProps> = ({ onImageSelected, 
 
     if (currentImage) {
         return (
-            <div className="flex flex-col  items-center max-w-md  p-4 sm:p-6 border border-gray-700 rounded-lg bg-gray-800 shadow-lg ">
-                <div className="mb-4 w-full max-w-md  bg-gray-700 rounded overflow-hidden flex items-center justify-center shadow-md">
+            <div className="flex flex-col items-center max-w-md p-6 border border-gray-700 rounded-xl bg-gray-900/80 shadow-xl backdrop-blur-sm">
+                <div className="mb-4 w-full bg-gray-950 rounded-lg overflow-hidden flex items-center justify-center shadow-inner border border-gray-800 relative group-image">
                     <img
                         src={currentImage.imageUrl}
                         alt={currentImage.title || 'Random Wikimedia Image'}
-                        className="max-w-full max-h-[40vh] sm:max-h-[50vh] object-contain"
+                        className="max-w-full max-h-[40vh] sm:max-h-[50vh] object-contain transition-transform duration-500 hover:scale-105"
                         onError={() => {
                             setError("The image could not be loaded from the source. It might be invalid or removed.");
                             setCurrentImage(null);
@@ -195,26 +207,25 @@ const RandomImageLoader: React.FC<RandomImageLoaderProps> = ({ onImageSelected, 
                         }}
                     />
                 </div>
-                <p className="text-sm text-gray-300 mb-1 max-w-full truncate text-center text-wrap" title={currentImage.title}>
-                    <span className="font-medium text-gray-300">{currentImage.title}</span>
+                <p className="text-sm font-medium text-white mb-1 max-w-full truncate text-center" title={currentImage.title}>
+                    {currentImage.title}
                 </p>
-                <a href={currentImage.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:text-blue-300 hover:underline mb-6">
+                <a href={currentImage.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-purple-400 hover:text-purple-300 hover:underline mb-6 transition-colors">
                     View source on Wikimedia Commons
                 </a>
-                <div className="flex justify-between gap-3">
+                <div className="flex justify-between gap-3 w-full">
                     <Button onClick={handleUseThisImage}
-
-                        className="border-gray-500 bg-transparent hover:bg-gray-500 w-1/3">
-                        Use this Image
+                        className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 shadow-lg shadow-purple-500/25">
+                        Use Image
                     </Button>
                     <Button onClick={handleReloadImage}
-
-                        className="border-gray-500 bg-transparent hover:bg-gray-500 w-1/3">
-                        Reload
+                        variant="ghost"
+                        className="bg-gray-800 hover:bg-gray-700 text-gray-300 px-3">
                         <RotateCcw className="h-4 w-4" />
                     </Button>
                     <Button onClick={onCancel}
-                        className="border-gray-500 bg-transparent hover:bg-gray-500 w-1/3">
+                        variant="ghost"
+                        className="text-gray-400 hover:text-white px-3">
                         Cancel
                     </Button>
                 </div>
