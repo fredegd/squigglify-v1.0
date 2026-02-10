@@ -17,7 +17,7 @@ interface CurveStyleSettingsProps {
     disabled: boolean
 }
 
-import { useMemo, useEffect } from "react"
+import { useMemo, useEffect, useState } from "react"
 
 export default function CurveStyleSettings({
     settings,
@@ -26,6 +26,9 @@ export default function CurveStyleSettings({
     onCurveControlsChange,
     disabled,
 }: CurveStyleSettingsProps) {
+    const [tileHeightScale, setTileHeightScale] = useState(curveControls.tileHeightScale)
+    const [strokeWidth, setStrokeWidth] = useState(curveControls.strokeWidth)
+
     const calculatedMaxStrokeWidth = useMemo(() => {
         const MAX_DIMENSION = 560;
         let outputWidth = MAX_DIMENSION;
@@ -39,12 +42,19 @@ export default function CurveStyleSettings({
             onCurveControlsChange({ strokeWidth: calculatedMaxStrokeWidth });
         }
     }, [calculatedMaxStrokeWidth, curveControls.strokeWidth, onCurveControlsChange]);
+
+    // Sync local state
+    useEffect(() => {
+        setTileHeightScale(curveControls.tileHeightScale)
+    }, [curveControls.tileHeightScale])
+
+    useEffect(() => {
+        setStrokeWidth(curveControls.strokeWidth)
+    }, [curveControls.strokeWidth])
+
     return (
         <TooltipProvider>
             <details className="group" >
-
-
-
                 <summary className="cursor-pointer text-lg font-bold mb-4 flex items-center justify-between">
                     <h3 className="flex items-center gap-2 text-gradient">
                         {settings.curvedPaths ? "Curved" : "Square"} Paths
@@ -91,7 +101,7 @@ export default function CurveStyleSettings({
                     <div className="space-y-2">
                         <div className="flex gap-2">
                             <Label htmlFor="tileHeightScale-setting">
-                                Rows Height: {(curveControls.tileHeightScale * 100).toFixed(0)}%
+                                Rows Height: {(tileHeightScale * 100).toFixed(0)}%
                             </Label>
                             <Tooltip>
                                 <TooltipTrigger>
@@ -109,15 +119,16 @@ export default function CurveStyleSettings({
                             min={0.1}
                             max={1.0}
                             step={0.01}
-                            value={[curveControls.tileHeightScale]}
-                            onValueChange={(value) => onCurveControlsChange({ tileHeightScale: value[0] })}
+                            value={[tileHeightScale]}
+                            onValueChange={(value) => setTileHeightScale(value[0])}
+                            onValueCommit={(value) => onCurveControlsChange({ tileHeightScale: value[0] })}
                             disabled={disabled}
                         />
                     </div>
                     {/* TODO: Add a slider for the stroke width */}
                     <div className="space-y-2">
                         <div className="flex gap-2">
-                            <Label htmlFor="strokeWidth-setting">Stroke Width: {curveControls.strokeWidth}</Label>
+                            <Label htmlFor="strokeWidth-setting">Stroke Width: {strokeWidth}</Label>
                             <Tooltip>
                                 <TooltipTrigger>
                                     <Info className="h-4 w-4 text-gray-300" />
@@ -134,8 +145,9 @@ export default function CurveStyleSettings({
                             min={0.1}
                             max={calculatedMaxStrokeWidth}
                             step={0.1}
-                            value={[Math.min(curveControls.strokeWidth, calculatedMaxStrokeWidth)]}
-                            onValueChange={(value) => onCurveControlsChange({ strokeWidth: value[0] })}
+                            value={[Math.min(strokeWidth, calculatedMaxStrokeWidth)]}
+                            onValueChange={(value) => setStrokeWidth(value[0])}
+                            onValueCommit={(value) => onCurveControlsChange({ strokeWidth: value[0] })}
                             disabled={disabled}
                         />
                     </div>
