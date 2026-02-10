@@ -25,7 +25,12 @@ const PathVisibilitySettings = React.memo(function PathVisibilitySettings({
     settings,
 }: PathVisibilitySettingsProps) {
     const [activeColorPickerKey, setActiveColorPickerKey] = useState<string | null>(null);
+    const [colorsAmt, setColorsAmt] = useState(settings.colorsAmt);
     const colorInputRef = useRef<HTMLInputElement | null>(null);
+
+    useEffect(() => {
+        setColorsAmt(settings.colorsAmt);
+    }, [settings.colorsAmt]);
 
     useEffect(() => {
         // Diagnostic log to observe changes in the colorGroups prop
@@ -164,7 +169,7 @@ const PathVisibilitySettings = React.memo(function PathVisibilitySettings({
 
                         <div className="flex justify-between mt-8">
                             <Label htmlFor="colorsAmt-visibility-setting">
-                                {processingMode === "grayscale" ? "Gray Levels" : "Color Levels"}: {settings.colorsAmt}
+                                {processingMode === "grayscale" ? "Gray Levels" : "Color Levels"}: {colorsAmt}
                             </Label>
                         </div>
                         <Slider
@@ -172,8 +177,9 @@ const PathVisibilitySettings = React.memo(function PathVisibilitySettings({
                             min={2}
                             max={12}
                             step={1}
-                            value={[settings.colorsAmt]}
-                            onValueChange={(value) => onSettingsChange({ colorsAmt: value[0] })}
+                            value={[colorsAmt]}
+                            onValueChange={(value) => setColorsAmt(value[0])}
+                            onValueCommit={(value) => onSettingsChange({ colorsAmt: value[0] })}
                             disabled={disabled}
                         />
                         <p className="text-xs text-gray-300">
