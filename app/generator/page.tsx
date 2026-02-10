@@ -20,6 +20,14 @@ import {
   saveImageToStorage,
   clearStoredImage
 } from "@/lib/utils/image-storage"
+import {
+  saveSvgToStorage,
+  getStoredSvg,
+  clearStoredSvg,
+  saveProcessedDataToStorage,
+  getStoredProcessedData,
+  clearStoredProcessedData
+} from "@/lib/utils/svg-storage"
 import "@/lib/utils/settings-debug" // Load debug utilities
 import { enablePerformanceDebugging } from "@/lib/utils/performance-profiler"
 
@@ -41,6 +49,7 @@ export default function Home() {
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [animationSpeed, setAnimationSpeed] = useState(1.0)
   const [animationTrigger, setAnimationTrigger] = useState(0)
+  const svgRestoredRef = useRef(false) // Track if SVG was restored from cache
   const [stopTrigger, setStopTrigger] = useState(0)
   const [processingProgress, setProcessingProgress] = useState(0)
   const [processingStatus, setProcessingStatus] = useState("")
@@ -56,6 +65,21 @@ export default function Home() {
         const storedImage = getStoredImage();
 
         if (storedImage) {
+          // Try to restore cached SVG and processed data to avoid re-generation
+          const [cachedSvg, cachedProcessedData] = await Promise.all([
+            getStoredSvg(),
+            getStoredProcessedData()
+          ]);
+
+          if (cachedSvg && cachedProcessedData) {
+            svgRestoredRef.current = true;
+            setSvgContent(cachedSvg);
+            setProcessedData(cachedProcessedData);
+            console.log('SVG and Processed Data restored from cache — skipping re-generation');
+          } else {
+            console.log('Cache miss or incomplete data — will regenerate');
+          }
+
           console.log(`Loading stored image: ${storedImage.fileName} (${(storedImage.compressedSize / 1024 / 1024).toFixed(2)}MB)`);
           setOriginalImage(storedImage.dataUrl);
           setCurrentFileName(storedImage.fileName);
@@ -95,7 +119,7 @@ export default function Home() {
 
   // Process image when it's uploaded or settings change (excluding curveControls and visiblePaths)
   useEffect(() => {
-    if (originalImage && settings && !isInitialLoad && isSettingsLoaded) {
+    if (originalImage && settings && !isInitialLoad && isSettingsLoaded && processedData) {
       const { curveControls, visiblePaths, ...processingSettingsForEffect } = settings;
       // console.log("Processing image due to settings change (excluding curves/visibility):");
       handleProcessImage(processingSettingsForEffect as Settings) // Cast as Settings, though it's partial
@@ -124,6 +148,7 @@ export default function Home() {
       // console.log("Regenerating SVG due to visiblePaths change");
       const svg = generateSVG(processedData, { ...settings })
       setSvgContent(svg)
+      saveSvgToStorage(svg)
     }
   }, [settings.visiblePaths, processedData, originalImage, isProcessing])
 
@@ -132,6 +157,7 @@ export default function Home() {
     if (processedData && originalImage && !isProcessing) {
       const svg = generateSVG(processedData, { ...settings })
       setSvgContent(svg)
+      saveSvgToStorage(svg)
     }
   }, [
     settings.curveControls,
@@ -140,6 +166,13 @@ export default function Home() {
     originalImage,
     isProcessing
   ])
+
+  // Save processed data when it changes
+  useEffect(() => {
+    if (processedData && !isProcessing) {
+      saveProcessedDataToStorage(processedData);
+    }
+  }, [processedData, isProcessing]);
 
   const handleManualImageUpload = async (imageDataUrl: string, fileName: string) => {
     try {
@@ -187,9 +220,11 @@ export default function Home() {
     setSvgContent(null)
     setShowRandomImageLoader(true)
 
-    // Clear the stored image since user is explicitly uploading a new one
+    // Clear the stored image and cached SVG since user is explicitly uploading a new one
     clearStoredImage()
-    console.log('Cleared stored image for new upload')
+    clearStoredSvg()
+    clearStoredProcessedData()
+    console.log('Cleared stored image and cached data for new upload')
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -234,6 +269,13 @@ export default function Home() {
 
   const handleProcessImage = async (input: ProcessImageOptions | Settings) => {
     if (!originalImage) return
+
+    // Skip all processing if we already have a cached SVG and data from a previous session
+    if (svgRestoredRef.current) {
+      svgRestoredRef.current = false;
+      console.log('Skipping processing and SVG generation — using cached data');
+      return;
+    }
 
     setIsProcessing(true)
     setShowProgress(true)
@@ -288,12 +330,14 @@ export default function Home() {
       setProcessingStatus("Generating SVG paths...")
       setProcessingProgress(70)
 
+      let lastSvg = '';
       await generateSVGProgressively(
         imageData,
         { ...processingSettings, visiblePaths: settings.visiblePaths },
         (chunk: SVGChunk, partialSvg: string) => {
           // Update SVG in real-time to show partial results
           setSvgContent(partialSvg)
+          lastSvg = partialSvg;
 
           // Scale SVG progress from 70-100%
           const svgProgress = 70 + (chunk.progress * 0.3)
@@ -313,6 +357,11 @@ export default function Home() {
 
       setProcessingProgress(100)
       setProcessingStatus("Complete!")
+
+      // Save the final SVG to cache for persistence across refreshes
+      if (lastSvg) {
+        saveSvgToStorage(lastSvg);
+      }
     } catch (error) {
       console.error("Error processing image:", error)
       // Handle error state here
