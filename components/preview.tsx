@@ -387,7 +387,7 @@ export const ImageThumbnail = memo(function ImageThumbnail({
   }, [svgContentPreview]);
 
   return (
-    <div className="bg-gray-800/95 backdrop-blur-md rounded-b-lg sticky top-16 z-[45] pt-12 lg:pt-0 px-7 lg:px-0  shadow-xl">
+    <div className="bg-gray-800/95 backdrop-blur-md rounded-b-lg sticky top-0 lg:top-16 z-[45] pt-12 lg:pt-0 px-7 lg:px-0  shadow-xl">
       {/* we should include this following div in a details/summary section */}
       <details className="" open>
         <summary className="cursor-pointer text-lg font-bold  mb-6 mt-4 flex items-center justify-between ">

@@ -420,7 +420,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-800 text-gray-100 no-scrollbar">
-      <div className="max-w-7xl mx-auto py-8 px-3 md:px-4 lg:px-20">
+      <div className="max-w-7xl mx-auto py-8 px-3 md:px-4">
         {/* Mobile settings menu button */}
         {originalImage && !showRandomImageLoader && !isSettingsPanelVisible && (
           <div className="fixed top-4 right-4 z-50 lg:hidden">
