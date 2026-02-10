@@ -69,7 +69,12 @@ export default function SettingsPanel({
   }, [calculatedDensity, settings.maxDensity, settings.minDensity, onSettingsChange]);
 
   const resetAdvancedCurveControlsToDefaults = () => {
-    onCurveControlsChange(DEFAULT_CURVE_CONTROLS);
+    onCurveControlsChange({
+      ...DEFAULT_CURVE_CONTROLS,
+      // Preserve parameters that are controlled outside of the "Advanced Shape Controls" section
+      strokeWidth: curveControls.strokeWidth,
+      tileHeightScale: curveControls.tileHeightScale,
+    });
   };
 
   return (
