@@ -244,17 +244,17 @@ export function validateImageFile(file: File): { valid: boolean; error?: string 
  */
 export function validateSettings(settings: any): { valid: boolean; error?: string } {
     // Check columns and rows
-    if (settings.columnsCount < 10 || settings.columnsCount > 200) {
+    if (settings.columnsCount < 10 || settings.columnsCount > 256) {
         return {
             valid: false,
-            error: 'Columns must be between 10 and 200.',
+            error: 'Columns must be between 10 and 256.',
         };
     }
 
-    if (settings.rowsCount < 10 || settings.rowsCount > 200) {
+    if (settings.rowsCount < 10 || settings.rowsCount > 256) {
         return {
             valid: false,
-            error: 'Rows must be between 10 and 200.',
+            error: 'Rows must be between 10 and 256.',
         };
     }
 

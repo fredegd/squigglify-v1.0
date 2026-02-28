@@ -139,7 +139,7 @@ describe("URL Config Utilities", () => {
             const settings = deserializeSettingsFromUrl(params);
 
             // Values should be clamped to valid bounds
-            expect(settings?.rowsCount).toBe(200); // max is 200
+            expect(settings?.rowsCount).toBe(256); // max is 256
             expect(settings?.columnsCount).toBe(4); // min is 4
         });
 

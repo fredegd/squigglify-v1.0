@@ -121,7 +121,7 @@ describe('Error Handling', () => {
         });
 
         it('should reject invalid row count', () => {
-            const invalid = { ...validSettings, rowsCount: 250 };
+            const invalid = { ...validSettings, rowsCount: 300 };
             const result = validateSettings(invalid);
 
             expect(result.valid).toBe(false);

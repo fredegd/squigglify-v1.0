@@ -95,8 +95,8 @@ function deserializeCurveControls(encoded: string): Partial<CurveControlSettings
  */
 function validateNumericBounds(key: string, value: number): number {
     const bounds: Record<string, { min: number; max: number }> = {
-        rowsCount: { min: 4, max: 200 },
-        columnsCount: { min: 4, max: 200 },
+        rowsCount: { min: 4, max: 256 },
+        columnsCount: { min: 4, max: 256 },
         brightnessThreshold: { min: 0, max: 255 },
         minDensity: { min: 1, max: 20 },
         maxDensity: { min: 1, max: 20 },
