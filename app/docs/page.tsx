@@ -1,4 +1,5 @@
 import Link from "next/link"
+import NextImage from "next/image"
 import { ChevronRight, Settings, Image, Download, Palette } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -69,6 +70,7 @@ export default function DocsPage() {
                                 Converts an image to a single color with wave paths of varying density based on brightness.
                                 Perfect for simple, one-color pen plots. Paths are optimized for less pen lifts and more efficient plotting.
                             </p>
+                            <NextImage src="/monochrome.png" alt="Monochrome mode example" width={800} height={600} className="mt-4 rounded-lg border border-gray-600" />
                             <div className="bg-gray-800 rounded p-4 border border-gray-600">
                                 <p className="text-sm text-gray-400 mb-2"><strong className="text-gray-200">Best For:</strong></p>
                                 <ul className="text-sm text-gray-300 space-y-1 ml-4">
@@ -86,6 +88,7 @@ export default function DocsPage() {
                                 Creates multiple layers of wave paths with different densities to represent different brightness
                                 levels, resulting in more detailed representations with depth.
                             </p>
+                            <NextImage src="/grayscale.png" alt="Grayscale mode example" width={800} height={600} className="mt-4 rounded-lg border border-gray-600" />
                             <div className="bg-gray-800 rounded p-4 border border-gray-600">
                                 <p className="text-sm text-gray-400 mb-2"><strong className="text-gray-200">Best For:</strong></p>
                                 <ul className="text-sm text-gray-300 space-y-1 ml-4">
@@ -102,6 +105,7 @@ export default function DocsPage() {
                             <p className="text-gray-300 mb-4">
                                 Reduces the image to a limited color palette using K-means clustering, creating separate path-groups for each color. Ideal for stylized but coloured, graphic representations. The output is optimized for less pen lifts and more efficient plotting.
                             </p>
+                            <NextImage src="/posterize.png" alt="Posterize mode example" width={800} height={600} className="mt-4 rounded-lg border border-gray-600" />
                             <div className="bg-gray-800 rounded p-4 border border-gray-600">
                                 <p className="text-sm text-gray-400 mb-2"><strong className="text-gray-200">Best For:</strong></p>
                                 <ul className="text-sm text-gray-300 space-y-1 ml-4">
@@ -194,31 +198,17 @@ export default function DocsPage() {
 
                 {/* Pen Plotter Guide */}
                 <section className="mb-12 bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-lg p-8 border border-purple-700">
-                    <h2 className="text-2xl font-bold mb-6 text-white flex items-center">
-                        <Image className="mr-2" />
-                        Pen Plotter Guide
-                    </h2>
-
-                    <h3 className="text-lg font-semibold text-white mb-3">Recommended Settings for Plotting</h3>
-                    <div className="bg-gray-900/50 rounded p-4 mb-4 border border-gray-600">
-                        <ul className="space-y-2 text-gray-300 text-sm">
-                            <li>✓ Enable <strong className="text-white">Continuous Paths</strong> to reduce pen lifts</li>
-                            <li>✓ Start with <strong className="text-white">40x40 tiling</strong> for A4 size</li>
-                            <li>✓ Use <strong className="text-white">Max Density 4-6</strong> for balanced detail</li>
-                            <li>✓ Enable <strong className="text-white">Curved Paths</strong> for smoother motion</li>
-                            <li>✓ Export as <strong className="text-white">SVG</strong> for plotting software</li>
-                        </ul>
-                    </div>
+                
 
                     <h3 className="text-lg font-semibold text-white mb-3">Software Compatibility</h3>
                     <p className="text-gray-300 text-sm">
-                        The generated SVG files are compatible with popular plotting software including:
+                        The generated SVG files are compatible for use with popular vector graphics software including:
                     </p>
                     <ul className="mt-2 space-y-1 text-gray-300 text-sm ml-4">
-                        <li>• Inkscape (with AxiDraw extension)</li>
+                        <li>• Inkscape </li>
                         <li>• Adobe Illustrator</li>
                         <li>• Affinity Designer</li>
-                        <li>• vpype (CLI tool for pen plotters)</li>
+                        <li>• vpype </li>
                     </ul>
                 </section>
 

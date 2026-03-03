@@ -7,10 +7,10 @@ export default function AboutPage() {
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 {/* Hero Section */}
                 <div className="text-center mb-16">
-                    <h1 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                    <h1 className="text-4xl sm:text-5xl font-bold mb-4 py-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                         About Squigglify
                     </h1>
-                    <p className="text-xl text-gray-300 max-w-2xl mx-auto">s
+                    <p className="text-xl text-gray-300 max-w-2xl mx-auto">
                         Transform any image into beautiful squiggly art. optimized for SVG output, ideal for pen plotters and other vector graphics output devices
                     </p>
                 </div>
@@ -20,13 +20,13 @@ export default function AboutPage() {
                     <h2 className="text-2xl font-bold mb-4 text-white">What is Squigglify?</h2>
                     <p className="text-gray-300 mb-4">
                         Squigglify is a powerful web-based tool that converts regular images into path-based SVG graphics using
-                        wave-like patterns. The application creates visually distinctive vector drawings that are optimized for
-                        pen plotters, CNC machines, and laser cutters, while also providing beautiful artistic renderings for
+                        wave-like (squiggles) patterns. The application creates visually distinctive vector graphics that are optimized for
+                        pen plotters, CNC machines, and laser cutters, while also providing beautiful artistic grid-based renderings for
                         digital and print media.
                     </p>
                     <p className="text-gray-300">
                         Born from a passion for generative art and pen plotting, Squigglify bridges the gap between digital
-                        images and physical drawings, making it easy for artists and makers to create plotter-ready artwork.
+                        images and physical drawings in a fancy way, making it easy to create plotter-ready artwork based on an rasterized image.
                     </p>
                 </section>
 
