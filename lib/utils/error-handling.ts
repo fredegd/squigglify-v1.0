@@ -98,7 +98,7 @@ export class ErrorHandler {
             if (error.message.includes('canvas') || error.message.includes('context')) {
                 return new ImageProcessingError(
                     error.message,
-                    'Canvas error occurred. Your browser may not support this operation.'
+                    'Canvas error occurred. The browser may not support this operation.'
                 );
             }
 

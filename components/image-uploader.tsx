@@ -115,12 +115,12 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
           )}
         </div>
         <h3 className="text-xl font-bold text-white mb-3">
-          {isUploading ? "Processing image..." : isDragging ? "Drop your image here" : "Upload an image"}
+          {isUploading ? "Processing image..." : isDragging ? "Drop an image here" : "Upload an image to convert"}
         </h3>
         <p className="text-gray-400 mb-8 max-w-sm mx-auto leading-relaxed">
           {isUploading
             ? "Compressing and saving to local storage..."
-            : "Upload an image and convert it into a vector wave"
+            : "Upload an image and convert it into a squiggly output"
           }
         </p>
 
@@ -130,7 +130,7 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
           className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 shadow-lg shadow-purple-500/25 transition-all duration-300 hover:scale-105"
           disabled={isUploading}
         >
-          {isUploading ? "Processing..." : "Select Image"}
+          {isUploading ? "Processing..." : "Select an image"}
         </Button>
       </div>
     </div>

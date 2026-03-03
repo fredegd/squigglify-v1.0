@@ -29,7 +29,7 @@ export default function Navigation() {
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 bg-gray-800/95 backdrop-blur-md shadow-lg border-b border-gray-700">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex flex-row-reverse md:flex-row items-center md:justify-between h-16 justify-end gap-4">
+                <div className="flex flex-row-reverse lg:flex-row items-center lg:justify-between h-16 justify-end gap-4">
                     {/* Logo/Brand */}
                     <Link href="/" className="flex items-center space-x-2">
                         <Logo className="h-8 w-auto" />
@@ -52,7 +52,7 @@ export default function Navigation() {
                     </div>
 
                     {/* Mobile menu button */}
-                    <div className="md:hidden">
+                    <div className="lg:hidden">
                         <Button
                             variant="ghost"
                             size="icon"
@@ -72,7 +72,7 @@ export default function Navigation() {
 
             {/* Mobile Navigation */}
             {mobileMenuOpen && (
-                <div className="md:hidden border-t border-gray-700">
+                <div className="lg:hidden border-t border-gray-700">
                     <div className="px-2 pt-2 pb-3 space-y-1">
                         {navLinks.map((link) => (
                             <Link

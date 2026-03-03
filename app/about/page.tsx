@@ -10,8 +10,8 @@ export default function AboutPage() {
                     <h1 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
                         About Squigglify
                     </h1>
-                    <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-                        Transform your images into beautiful SVG art, optimized for pen plotters and digital design
+                    <p className="text-xl text-gray-300 max-w-2xl mx-auto">s
+                        Transform any image into beautiful squiggly art. optimized for SVG output, ideal for pen plotters and other vector graphics output devices
                     </p>
                 </div>
 
@@ -41,7 +41,7 @@ export default function AboutPage() {
                             <div>
                                 <h3 className="font-semibold text-white mb-2">Image Analysis</h3>
                                 <p className="text-gray-300">
-                                    Your image is analyzed and broken down into a grid of pixels, extracting color and brightness information
+                                    The image is analyzed and broken down into a grid of pixels, extracting color and brightness information
                                 </p>
                             </div>
                         </div>
@@ -53,7 +53,7 @@ export default function AboutPage() {
                             <div>
                                 <h3 className="font-semibold text-white mb-2">Color Grouping</h3>
                                 <p className="text-gray-300">
-                                    Pixels are grouped by color or brightness level based on your selected processing mode
+                                    Pixels are grouped by color or brightness level based on the selected processing mode
                                 </p>
                             </div>
                         </div>
@@ -92,7 +92,7 @@ export default function AboutPage() {
                             <Zap className="h-8 w-8 text-purple-400 mb-3" />
                             <h3 className="font-semibold text-white mb-2">Pen Plotting</h3>
                             <p className="text-gray-300 text-sm">
-                                Optimize your artwork for AxiDraw, Cricut, and other pen plotters with continuous path generation
+                                Optimize the output for AxiDraw, iDraw, and other pen plotters
                             </p>
                         </div>
 

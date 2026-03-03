@@ -63,7 +63,7 @@ export default function HomePage() {
               Powerful Features for Artists & Makers
             </h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Everything you need to create professional-quality vector art from your images
+              Everything needed to create professional-quality vector art from an image
             </p>
           </div>
 
@@ -115,7 +115,7 @@ export default function HomePage() {
               Three Unique Processing Modes
             </h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Each mode offers a distinct artistic style for your vector art
+              Each mode offers a distinct coloring style for a vector artwork
             </p>
           </div>
 
@@ -219,8 +219,8 @@ export default function HomePage() {
             Ready to Create?
           </h2>
           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            Transform your images into squiggly SVG art in just a few clicks.
-            Free, open source, and runs entirely in your browser.
+            Transform an image into squiggly SVG art in just a few clicks.
+            Free, open source, and runs entirely in the browser.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

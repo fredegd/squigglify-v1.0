@@ -27,14 +27,14 @@ export default function DocsPage() {
                             <span className="flex-shrink-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold mr-4">1</span>
                             <div>
                                 <strong className="text-white">Navigate to the Generator</strong>
-                                <p className="text-sm">Click the "Generator" link in the navigation or the "Try Generator" button on the home page</p>
+                                <p className="text-sm">Click the "Generator" link in the navigation or on the home page</p>
                             </div>
                         </li>
                         <li className="flex items-start">
                             <span className="flex-shrink-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold mr-4">2</span>
                             <div>
                                 <strong className="text-white">Upload or Select an Image</strong>
-                                <p className="text-sm">Either upload your own image or use the random image loader to pick from Wikimedia Commons</p>
+                                <p className="text-sm">Either upload an image or use the random image loader to pick one from Wikimedia Commons</p>
                             </div>
                         </li>
                         <li className="flex items-start">
@@ -47,7 +47,7 @@ export default function DocsPage() {
                         <li className="flex items-start">
                             <span className="flex-shrink-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold mr-4">4</span>
                             <div>
-                                <strong className="text-white">Download Your SVG</strong>
+                                <strong className="text-white">Download the SVG</strong>
                                 <p className="text-sm">Export in SVG, PNG, or PDF format for use in plotting software or design applications</p>
                             </div>
                         </li>
@@ -66,8 +66,8 @@ export default function DocsPage() {
                         <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
                             <h3 className="text-xl font-semibold text-white mb-3">Monochrome Mode</h3>
                             <p className="text-gray-300 mb-4">
-                                Converts your image to a single color with wave paths of varying density based on brightness.
-                                Perfect for simple, one-color pen plots.
+                                Converts an image to a single color with wave paths of varying density based on brightness.
+                                Perfect for simple, one-color pen plots. Paths are optimized for less pen lifts and more efficient plotting.
                             </p>
                             <div className="bg-gray-800 rounded p-4 border border-gray-600">
                                 <p className="text-sm text-gray-400 mb-2"><strong className="text-gray-200">Best For:</strong></p>
@@ -100,15 +100,14 @@ export default function DocsPage() {
                         <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
                             <h3 className="text-xl font-semibold text-white mb-3">Posterize Mode</h3>
                             <p className="text-gray-300 mb-4">
-                                Reduces your image to a limited color palette using K-means clustering, creating separate path
-                                groups for each color. Ideal for stylized, graphic representations.
+                                Reduces the image to a limited color palette using K-means clustering, creating separate path-groups for each color. Ideal for stylized but coloured, graphic representations. The output is optimized for less pen lifts and more efficient plotting.
                             </p>
                             <div className="bg-gray-800 rounded p-4 border border-gray-600">
                                 <p className="text-sm text-gray-400 mb-2"><strong className="text-gray-200">Best For:</strong></p>
                                 <ul className="text-sm text-gray-300 space-y-1 ml-4">
-                                    <li>• Multi-color pen plots</li>
+                                    <li>• Minimal multi-color pen plots (max 16 colors)</li>
                                     <li>• Pop art style artwork</li>
-                                    <li>• Colorful, vibrant designs</li>
+                                    <li>• Colorful, designs</li>
                                 </ul>
                             </div>
                         </div>
@@ -227,7 +226,7 @@ export default function DocsPage() {
                 <div className="text-center">
                     <Button asChild size="lg" className="bg-purple-600 hover:bg-purple-700">
                         <Link href="/generator">
-                            Try it Now
+                            Generate Squiggly Art
                             <ChevronRight className="ml-2 h-4 w-4" />
                         </Link>
                     </Button>
