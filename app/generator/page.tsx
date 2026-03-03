@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import ImageUploader from "@/components/image-uploader"
 import RandomImageLoader from "@/components/random-image-loader"
+import { LoadingAnimation } from "@/components/loading-animation"
 import Preview, { ImageThumbnail } from "@/components/preview"
 import SettingsPanel from "@/components/settings-panel"
 import { useSettings } from "@/hooks/use-settings"
@@ -473,7 +474,13 @@ export default function Home() {
             )}
 
             {!showRandomImageLoader && !originalImage && (
-              <ImageUploader onImageUpload={handleManualImageUpload} />
+              isInitialLoad ? (
+                <div className="flex items-center justify-center h-96 border-2 border-dashed rounded-xl border-gray-700 bg-gray-900/50">
+                  <LoadingAnimation className="w-full max-w-md h-auto px-8" />
+                </div>
+              ) : (
+                <ImageUploader onImageUpload={handleManualImageUpload} />
+              )
             )}
 
             {!showRandomImageLoader && originalImage && (
