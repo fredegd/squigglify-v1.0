@@ -122,39 +122,13 @@ export default function AboutPage() {
                     </div>
                 </section>
 
-                {/* Technology Stack */}
-                <section className="mb-12 bg-gray-900/50 rounded-lg p-8 border border-gray-700">
-                    <h2 className="text-2xl font-bold mb-4 text-white">Technology Stack</h2>
-                    <ul className="space-y-2 text-gray-300">
-                        <li className="flex items-center">
-                            <span className="w-2 h-2 bg-purple-400 rounded-full mr-3"></span>
-                            <strong className="mr-2">Next.js 14</strong> - React framework with App Router
-                        </li>
-                        <li className="flex items-center">
-                            <span className="w-2 h-2 bg-purple-400 rounded-full mr-3"></span>
-                            <strong className="mr-2">TypeScript</strong> - Type-safe development
-                        </li>
-                        <li className="flex items-center">
-                            <span className="w-2 h-2 bg-purple-400 rounded-full mr-3"></span>
-                            <strong className="mr-2">Tailwind CSS</strong> - Styling and design
-                        </li>
-                        <li className="flex items-center">
-                            <span className="w-2 h-2 bg-purple-400 rounded-full mr-3"></span>
-                            <strong className="mr-2">Canvas API</strong> - Image processing
-                        </li>
-                        <li className="flex items-center">
-                            <span className="w-2 h-2 bg-purple-400 rounded-full mr-3"></span>
-                            <strong className="mr-2">K-means Clustering</strong> - Color quantization
-                        </li>
-                    </ul>
-                </section>
-
+              
                 {/* Open Source & Contributing */}
                 <section className="mb-12 bg-gradient-to-r from-purple-900/50 to-pink-900/50 rounded-lg p-8 border border-purple-700">
                     <h2 className="text-2xl font-bold mb-4 text-white">Open Source & Contributing</h2>
                     <p className="text-gray-200 mb-6">
-                        Squigglify is open source and released under the MIT License. We welcome contributions, bug reports,
-                        and feature requests from the community!
+                        Squigglify is open source and released under the MIT License. Contributions, bug reports,
+                        and feature requests are Welcome!
                     </p>
                     <div className="flex flex-wrap gap-4">
                         <Button asChild variant="default" className="bg-purple-600 hover:bg-purple-700">
@@ -180,20 +154,7 @@ export default function AboutPage() {
                     </div>
                 </section>
 
-                {/* Credits */}
-                <section className="text-center">
-                    <p className="text-gray-400">
-                        Created with ❤️ by{" "}
-                        <a
-                            href="https://github.com/fredegd"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-purple-400 hover:text-purple-300 transition-colors"
-                        >
-                            fredegd
-                        </a>
-                    </p>
-                </section>
+             
             </div>
         </div>
     )
