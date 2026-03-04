@@ -195,54 +195,42 @@ export async function generateSVGProgressively(
 
   return partialSvg;
 }
-// Generate continuous path for a color group
+// Generate continuous path for a color group.
+// Phase 1: serpentine row-order traversal (preserves original within-row quality).
+// Phase 2: greedy merge of nearby segment endpoints to connect across rows.
 export function generateContinuousPath(
   colorGroup: ColorGroup,
   settings: Settings
 ): string {
   const { color, points } = colorGroup;
-  const { curvedPaths, curveControls } = settings;
+  const { curvedPaths, curveControls, pathDistanceThreshold } = settings;
 
-  // Sort points by row, then by column (accounting for row direction)
+  // --- Phase 1: serpentine row-order path segments (original algorithm) ---
+
   points.sort((a, b) => {
     if (a.row !== b.row) return a.row - b.row;
-    // Sort by column, accounting for row direction
     return a.row % 2 === 0 ? a.x - b.x : b.x - a.x;
   });
 
-  let svgContent = "";
-
-  // Generate vertices array from the points
+  const segments: { x: number; y: number }[][] = [];
   let pathVertices: { x: number; y: number }[] = [];
 
-  // Process each point to generate all the vertices for the continuous path
   for (let i = 0; i < points.length; i++) {
     const point = points[i];
-
-    // Skip zero-density points
     if (point.density <= 0) continue;
 
-    // Check if we need to start a new path due to distance threshold
     const lastPoint =
       pathVertices.length > 0 ? pathVertices[pathVertices.length - 1] : null;
     const needNewPath =
       lastPoint &&
       calculateDistance(lastPoint.x, lastPoint.y, point.x, point.y) >
-      settings.pathDistanceThreshold;
+      pathDistanceThreshold;
 
     if (needNewPath && pathVertices.length > 0) {
-      // Create path from accumulated vertices
-      svgContent += createPathFromVertices(
-        pathVertices,
-        color,
-        curvedPaths,
-        curveControls
-      );
-      // Reset vertices array for next path
+      segments.push(pathVertices);
       pathVertices = [];
     }
 
-    // Add vertices for this point/tile
     const tileVertices = createTileVertices(
       point.x,
       point.y,
@@ -256,29 +244,99 @@ export function generateContinuousPath(
       settings.rowsCount
     );
 
-    // If this is not the first point in the current path and we have vertices,
-    // we may need to adjust the first vertex of this tile for smoother connection
     if (pathVertices.length > 0 && !needNewPath) {
-      // The first tile vertex replaces the last vertex of the accumulated path
-      // to ensure a continuous path without jumps
-      pathVertices.pop(); // Remove last vertex from previous tile
+      pathVertices.pop();
     }
 
-    // Add all vertices from this tile
     pathVertices = [...pathVertices, ...tileVertices];
   }
 
-  // Add the final path to SVG content if there are vertices left
   if (pathVertices.length > 0) {
-    svgContent += createPathFromVertices(
-      pathVertices,
-      color,
-      curvedPaths,
-      curveControls
-    );
+    segments.push(pathVertices);
+  }
+
+  // --- Phase 2: merge segments whose endpoints are within threshold ---
+
+  const merged = mergeNearbySegments(segments, pathDistanceThreshold);
+
+  let svgContent = "";
+  for (const seg of merged) {
+    if (seg.length > 0) {
+      svgContent += createPathFromVertices(seg, color, curvedPaths, curveControls);
+    }
   }
 
   return svgContent;
+}
+
+// Greedily merge path segments whose endpoints lie within `threshold` distance,
+// reducing the number of separate paths (and therefore pen lifts).
+function mergeNearbySegments(
+  segments: { x: number; y: number }[][],
+  threshold: number
+): { x: number; y: number }[][] {
+  if (segments.length <= 1) return segments;
+
+  type Connection = "end-start" | "end-end" | "start-start" | "start-end";
+
+  let result = segments.map(s => s.slice());
+  let changed = true;
+
+  while (changed) {
+    changed = false;
+
+    for (let i = 0; i < result.length; i++) {
+      const segA = result[i];
+      if (segA.length === 0) continue;
+
+      const aStart = segA[0];
+      const aEnd = segA[segA.length - 1];
+
+      let bestJ = -1;
+      let bestDist = Infinity;
+      let bestConn: Connection = "end-start";
+
+      for (let j = 0; j < result.length; j++) {
+        if (i === j) continue;
+        const segB = result[j];
+        if (segB.length === 0) continue;
+
+        const bStart = segB[0];
+        const bEnd = segB[segB.length - 1];
+
+        const d1 = calculateDistance(aEnd.x, aEnd.y, bStart.x, bStart.y);
+        if (d1 <= threshold && d1 < bestDist) { bestDist = d1; bestJ = j; bestConn = "end-start"; }
+
+        const d2 = calculateDistance(aEnd.x, aEnd.y, bEnd.x, bEnd.y);
+        if (d2 <= threshold && d2 < bestDist) { bestDist = d2; bestJ = j; bestConn = "end-end"; }
+
+        const d3 = calculateDistance(aStart.x, aStart.y, bStart.x, bStart.y);
+        if (d3 <= threshold && d3 < bestDist) { bestDist = d3; bestJ = j; bestConn = "start-start"; }
+
+        const d4 = calculateDistance(aStart.x, aStart.y, bEnd.x, bEnd.y);
+        if (d4 <= threshold && d4 < bestDist) { bestDist = d4; bestJ = j; bestConn = "start-end"; }
+      }
+
+      if (bestJ < 0) continue;
+
+      const segB = result[bestJ];
+      switch (bestConn) {
+        case "end-start":   result[i] = [...segA, ...segB]; break;
+        case "end-end":     result[i] = [...segA, ...segB.slice().reverse()]; break;
+        case "start-start": result[i] = [...segA.slice().reverse(), ...segB]; break;
+        case "start-end":   result[i] = [...segB, ...segA]; break;
+      }
+      result[bestJ] = [];
+      changed = true;
+      break;
+    }
+
+    if (changed) {
+      result = result.filter(s => s.length > 0);
+    }
+  }
+
+  return result;
 }
 
 // Create all vertices for a tile based on its properties
