@@ -33,8 +33,8 @@ export default function HomePage() {
             </p>
 
             <p className="text-lg text-gray-400 mb-12 max-w-2xl mx-auto">
-              Optimized for pen plotters, CNC machines, and laser cutters.
-              Create beautiful, continuous-path SVG graphics with customizable wave patterns.
+              Optimized for pen plotters, laser cutters and CNC machines.
+              Create beautiful, continuous-path SVG graphics with customizable settings.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

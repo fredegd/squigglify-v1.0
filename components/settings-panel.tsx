@@ -87,6 +87,14 @@ export default function SettingsPanel({
     <div className="space-y-6 px-7 lg:px-0 py-2 ">
 
 
+      <ProcessingModeSettings
+        settings={settings}
+        onSettingsChange={onSettingsChange}
+        disabled={disabled}
+      />
+
+      <Separator className="bg-gray-700" />
+
       <ImageTilingSettings
         settings={settings}
         onSettingsChange={onSettingsChange}
@@ -106,14 +114,6 @@ export default function SettingsPanel({
       <Separator className="bg-gray-700" />
 
       <VectorGenerationSettings
-        settings={settings}
-        onSettingsChange={onSettingsChange}
-        disabled={disabled}
-      />
-
-      <Separator className="bg-gray-700" />
-
-      <ProcessingModeSettings
         settings={settings}
         onSettingsChange={onSettingsChange}
         disabled={disabled}

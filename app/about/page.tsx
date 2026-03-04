@@ -21,7 +21,7 @@ export default function AboutPage() {
                     <p className="text-gray-300 mb-4">
                         Squigglify is a powerful web-based tool that converts regular images into path-based SVG graphics using
                         wave-like (squiggles) patterns. The application creates visually distinctive vector graphics that are optimized for
-                        pen plotters, CNC machines, and laser cutters, while also providing beautiful artistic grid-based renderings for
+                        pen plotters, CNC machines or laser cutters, while also providing beautiful artistic grid-based renderings for
                         digital and print media.
                     </p>
                     <p className="text-gray-300">
