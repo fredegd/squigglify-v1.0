@@ -51,13 +51,19 @@ export default function SettingsPanel({
     setCurveControlsLocal(curveControls);
   }, [curveControls]);
 
-  const calculatedDensity = useMemo(() => {
+  const { calculatedDensity, effectiveTileWidth } = useMemo(() => {
+    const MIN_STEP_PX = 0.4;
     const MAX_DIMENSION = 560;
-    let outputWidth = MAX_DIMENSION;
-    let tileWidth = Math.floor(outputWidth / settings.columnsCount);
-    tileWidth = tileWidth % 2 === 0 ? tileWidth : tileWidth - 1;
-    return tileWidth * 3; // Assuming density amount is calculated as tile width * 3
-  }, [settings.columnsCount]);
+
+    // Use actual outputWidth from processed image when available;
+    // for landscape images this can be significantly larger than 560
+    const outputWidth = processedData?.outputWidth ?? MAX_DIMENSION;
+    const tileWidth = outputWidth / settings.columnsCount;
+
+    const maxDensity = Math.max(2, Math.floor(tileWidth / MIN_STEP_PX));
+
+    return { calculatedDensity: maxDensity, effectiveTileWidth: tileWidth };
+  }, [settings.columnsCount, processedData?.outputWidth]);
 
   useEffect(() => {
     if (settings.maxDensity > calculatedDensity) {
@@ -94,6 +100,7 @@ export default function SettingsPanel({
         onSettingsChange={onSettingsChange}
         disabled={disabled}
         calculatedDensity={calculatedDensity}
+        tileWidth={effectiveTileWidth}
       />
 
       <Separator className="bg-gray-700" />

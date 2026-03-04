@@ -398,7 +398,7 @@ export const ImageThumbnail = memo(function ImageThumbnail({
           {/* Mini SVG Preview Section (only on mobile/when svgContentPreview is present) */}
           {svgContentPreview && (
             <div className="flex-1  lg:hidden border border-gray-700 rounded-2xl overflow-hidden p-2 relative  h-full" >
-              <h3 className="text-base md:text-lg font-bold mb-1 md:mb-2 text-center text-gradient">Preview</h3>
+              <h3 className="text-base md:text-lg font-bold mb-1 md:mb-2 text-gradient">Preview</h3>
               <Maximize2 className="absolute top-2 right-2 h-4 w-4 text-gray-400 cursor-pointer hover:text-gray-300" onClick={toggleSettingsPanel} />
               <div ref={svgPreviewContainerRef} className="aspect-square bg-[#f1f1f1] rounded-lg overflow-hidden flex items-center justify-center max-h-40  mx-auto p-1" onClick={toggleSettingsPanel}>
                 {/* Mini SVG will be injected here */}
@@ -422,7 +422,7 @@ export const ImageThumbnail = memo(function ImageThumbnail({
 
           {/* Original Image Section */}
           <div className="flex-1 lg:w-full flex-1 border border-gray-700 rounded-2xl overflow-hidden p-2 relative  h-full">
-            <h3 className="text-base md:text-lg font-bold mb-1 md:mb-2 text-center text-gradient">Input</h3>
+            <h3 className="text-base md:text-lg font-bold mb-1 md:mb-2 text-gradient">Input</h3>
             <div className="  absolute top-2 right-2  ">
               <Button
 

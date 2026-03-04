@@ -11,10 +11,11 @@ interface PathDensitySettingsProps {
     settings: Settings
     onSettingsChange: (newSettings: Partial<Settings>) => void
     disabled: boolean
-    calculatedDensity: number // Add this prop
+    calculatedDensity: number
+    tileWidth: number
 }
 
-export default function PathDensitySettings({ settings, onSettingsChange, disabled, calculatedDensity }: PathDensitySettingsProps) {
+export default function PathDensitySettings({ settings, onSettingsChange, disabled, calculatedDensity, tileWidth }: PathDensitySettingsProps) {
     const [isValueLinked, setIsValueLinked] = useState(false)
     const [minDensity, setMinDensity] = useState(settings.minDensity)
     const [maxDensity, setMaxDensity] = useState(settings.maxDensity)
@@ -146,7 +147,7 @@ export default function PathDensitySettings({ settings, onSettingsChange, disabl
                     </div>
 
                     <p className="text-xs pl-4">
-                        * auto-adjusted to tile width: {calculatedDensity / 3}px
+                        * tile width: {tileWidth.toFixed(1)}px — max {calculatedDensity} oscillations (≥0.5px step)
                     </p>
                 </div>
             </details>
