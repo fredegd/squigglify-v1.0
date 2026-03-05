@@ -55,6 +55,7 @@ export default function Home() {
   const [processingProgress, setProcessingProgress] = useState(0)
   const [processingStatus, setProcessingStatus] = useState("")
   const [showProgress, setShowProgress] = useState(false)
+  const isCancelledRef = useRef(false)
   const isMobile = useIsMobile()
 
 
@@ -135,6 +136,7 @@ export default function Home() {
     settings.continuousPaths,
     settings.pathDistanceThreshold,
     settings.processingMode,
+    settings.quantizationMethod,
     settings.colorsAmt,
     settings.monochromeColor,
     isInitialLoad,
@@ -278,6 +280,12 @@ export default function Home() {
       return;
     }
 
+    isCancelledRef.current = false;
+
+    // Stash previous valid state to fall back to in case of cancellation
+    const previousProcessedData = processedData;
+    const previousSvgContent = svgContent;
+
     setIsProcessing(true)
     setShowProgress(true)
     setProcessingProgress(0)
@@ -304,6 +312,7 @@ export default function Home() {
         imageOptions,
         processingSettings,
         (progress, status) => {
+          if (isCancelledRef.current) return true;
           // Scale image processing to 0-70%
           setProcessingProgress(progress * 0.7)
           setProcessingStatus(status)
@@ -336,6 +345,8 @@ export default function Home() {
         imageData,
         { ...processingSettings, visiblePaths: settings.visiblePaths },
         (chunk: SVGChunk, partialSvg: string) => {
+          if (isCancelledRef.current) return true;
+
           // Update SVG in real-time to show partial results
           setSvgContent(partialSvg)
           lastSvg = partialSvg;
@@ -364,12 +375,24 @@ export default function Home() {
         saveSvgToStorage(lastSvg);
       }
     } catch (error) {
+      if (error instanceof Error && error.message === "Processing cancelled") {
+        console.log("Processing was cancelled by the user. Falling back to previous valid state.");
+        setProcessedData(previousProcessedData);
+        setSvgContent(previousSvgContent);
+        return;
+      }
       console.error("Error processing image:", error)
       // Handle error state here
     } finally {
       setIsProcessing(false)
       setShowProgress(false)
     }
+  }
+
+  const handleCancelProcessing = () => {
+    isCancelledRef.current = true;
+    setIsProcessing(false);
+    setShowProgress(false);
   }
 
   const handleSettingsChange = (newSettingsPatch: Partial<Settings>) => {
@@ -562,6 +585,7 @@ export default function Home() {
         <ProcessingProgress
           progress={processingProgress}
           status={processingStatus}
+          onCancel={handleCancelProcessing}
         />
       )}
     </main>

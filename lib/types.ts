@@ -24,6 +24,7 @@ export interface Settings {
   curvedPaths: boolean;
   pathDistanceThreshold: number;
   processingMode: ProcessingMode;
+  quantizationMethod: "kmeans" | "median-cut";
   colorsAmt: number;
   monochromeColor: string;
   visiblePaths: Record<string, boolean>;

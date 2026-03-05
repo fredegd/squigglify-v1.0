@@ -1,17 +1,19 @@
 import type { ImageData, PixelData, ColorGroup } from "../types";
 import { kMeansClustering, findNearestCentroid } from "../utils/math-utils";
+import { medianCutClustering } from "../utils/median-cut";
 
 export class ColorQuantizer {
   private centroids: [number, number, number][] = [];
   private originalImageHash: string = "";
   private currentColorsAmt: number = 0;
+  private currentQuantizationMethod: "kmeans" | "median-cut" = "kmeans";
   private originalImageColors: [number, number, number][] = [];
   private originalPixels: PixelData[] = [];
 
-  constructor(imageData: ImageData, colorsAmt: number) {
+  constructor(imageData: ImageData, colorsAmt: number, quantizationMethod: "kmeans" | "median-cut") {
     this.originalPixels = [...imageData.pixels];
     this.extractOriginalColors(imageData);
-    this.calculateQuantization(colorsAmt);
+    this.calculateQuantization(colorsAmt, quantizationMethod);
   }
 
   private extractOriginalColors(imageData: ImageData): void {
@@ -38,9 +40,14 @@ export class ColorQuantizer {
       .join("|");
   }
 
-  private calculateQuantization(colorsAmt: number): void {
-    this.centroids = kMeansClustering(this.originalImageColors, colorsAmt);
+  private calculateQuantization(colorsAmt: number, method: "kmeans" | "median-cut"): void {
+    if (method === "median-cut") {
+      this.centroids = medianCutClustering(this.originalImageColors, colorsAmt);
+    } else {
+      this.centroids = kMeansClustering(this.originalImageColors, colorsAmt);
+    }
     this.currentColorsAmt = colorsAmt;
+    this.currentQuantizationMethod = method;
   }
 
   public getQuantizedColors(): [number, number, number][] {
@@ -53,21 +60,22 @@ export class ColorQuantizer {
     return findNearestCentroid(color, this.centroids);
   }
 
-  public shouldRecalculate(imageData: ImageData, colorsAmt: number): boolean {
-    // Nur neu berechnen, wenn sich das Originalbild oder die Farbanzahl ändert
+  public shouldRecalculate(imageData: ImageData, colorsAmt: number, method: "kmeans" | "median-cut"): boolean {
+    // Nur neu berechnen, wenn sich das Originalbild, die Farbanzahl oder die Methode ändert
     return (
       this.originalImageHash !== this.calculateHash(imageData) ||
-      this.currentColorsAmt !== colorsAmt
+      this.currentColorsAmt !== colorsAmt ||
+      this.currentQuantizationMethod !== method
     );
   }
 
-  public updateSettings(imageData: ImageData, colorsAmt: number): void {
-    if (this.shouldRecalculate(imageData, colorsAmt)) {
+  public updateSettings(imageData: ImageData, colorsAmt: number, method: "kmeans" | "median-cut"): void {
+    if (this.shouldRecalculate(imageData, colorsAmt, method)) {
       if (this.originalImageHash !== this.calculateHash(imageData)) {
         // Nur wenn sich das Originalbild geändert hat
         this.extractOriginalColors(imageData);
       }
-      this.calculateQuantization(colorsAmt);
+      this.calculateQuantization(colorsAmt, method);
     }
   }
 

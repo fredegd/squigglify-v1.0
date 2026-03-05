@@ -46,6 +46,52 @@ export default function ProcessingModeSettings({ settings, onSettingsChange, dis
                             </TooltipContent>
                         </Tooltip>
                     </div>
+
+                    {settings.processingMode === "posterize" && (
+                        <div className="pl-10 space-y-3 mt-1 text-sm text-gray-400">
+                            <Label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Algorithm</Label>
+                            <RadioGroup
+                                value={settings.quantizationMethod || "kmeans"}
+                                onValueChange={(value) => onSettingsChange({ quantizationMethod: value as "kmeans" | "median-cut" })}
+                                className="space-y-2"
+                                disabled={disabled}
+                                id="quantization-method-group"
+                            >
+                                <div className="flex flex-col gap-1">
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="kmeans" id="kmeans-setting" className="w-3 h-3" />
+                                        <Label htmlFor="kmeans-setting" className="cursor-pointer text-sm">
+                                            K-means
+                                        </Label>
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <Info className="h-3 w-3 text-gray-400" />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p className="max-w-xs">Standard clustering algorithm. Groups colors by proximity. Can sometimes merge small but distinct color details.</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="median-cut" id="median-cut-setting" className="w-3 h-3" />
+                                        <Label htmlFor="median-cut-setting" className="cursor-pointer text-sm">
+                                            Median Cut
+                                        </Label>
+                                        <Tooltip>
+                                            <TooltipTrigger>
+                                                <Info className="h-3 w-3 text-gray-400" />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p className="max-w-xs">Divides color space more evenly. Often preserves distinct minority colors better than K-means.</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </div>
+                                </div>
+                            </RadioGroup>
+                        </div>
+                    )}
                     <div className="flex items-center space-x-2 px-4">
                         <RadioGroupItem value="grayscale" id="grayscale-setting" />
                         <Label htmlFor="grayscale-setting" className="cursor-pointer">

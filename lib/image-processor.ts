@@ -20,10 +20,12 @@ let colorQuantizerCache: {
   imageHash: string;
   quantizer: ColorQuantizer | null;
   lastColorsAmt: number;
+  lastQuantizationMethod: "kmeans" | "median-cut";
 } = {
   imageHash: "",
   quantizer: null,
   lastColorsAmt: 0,
+  lastQuantizationMethod: "kmeans",
 };
 
 // Berechne Hash für das Originalbild
@@ -88,7 +90,8 @@ export async function processImage(
         if (
           colorQuantizerCache.imageHash !== currentImageHash ||
           !colorQuantizerCache.quantizer ||
-          colorQuantizerCache.lastColorsAmt !== settings.colorsAmt
+          colorQuantizerCache.lastColorsAmt !== settings.colorsAmt ||
+          colorQuantizerCache.lastQuantizationMethod !== settings.quantizationMethod
         ) {
           // Wenn das Bild neu ist, erstelle einen neuen Quantizer
           if (
@@ -134,14 +137,19 @@ export async function processImage(
                   tileWidth: 1,
                   tileHeight: 1,
                 },
-                settings.colorsAmt
+                settings.colorsAmt,
+                settings.quantizationMethod
               ),
               lastColorsAmt: settings.colorsAmt,
+              lastQuantizationMethod: settings.quantizationMethod,
             };
             perfEnd('create-color-quantizer');
           }
-          // Wenn nur die Farbanzahl anders ist, aktualisiere den existierenden Quantizer
-          else if (colorQuantizerCache.lastColorsAmt !== settings.colorsAmt) {
+          // Wenn nur die Farbanzahl oder Methode anders ist, aktualisiere den existierenden Quantizer
+          else if (
+            colorQuantizerCache.lastColorsAmt !== settings.colorsAmt ||
+            colorQuantizerCache.lastQuantizationMethod !== settings.quantizationMethod
+          ) {
             colorQuantizerCache.quantizer.updateSettings(
               {
                 width: optimalWidth,
@@ -158,9 +166,11 @@ export async function processImage(
                 tileWidth: 1,
                 tileHeight: 1,
               },
-              settings.colorsAmt
+              settings.colorsAmt,
+              settings.quantizationMethod
             );
             colorQuantizerCache.lastColorsAmt = settings.colorsAmt;
+            colorQuantizerCache.lastQuantizationMethod = settings.quantizationMethod;
           }
         }
         perfEnd('image-setup');

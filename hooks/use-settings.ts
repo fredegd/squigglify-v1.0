@@ -14,6 +14,7 @@ const DEFAULT_SETTINGS: Settings = {
   curvedPaths: true,
   pathDistanceThreshold: 25,
   processingMode: "posterize",
+  quantizationMethod: "kmeans",
   colorsAmt: 5,
   monochromeColor: "#000000",
   visiblePaths: {},

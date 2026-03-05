@@ -172,7 +172,7 @@ export function assembleSVGFromChunks(chunks: SVGChunk[]): string {
 export async function generateSVGProgressively(
   imageData: ImageData,
   settings: Settings,
-  onChunk: (chunk: SVGChunk, partialSvg: string) => void,
+  onChunk: (chunk: SVGChunk, partialSvg: string) => boolean | void,
   delayBetweenChunks: number = 0
 ): Promise<string> {
   const chunks: SVGChunk[] = [];
@@ -182,7 +182,10 @@ export async function generateSVGProgressively(
     chunks.push(chunk);
     partialSvg += chunk.content;
 
-    onChunk(chunk, partialSvg);
+    const shouldCancel = onChunk(chunk, partialSvg);
+    if (shouldCancel === true) {
+      throw new Error("Processing cancelled");
+    }
 
     // Allow UI to update between chunks
     if (delayBetweenChunks > 0) {
@@ -321,10 +324,10 @@ function mergeNearbySegments(
 
       const segB = result[bestJ];
       switch (bestConn) {
-        case "end-start":   result[i] = [...segA, ...segB]; break;
-        case "end-end":     result[i] = [...segA, ...segB.slice().reverse()]; break;
+        case "end-start": result[i] = [...segA, ...segB]; break;
+        case "end-end": result[i] = [...segA, ...segB.slice().reverse()]; break;
         case "start-start": result[i] = [...segA.slice().reverse(), ...segB]; break;
-        case "start-end":   result[i] = [...segB, ...segA]; break;
+        case "start-end": result[i] = [...segB, ...segA]; break;
       }
       result[bestJ] = [];
       changed = true;

@@ -42,6 +42,19 @@ export default function ProcessingProgress({ progress, status, onCancel }: Proce
                 <p className="text-xs text-gray-500 mt-6 text-center">
                     This may take a moment for large images or complex settings
                 </p>
+
+                {onCancel && (
+                    <div className="mt-6 flex justify-center">
+                        <Button
+                            variant="outline"
+                            onClick={onCancel}
+                            className="w-full sm:w-auto bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 border-red-500/20 transition-colors"
+                        >
+                            <X className="mr-2 h-4 w-4" />
+                            Cancel
+                        </Button>
+                    </div>
+                )}
             </div>
         </div>
     )
