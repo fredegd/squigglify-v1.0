@@ -5,7 +5,7 @@ import { Slider } from "@/components/ui/slider-w-buttons"
 import { Label } from "@/components/ui/label"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Button } from "@/components/ui/button"
-import { RotateCcw, Info, ChevronDown, Play, Square } from "lucide-react"
+import { RotateCcw, Info, ChevronDown, Play, Square, Trash2 } from "lucide-react"
 import type { Settings, CurveControlSettings, ImageData as ProcessedDataType } from "@/lib/types"
 import { DEFAULT_CURVE_CONTROLS } from "@/lib/types"
 import { useState, useMemo, useEffect } from "react"
@@ -30,6 +30,7 @@ interface SettingsPanelProps {
   onStopAnimation?: () => void
   animationSpeed?: number
   onAnimationSpeedChange?: (speed: number) => void
+  onClearCache?: () => void
 }
 
 export default function SettingsPanel({
@@ -43,7 +44,8 @@ export default function SettingsPanel({
   onPlayAnimation,
   onStopAnimation,
   animationSpeed = 1.0,
-  onAnimationSpeedChange
+  onAnimationSpeedChange,
+  onClearCache
 }: SettingsPanelProps) {
   const [curveControlsLocal, setCurveControlsLocal] = useState(curveControls);
 
@@ -439,28 +441,46 @@ export default function SettingsPanel({
         </>
       )}
 
-      {onResetSettings && (
+      {(onClearCache || onResetSettings) && (
         <>
           <Separator className="bg-gray-700" />
-          <h3 className="flex items-center gap-2 text-gradient font-bold">Current Settings</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="flex items-center gap-2 text-gradient font-bold">Current Settings</h3>
+            {onResetSettings && (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  onResetSettings();
+                  if (onAnimationSpeedChange) {
+                    onAnimationSpeedChange(1.0);
+                  }
+                }}
+                disabled={disabled}
+                className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:bg-transparent"
+                title="Reset settings"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
           <div className="flex justify-between gap-2 pt-2">
             <ShareConfigButton settings={settings} />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                onResetSettings();
-                // Reset animation speed to default
-                if (onAnimationSpeedChange) {
-                  onAnimationSpeedChange(1.0);
-                }
-              }}
-              disabled={disabled}
-              className="text-gray-300 border-gray-600 hover:bg-gray-700 hover:text-white"
-            >
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Reset
-            </Button>
+            <div className="flex gap-2">
+              {onClearCache && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onClearCache}
+                  disabled={disabled}
+                  className="text-gray-300 border-gray-600 hover:bg-gray-700 hover:text-red-400"
+                  title="Clear cache and re-process"
+                >
+                  <Trash2 className="h-4 w-4 mr-2 hidden md:block" />
+                  <Trash2 className="h-4 w-4 md:hidden" />
+                  <span className="hidden md:inline">Clear Cache</span>
+                </Button>
+              )}
+            </div>
           </div>
         </>
       )}

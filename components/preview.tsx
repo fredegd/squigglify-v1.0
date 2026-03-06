@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useRef, memo, useState, useCallback } from "react"
-import { ArrowUpToLine, ArrowUpRight, Maximize2, LoaderCircle, X, ChevronDown, Play, Square, Move, ZoomIn, RotateCcw } from "lucide-react"
+
+import { ArrowUpToLine, ArrowUpRight, Maximize2, LoaderCircle, X, ChevronDown, Play, Square, Move, ZoomIn, RotateCcw, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import SvgDownloadOptions from "@/components/svg-download-options"
@@ -14,6 +15,7 @@ interface PreviewProps {
   isProcessing: boolean
   processedData: ImageData | null
   onNewImageUpload: () => void
+  onRemoveImage?: () => void
   settings: Settings
   animationSpeed?: number
   animationTrigger?: number
@@ -25,6 +27,8 @@ const Preview = memo(function Preview({
   svgContent,
   isProcessing,
   processedData,
+  onNewImageUpload,
+  onRemoveImage,
   settings,
   animationSpeed = 1.0,
   animationTrigger = 0,
@@ -356,6 +360,7 @@ export const ImageThumbnail = memo(function ImageThumbnail({
   originalImage,
   processedData,
   onNewImageUpload,
+  onRemoveImage,
   svgContentPreview,
   toggleSettingsPanel,
   settings
@@ -363,6 +368,7 @@ export const ImageThumbnail = memo(function ImageThumbnail({
   originalImage: string
   processedData: ImageData | null
   onNewImageUpload: () => void
+  onRemoveImage?: () => void
   svgContentPreview?: string | null
   toggleSettingsPanel: () => void
   settings: Settings
@@ -423,9 +429,19 @@ export const ImageThumbnail = memo(function ImageThumbnail({
           {/* Original Image Section */}
           <div className="flex-1 lg:w-full flex-1 border border-gray-700 rounded-2xl overflow-hidden p-2 relative  h-full">
             <h3 className="text-base md:text-lg font-bold mb-1 md:mb-2 text-gradient">Input</h3>
-            <div className="  absolute top-2 right-2  ">
+            <div className="  absolute top-2 right-2 flex gap-1 ">
+              {onRemoveImage && (
+                <Button
+                  variant="ghost"
+                  onClick={onRemoveImage}
+                  className="h-7 w-7 md:h-8 md:w-8 p-0 hover:text-red-500"
+                  size="sm"
+                  title="Remove image"
+                >
+                  <Trash2 className="h-3.5 md:h-4 w-3.5 md:w-4" />
+                </Button>
+              )}
               <Button
-
                 variant="ghost"
                 onClick={onNewImageUpload}
                 className="h-7 w-7 md:h-8 md:w-8 p-0 hover:text-purple-500"

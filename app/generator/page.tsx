@@ -395,6 +395,16 @@ export default function Home() {
     setShowProgress(false);
   }
 
+  const handleClearCache = () => {
+    resetSettings()
+    clearStoredSvg()
+    clearStoredProcessedData()
+    setProcessedData(null)
+    setSvgContent(null)
+    svgRestoredRef.current = false
+    console.log('Cleared cache data (kept original image)')
+  }
+
   const handleSettingsChange = (newSettingsPatch: Partial<Settings>) => {
     // Use the unified settings update function
     updateSettings(newSettingsPatch);
@@ -514,6 +524,7 @@ export default function Home() {
                   isProcessing={isProcessing}
                   processedData={processedData}
                   onNewImageUpload={handleNewImageUpload}
+                  onRemoveImage={handleNewImageUpload}
                   settings={settings}
                   animationSpeed={animationSpeed}
                   animationTrigger={animationTrigger}
@@ -541,6 +552,7 @@ export default function Home() {
                   originalImage={originalImage}
                   processedData={processedData}
                   onNewImageUpload={handleNewImageUpload}
+                  onRemoveImage={handleNewImageUpload}
                   svgContentPreview={svgContent}
                   toggleSettingsPanel={toggleSettingsPanel}
                   settings={settings}
@@ -554,6 +566,7 @@ export default function Home() {
                     onCurveControlsChange={handleCurveControlsChange}
                     processedData={processedData}
                     onResetSettings={resetSettings}
+                    onClearCache={handleClearCache}
                     onPlayAnimation={handlePlayAnimation}
                     onStopAnimation={handleStopAnimation}
                     animationSpeed={animationSpeed}

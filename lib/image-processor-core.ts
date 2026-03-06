@@ -166,7 +166,8 @@ export async function processImage(
                   tileWidth: 1,
                   tileHeight: 1,
                 },
-                settings.colorsAmt
+                settings.colorsAmt,
+                settings.quantizationMethod || "kmeans"
               ),
               lastColorsAmt: settings.colorsAmt,
             };
@@ -189,7 +190,8 @@ export async function processImage(
                 tileWidth: 1,
                 tileHeight: 1,
               },
-              settings.colorsAmt
+              settings.colorsAmt,
+              settings.quantizationMethod || "kmeans"
             );
             colorQuantizerCache.lastColorsAmt = settings.colorsAmt;
           }
