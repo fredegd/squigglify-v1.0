@@ -49,12 +49,13 @@ export interface ProcessImageOptions {
 
 export async function processImage(
   options: ProcessImageOptions,
-  settings: Settings
+  settings: Settings,
+  onProgress?: (progress: number, status: string) => boolean
 ): Promise<ImageData> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
-    img.onload = () => {
+    img.onload = async () => {
       try {
         perfStart('total-image-processing');
         perfStart('image-setup');
@@ -238,6 +239,11 @@ export async function processImage(
         const imageData = gridCtx.getImageData(0, 0, gridWidth, gridHeight);
         const pixels = [];
 
+        // Chunking the pixel extraction to prevent freezing
+        const totalPixels = gridWidth * gridHeight;
+        let processedCount = 0;
+        const CHUNK_SIZE = 10000;
+
         // Process each pixel using cached quantizer colors
         for (let y = 0; y < gridHeight; y++) {
           for (let x = 0; x < gridWidth; x++) {
@@ -246,6 +252,18 @@ export async function processImage(
             const g = imageData.data[i + 1];
             const b = imageData.data[i + 2];
             const aVal = imageData.data[i + 3];
+
+            processedCount++;
+            
+            // Yield to main thread every CHUNK_SIZE pixels
+            if (processedCount % CHUNK_SIZE === 0) {
+              const currentProgress = 15 + Math.round((15 * processedCount) / totalPixels);
+              if (onProgress && onProgress(currentProgress, `Extracting pixels... ${Math.round((processedCount/totalPixels)*100)}%`)) {
+                reject(new Error("Processing cancelled"));
+                return;
+              }
+              await new Promise(r => setTimeout(r, 0));
+            }
 
             if (aVal === 0) continue;
 
@@ -317,16 +335,17 @@ export async function processImage(
         let newColorGroups: Record<string, ColorGroup>;
         switch (settings.processingMode) {
           case "grayscale":
-            newColorGroups = processGrayscale(processedImageData, settings);
+            newColorGroups = await processGrayscale(processedImageData, settings, onProgress);
             break;
           case "posterize":
-            newColorGroups = PosterizeProcessor.process(
+            newColorGroups = await PosterizeProcessor.process(
               processedImageData,
-              settings
+              settings,
+              onProgress
             );
             break;
           case "monochrome":
-            newColorGroups = processMonochrome(processedImageData, settings);
+            newColorGroups = await processMonochrome(processedImageData, settings, onProgress);
             break;
           default:
             newColorGroups = {};

@@ -1,10 +1,11 @@
 import type { ColorGroup, ImageData, Settings, PathPoint } from "../types";
 
 // Process image in grayscale mode
-export function processGrayscale(
+export async function processGrayscale(
   imageData: ImageData,
-  settings: Settings
-): Record<string, ColorGroup> {
+  settings: Settings,
+  onProgress?: (progress: number, status: string) => boolean
+): Promise<Record<string, ColorGroup>> {
   const { pixels, tileWidth: gridSizeX, tileHeight: gridSizeY } = imageData;
   const { minDensity, maxDensity, colorsAmt } = settings;
   const colorGroups: Record<string, ColorGroup> = {};
@@ -17,7 +18,20 @@ export function processGrayscale(
   const numLevels = Math.max(1, colorsAmt); // Ensure at least 1 level
   const step = numLevels > 1 ? 255 / (numLevels - 1) : 255; // If 1 level, step is effectively 255 (maps all to one extreme or requires specific handling)
 
-  pixels.forEach((pixel) => {
+  const totalPixels = pixels.length;
+  let processedCount = 0;
+  const CHUNK_SIZE = 10000;
+
+  for (const pixel of pixels) {
+    processedCount++;
+    if (processedCount % CHUNK_SIZE === 0) {
+      const currentProgress = 30 + Math.round((55 * processedCount) / totalPixels);
+      if (onProgress && onProgress(currentProgress, `Generating grayscale paths... ${Math.round((processedCount/totalPixels)*100)}%`)) {
+        throw new Error("Processing cancelled");
+      }
+      await new Promise(r => setTimeout(r, 0));
+    }
+
     const originalBrightness = pixel.brightness; // This is a value from 0-255
 
     // Quantize the brightness
@@ -53,7 +67,7 @@ export function processGrayscale(
     density = Math.max(0, Math.min(maxDensity, density)); // Clamp density
 
     // Skip if density is zero
-    if (density === 0) return;
+    if (density === 0) continue;
 
     const pathPointX =
       pixel.y % 2 === 0 ? pixel.x * gridSizeX : pixel.x * gridSizeX + gridSizeX; // Start from right edge for odd rows
@@ -72,7 +86,7 @@ export function processGrayscale(
     };
 
     colorGroups[colorKey].points.push(pathPoint);
-  });
+  }
 
   return colorGroups;
 }
