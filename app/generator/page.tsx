@@ -111,8 +111,10 @@ export default function Home() {
   useEffect(() => {
     if (!originalImage || !settings || isInitialLoad || !isSettingsLoaded || !processedData) return
 
-    // Immediately show feedback that we're waiting for changes to settle
-    setIsWaitingToProcess(true)
+    // Immediately show feedback that we're waiting for changes to settle if processing image on settings change
+    if (!dataRestoredRef.current) {
+        setIsWaitingToProcess(true)
+    }
 
     const timerId = setTimeout(() => {
       setIsWaitingToProcess(false)
@@ -241,6 +243,8 @@ export default function Home() {
     if (dataRestoredRef.current) {
       dataRestoredRef.current = false;
       console.log('Skipping processing — using cached data');
+      setIsProcessing(false);
+      setShowProgress(false);
       return;
     }
 

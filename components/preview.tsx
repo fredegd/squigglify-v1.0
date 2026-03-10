@@ -37,9 +37,11 @@ const Preview = memo(function Preview({
   const [isZoomEnabled, setIsZoomEnabled] = useState(true)
   const [isRendering, setIsRendering] = useState(false)
 
-  // Initialize WebGL renderer on mount
+  const isCanvasVisible = !!processedData?.colorGroups;
+
+  // Initialize WebGL renderer when canvas becomes available
   useEffect(() => {
-    if (!canvasRef.current) return
+    if (!isCanvasVisible || !canvasRef.current) return
 
     const renderer = new WebGLRenderer()
     const success = renderer.init(canvasRef.current)
@@ -53,7 +55,7 @@ const Preview = memo(function Preview({
       renderer.dispose()
       rendererRef.current = null
     }
-  }, [])
+  }, [isCanvasVisible])
 
   // Re-render when processedData or settings change — debounced to avoid
   // rebuilding vertex buffers on every slider tick during rapid dragging.
@@ -208,7 +210,9 @@ const Preview = memo(function Preview({
                   <p className="text-gray-300">Processing image...</p>
                 </div>
               ) : (
-                <p className="text-gray-300">Vector preview will appear here</p>
+                <div className="flex flex-col items-center justify-center opacity-0 animate-in fade-in duration-500 delay-500 fill-mode-forwards">
+                     <p className="text-gray-300">Vector preview will appear here</p>
+                </div>
               )}
 
               {/* Processing progress overlay - shown over canvas during reprocessing or rendering */}
@@ -277,9 +281,11 @@ export const ImageThumbnail = memo(function ImageThumbnail({
   const miniRendererRef = useRef<WebGLRenderer | null>(null);
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
 
+  const isCanvasVisible = !!processedData?.colorGroups;
+
   // Initialize mini WebGL renderer
   useEffect(() => {
-    if (!miniCanvasRef.current) return
+    if (!isCanvasVisible || !miniCanvasRef.current) return
 
     const renderer = new WebGLRenderer()
     const success = renderer.init(miniCanvasRef.current)
@@ -293,7 +299,7 @@ export const ImageThumbnail = memo(function ImageThumbnail({
       renderer.dispose()
       miniRendererRef.current = null
     }
-  }, [])
+  }, [isCanvasVisible])
 
   // Re-render mini preview when data/settings change — debounced
   useEffect(() => {
