@@ -42,8 +42,14 @@ export default function SvgDownloadOptions({
     const [isWasmInitialized, setIsWasmInitialized] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
 
-    // Define the common scale factor here
-    const exportScaleFactor = 4;
+    // Dynamically calculate scale factor for high resolution (min 4000px longest edge)
+    const getDynamicScaleFactor = (baseWidth: number, baseHeight: number) => {
+        const longestEdge = Math.max(baseWidth, baseHeight);
+        if (longestEdge === 0) return 4;
+        // e.g. if an image is 256x256, scale factor will be ceil(4000/256) = 16
+        // This ensures the resulting PNG is at least ~4000px
+        return Math.max(4, Math.ceil(4000 / longestEdge));
+    };
 
     useEffect(() => {
         const initWasm = async () => {
@@ -149,8 +155,9 @@ export default function SvgDownloadOptions({
             let targetPngHeight: number | undefined;
 
             if (baseSvgWidth && baseSvgHeight && baseSvgWidth > 0 && baseSvgHeight > 0) {
-                targetPngWidth = baseSvgWidth * exportScaleFactor;
-                targetPngHeight = baseSvgHeight * exportScaleFactor;
+                const scale = getDynamicScaleFactor(baseSvgWidth, baseSvgHeight);
+                targetPngWidth = baseSvgWidth * scale;
+                targetPngHeight = baseSvgHeight * scale;
             }
 
             const pngUint8Array = await svg2png(svgContent, {
@@ -282,8 +289,9 @@ export default function SvgDownloadOptions({
                 basePageHeight = 842;
             }
 
-            const finalPdfPageWidth = basePageWidth * exportScaleFactor;
-            const finalPdfPageHeight = basePageHeight * exportScaleFactor;
+            const scale = getDynamicScaleFactor(basePageWidth, basePageHeight);
+            const finalPdfPageWidth = basePageWidth * scale;
+            const finalPdfPageHeight = basePageHeight * scale;
 
             const doc = <MyPdfDocument svgString={svgContent} svgWidth={finalPdfPageWidth} svgHeight={finalPdfPageHeight} />;
             const pdfBlob = await pdf(doc).toBlob();

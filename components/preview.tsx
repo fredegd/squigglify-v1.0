@@ -119,11 +119,18 @@ const Preview = memo(function Preview({
                   <TransformWrapper
                     initialScale={1}
                     minScale={0.5}
-                    maxScale={8}
+                    maxScale={20}
                     panning={{ disabled: !isPanEnabled }}
                     wheel={{ disabled: !isZoomEnabled }}
                     pinch={{ disabled: !isZoomEnabled }}
                     doubleClick={{ disabled: !isZoomEnabled }}
+                    onTransformed={(ref) => {
+                      const scale = ref.state.scale;
+                      if (rendererRef.current) {
+                        rendererRef.current.setZoomScale(scale);
+                        rendererRef.current.render(settings);
+                      }
+                    }}
                   >
                     {({ resetTransform }) => (
                       <>
@@ -179,6 +186,10 @@ const Preview = memo(function Preview({
                           <button
                             onClick={() => {
                               resetTransform();
+                              if (rendererRef.current) {
+                                rendererRef.current.setZoomScale(1);
+                                rendererRef.current.render(settings);
+                              }
                               window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
                             title="Reset view"

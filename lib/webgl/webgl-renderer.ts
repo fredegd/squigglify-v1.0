@@ -46,6 +46,13 @@ export class WebGLRenderer {
   // Current canvas display size
   private displayWidth: number = 0;
   private displayHeight: number = 0;
+  
+  // Current zoom scale (from CSS transform)
+  private zoomScale: number = 1;
+
+  public setZoomScale(scale: number): void {
+    this.zoomScale = scale;
+  }
 
   /**
    * Initialise the renderer on a canvas element.
@@ -252,8 +259,10 @@ export class WebGLRenderer {
   private resizeCanvasToDisplaySize(): void {
     const canvas = this.canvas!;
     const dpr = window.devicePixelRatio || 1;
-    const displayWidth = Math.floor(canvas.clientWidth * dpr);
-    const displayHeight = Math.floor(canvas.clientHeight * dpr);
+    // Cap effective zoom to prevent allocating excessively large textures that could crash WebGL
+    const effectiveZoom = Math.min(this.zoomScale, 12);
+    const displayWidth = Math.floor(canvas.clientWidth * dpr * effectiveZoom);
+    const displayHeight = Math.floor(canvas.clientHeight * dpr * effectiveZoom);
 
     if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
       canvas.width = displayWidth;
