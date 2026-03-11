@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, memo, useState, useCallback } from "react"
 
-import { ArrowUpToLine, ArrowUpRight, Maximize2, LoaderCircle, X, ChevronDown, Play, Square, Move, ZoomIn, ZoomOut, RotateCcw, Trash2 } from "lucide-react"
+import { ArrowUpToLine, ArrowUpRight, Maximize2, LoaderCircle, X, ChevronDown, Play, Square, Move, ZoomIn, ZoomOut, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog } from "@/components/ui/dialog"
+import { FullscreenImageDialog } from "@/components/fullscreen-image-dialog"
 import SvgDownloadOptions from "@/components/svg-download-options"
 import type { ImageData, Settings } from "@/lib/types"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
@@ -17,7 +18,6 @@ interface PreviewProps {
   processingProgress: number
   processingStatus: string
   onNewImageUpload: () => void
-  onRemoveImage?: () => void
   settings: Settings
 }
 
@@ -28,7 +28,6 @@ const Preview = memo(function Preview({
   processingProgress,
   processingStatus,
   onNewImageUpload,
-  onRemoveImage,
   settings,
 }: PreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -297,14 +296,12 @@ export const ImageThumbnail = memo(function ImageThumbnail({
   originalImage,
   processedData,
   onNewImageUpload,
-  onRemoveImage,
   toggleSettingsPanel,
   settings
 }: {
   originalImage: string
   processedData: ImageData | null
   onNewImageUpload: () => void
-  onRemoveImage?: () => void
   toggleSettingsPanel: () => void
   settings: Settings
 }) {
@@ -385,17 +382,6 @@ export const ImageThumbnail = memo(function ImageThumbnail({
           <div className="flex-1 lg:w-full flex-1 border border-gray-700 rounded-2xl overflow-hidden p-2 relative  h-full">
             <h3 className="text-base md:text-lg font-bold mb-1 md:mb-2 text-gradient">Input</h3>
             <div className="  absolute top-2 right-2 flex gap-1 ">
-              {onRemoveImage && (
-                <Button
-                  variant="ghost"
-                  onClick={onRemoveImage}
-                  className="h-7 w-7 md:h-8 md:w-8 p-0 hover:text-red-500"
-                  size="sm"
-                  title="Remove image"
-                >
-                  <Trash2 className="h-3.5 md:h-4 w-3.5 md:w-4" />
-                </Button>
-              )}
               <Button
                 variant="ghost"
                 onClick={onNewImageUpload}
@@ -446,43 +432,12 @@ export const ImageThumbnail = memo(function ImageThumbnail({
         </div>
       </details>
 
-      {/* Fullscreen Image Dialog */}
-      <Dialog open={isFullscreenOpen} onOpenChange={setIsFullscreenOpen}>
-        <DialogContent className="max-w-[100vw] max-h-[100vh] w-screen h-screen p-0 border-0 bg-black/95">
-          <div className="relative w-full h-full flex items-center justify-center">
-
-
-            {/* Fullscreen image */}
-            <img
-              src={originalImage || "/placeholder.svg"}
-              alt="Original - Fullscreen"
-              className="max-w-full max-h-full object-contain p-4"
-              style={{
-                width: 'auto',
-                height: 'auto',
-                maxWidth: '100vw',
-                maxHeight: '100vh'
-              }}
-            />
-
-            {/* Optional: Image info overlay */}
-            {processedData && (
-              <div className="absolute bottom-4 left-4 bg-black/70 text-white px-4 py-2 rounded-lg backdrop-blur-sm">
-                <div className="text-sm">
-                  {processedData.fileName && (
-                    <div className="font-medium">{processedData.fileName}</div>
-                  )}
-                  <div className="text-gray-300">
-                    {processedData.originalWidth} × {processedData.originalHeight} px
-                    {" • "}
-                    {(processedData.originalWidth / processedData.originalHeight).toFixed(2)}:1
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <FullscreenImageDialog
+        isOpen={isFullscreenOpen}
+        onOpenChange={setIsFullscreenOpen}
+        originalImage={originalImage}
+        processedData={processedData}
+      />
 
 
     </div>

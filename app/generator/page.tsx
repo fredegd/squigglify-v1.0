@@ -6,6 +6,7 @@ import RandomImageLoader from "@/components/random-image-loader"
 import { LoadingAnimation } from "@/components/loading-animation"
 import Preview, { ImageThumbnail } from "@/components/preview"
 import SettingsPanel from "@/components/settings-panel"
+import { FullscreenImageDialog } from "@/components/fullscreen-image-dialog"
 import { useSettings } from "@/hooks/use-settings"
 import { useIsMobile } from "@/hooks/use-mobile"
 import type { ProcessImageOptions } from "@/lib/image-processor"
@@ -13,7 +14,7 @@ import { Button } from "@/components/ui/button"
 import type { ImageData, Settings } from "@/lib/types"
 import { processImageWithProgress } from "@/lib/image-processor-with-progress"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { Settings as SettingsIcon, X } from "lucide-react"
+import { Settings as SettingsIcon, X, Trash2 } from "lucide-react"
 import {
   getStoredImage,
   saveImageToStorage,
@@ -37,6 +38,7 @@ export default function Home() {
   const [processedData, setProcessedData] = useState<ImageData | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [isSettingsPanelVisible, setIsSettingsPanelVisible] = useState(false)
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { settings, updateSettings, updateCurveControls, resetSettings, isSettingsLoaded } = useSettings()
   const [showRandomImageLoader, setShowRandomImageLoader] = useState(false)
@@ -113,7 +115,7 @@ export default function Home() {
 
     // Immediately show feedback that we're waiting for changes to settle if processing image on settings change
     if (!dataRestoredRef.current) {
-        setIsWaitingToProcess(true)
+      setIsWaitingToProcess(true)
     }
 
     const timerId = setTimeout(() => {
@@ -157,11 +159,15 @@ export default function Home() {
       await saveImageToStorage(imageDataUrl, fileName);
       console.log(`Saved image to localStorage: ${fileName}`);
 
+      clearStoredProcessedData()
+      setProcessedData(null)
       setOriginalImage(imageDataUrl)
       setCurrentFileName(fileName)
       setShowRandomImageLoader(false)
     } catch (error) {
       console.error('Failed to save image to localStorage:', error);
+      clearStoredProcessedData()
+      setProcessedData(null)
       setOriginalImage(imageDataUrl)
       setCurrentFileName(fileName)
       setShowRandomImageLoader(false)
@@ -174,11 +180,15 @@ export default function Home() {
       await saveImageToStorage(imageUrl, finalFileName);
       console.log(`Saved random image to localStorage: ${finalFileName}`);
 
+      clearStoredProcessedData()
+      setProcessedData(null)
       setOriginalImage(imageUrl)
       setCurrentFileName(finalFileName)
       setShowRandomImageLoader(false)
     } catch (error) {
       console.error('Failed to save random image to localStorage:', error);
+      clearStoredProcessedData()
+      setProcessedData(null)
       setOriginalImage(imageUrl)
       setCurrentFileName(fileName)
       setShowRandomImageLoader(false)
@@ -191,13 +201,18 @@ export default function Home() {
 
   const handleNewImageUpload = () => {
     setIsSettingsPanelVisible(false)
-    setProcessedData(null)
     setShowRandomImageLoader(true)
+  }
 
-    // Clear the stored image and cached data since user is explicitly uploading a new one
-    clearStoredImage()
-    clearStoredProcessedData()
-    console.log('Cleared stored image and cached data for new upload')
+  const handleDeleteImage = () => {
+    const proceed = confirm("Are you sure you want to permanently delete this image from your workspace?");
+    if (!proceed) return;
+
+    clearStoredImage();
+    clearStoredProcessedData();
+    setOriginalImage(null);
+    setCurrentFileName(undefined);
+    setProcessedData(null);
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -392,17 +407,64 @@ export default function Home() {
         <div className={`grid grid-cols-1 ${(originalImage && !showRandomImageLoader) ? 'lg:grid-cols-4' : ''} gap-6 relative `}>
           <div className={`${(originalImage && !showRandomImageLoader) ? 'lg:col-span-3' : 'col-span-1'}`}>
             {showRandomImageLoader && (
-              <div className={`flex flex-col w-full  gap-8 ${originalImage ? 'lg:flex-col' : 'lg:flex-row'} justify-center items-center mb-12`}>
+              <div className={`flex flex-col-reverse w-full gap-8 ${originalImage ? 'lg:flex-row lg:items-stretch lg:justify-center' : 'lg:flex-row justify-center items-center'} mb-12`}>
 
-
-                <ImageUploader onImageUpload={handleManualImageUpload} />
-                <div className="w-full text-center lg:hidden">
-                  <p className="text-gray-300 text-sm mb-2">Otherwhise</p>
+                <div className="flex flex-col w-full gap-8">
+                  <ImageUploader
+                    onImageUpload={handleManualImageUpload}
+                  />
+                  <div className="w-full text-center lg:hidden">
+                    <p className="text-gray-300 text-sm mb-2">Otherwise</p>
+                  </div>
+                  <RandomImageLoader
+                    onImageSelected={handleImageSelectedFromRandomLoader}
+                  />
                 </div>
-                <RandomImageLoader
-                  onImageSelected={handleImageSelectedFromRandomLoader}
-                  onCancel={handleCancelRandomImageLoad}
-                />
+                {originalImage && (
+                  <div className="flex flex-col items-start  gap-2 p-4 border border-gray-700 bg-gray-800/40 rounded-2xl w-full lg:w-1/3 max-w-sm self-stretch shrink-0">
+
+                    <h3 className="text-lg font-bold text-gray-200 whitespace-nowrap">Current Workspace Image</h3>
+
+
+                    <div
+                      className="w-full aspect-square bg-[#f1f1f1] rounded-xl overflow-hidden flex items-center justify-center mb-4 p-2 shadow-inner cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => setIsFullscreenOpen(true)}
+                    >
+                      <img src={originalImage} alt="Current" className="max-w-full max-h-full object-contain" />
+                    </div>
+                    {currentFileName && (
+                      <p className="text-sm text-gray-300 font-medium truncate w-full mb-1" title={currentFileName}>
+                        {currentFileName}
+                      </p>
+                    )}
+                    {processedData && (
+                      <div className="text-xs text-gray-400 mb-6 text-center">
+                        {processedData.originalWidth} × {processedData.originalHeight} px
+                        <span className="mx-2">•</span>
+                        {(processedData.originalWidth / processedData.originalHeight).toFixed(2)}:1
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between w-full">
+                      <Button
+                        variant="outline"
+                        onClick={handleCancelRandomImageLoad}
+                        className=" border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleDeleteImage}
+                        variant="ghost"
+                        className="w-10 px-0 shrink-0 text-white"
+                        title="Delete image"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+
 
               </div>
             )}
@@ -426,7 +488,6 @@ export default function Home() {
                   processingProgress={isWaitingToProcess ? 0 : processingProgress}
                   processingStatus={isWaitingToProcess ? "Pending changes..." : processingStatus}
                   onNewImageUpload={handleNewImageUpload}
-                  onRemoveImage={handleNewImageUpload}
                   settings={settings}
                 />
               </div>
@@ -451,7 +512,6 @@ export default function Home() {
                   originalImage={originalImage}
                   processedData={processedData}
                   onNewImageUpload={handleNewImageUpload}
-                  onRemoveImage={handleNewImageUpload}
                   toggleSettingsPanel={toggleSettingsPanel}
                   settings={settings}
                 />
@@ -485,6 +545,14 @@ export default function Home() {
             )}
           </>)}
         </div>
+
+        {/* Fullscreen Image Dialog */}
+        <FullscreenImageDialog
+          isOpen={isFullscreenOpen}
+          onOpenChange={setIsFullscreenOpen}
+          originalImage={originalImage}
+          processedData={processedData}
+        />
       </div>
     </main>
   )

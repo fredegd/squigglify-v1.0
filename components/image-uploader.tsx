@@ -124,14 +124,16 @@ export default function ImageUploader({ onImageUpload }: ImageUploaderProps) {
           }
         </p>
 
-        <Button
-          onClick={handleButtonClick}
-          size="lg"
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 shadow-lg shadow-purple-500/25 transition-all duration-300 hover:scale-105"
-          disabled={isUploading}
-        >
-          {isUploading ? "Processing..." : "Select an image"}
-        </Button>
+        <div className="flex gap-4 justify-center">
+          <Button
+            onClick={handleButtonClick}
+            size="lg"
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 shadow-lg shadow-purple-500/25 transition-all duration-300 hover:scale-105"
+            disabled={isUploading}
+          >
+            {isUploading ? "Processing..." : "Select an image"}
+          </Button>
+        </div>
       </div>
     </div>
   )
