@@ -19,25 +19,24 @@ export async function processImageWithProgress(
     onProgress?: ProgressCallback
 ): Promise<ImageData> {
     try {
-        // Report initial progress
+        // Report initial progress and yield thread for UI paint
         if (onProgress && onProgress(5, "Loading image...")) {
             throw new Error("Processing cancelled");
         }
+        await new Promise(resolve => setTimeout(resolve, 30));
 
-        if (onProgress && onProgress(15, "Analyzing colors...")) {
+        if (onProgress && onProgress(15, "Analyzing image data...")) {
             throw new Error("Processing cancelled");
         }
-
-        if (onProgress && onProgress(30, "Generating paths...")) {
-            throw new Error("Processing cancelled");
-        }
+        await new Promise(resolve => setTimeout(resolve, 30));
 
         // Start actual processing
-        const imageData = await processImageSync(options, settings);
+        const imageData = await processImageSync(options, settings, onProgress);
 
         if (onProgress && onProgress(85, "Finalizing...")) {
             throw new Error("Processing cancelled");
         }
+        await new Promise(resolve => setTimeout(resolve, 10));
 
         if (onProgress && onProgress(100, "Complete!")) {
             throw new Error("Processing cancelled");

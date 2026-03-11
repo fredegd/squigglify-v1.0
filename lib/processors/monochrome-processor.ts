@@ -8,10 +8,11 @@ import type {
 import { calculateHueAndBrightness as calculateHueAndBrightnessForGroup } from "../converters/color-converters";
 
 // Process image in monochrome mode
-export function processMonochrome(
+export async function processMonochrome(
   imageData: ImageData,
-  settings: Settings
-): Record<string, ColorGroup> {
+  settings: Settings,
+  onProgress?: (progress: number, status: string) => boolean
+): Promise<Record<string, ColorGroup>> {
   const {
     pixels,
     width,
@@ -68,8 +69,21 @@ export function processMonochrome(
     },
   };
 
+  const totalPixels = height * width;
+  let processedCount = 0;
+  const CHUNK_SIZE = 10000;
+
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
+      processedCount++;
+      if (processedCount % CHUNK_SIZE === 0) {
+        const currentProgress = 30 + Math.round((55 * processedCount) / totalPixels);
+        if (onProgress && onProgress(currentProgress, `Generating monochrome paths... ${Math.round((processedCount/totalPixels)*100)}%`)) {
+          throw new Error("Processing cancelled");
+        }
+        await new Promise(r => setTimeout(r, 0));
+      }
+
       const pixel = pixelGrid[y][x];
       if (!pixel) continue;
 

@@ -10,10 +10,11 @@ export class PosterizeProcessor {
   //   // Here we only use the already calculated colors
   // }
 
-  public static process(
+  public static async process(
     imageData: ImageData,
-    settings: Settings
-  ): Record<string, ColorGroup> {
+    settings: Settings,
+    onProgress?: (progress: number, status: string) => boolean
+  ): Promise<Record<string, ColorGroup>> {
     const {
       width,
       height,
@@ -57,7 +58,20 @@ export class PosterizeProcessor {
     });
 
     // Create points for each pixel
-    pixels.forEach((pixel) => {
+    const totalPixels = pixels.length;
+    let processedCount = 0;
+    const CHUNK_SIZE = 10000;
+
+    for (const pixel of pixels) {
+      processedCount++;
+      if (processedCount % CHUNK_SIZE === 0) {
+        const currentProgress = 30 + Math.round((55 * processedCount) / totalPixels);
+        if (onProgress && onProgress(currentProgress, `Generating posterize paths... ${Math.round((processedCount/totalPixels)*100)}%`)) {
+          throw new Error("Processing cancelled");
+        }
+        await new Promise(r => setTimeout(r, 0));
+      }
+
       const hexColor = rgbToHex(pixel.r, pixel.g, pixel.b);
       const normalizedBrightness = pixel.brightness / 255;
       let density = Math.round(
@@ -67,7 +81,7 @@ export class PosterizeProcessor {
       );
       density = Math.max(0, Math.min(settings.maxDensity, density));
 
-      if (density === 0) return;
+      if (density === 0) continue;
 
       const pathPointX =
         pixel.y % 2 === 0
@@ -90,7 +104,7 @@ export class PosterizeProcessor {
       if (colorGroups[hexColor]) {
         colorGroups[hexColor].points.push(pathPoint);
       }
-    });
+    }
 
     return colorGroups;
   }

@@ -251,7 +251,9 @@ export function generateContinuousPath(
       pathVertices.pop();
     }
 
-    pathVertices = [...pathVertices, ...tileVertices];
+    for (let j = 0; j < tileVertices.length; j++) {
+      pathVertices.push(tileVertices[j]);
+    }
   }
 
   if (pathVertices.length > 0) {

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -18,15 +18,18 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Squigglify - Image to SVG Converter",
   description: "Transform images into squiggly SVG art, optimized for pen plotters",
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#000000' },
-  ],
   manifest: '/site.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
   },
+}
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#000000' },
+  ],
 }
 
 export default function RootLayout({

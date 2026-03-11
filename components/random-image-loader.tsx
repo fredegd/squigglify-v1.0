@@ -5,7 +5,6 @@ import { RotateCcw, Info } from "lucide-react"
 
 interface RandomImageLoaderProps {
     onImageSelected: (imageUrl: string) => void;
-    onCancel: () => void;
 }
 
 const MAX_RETRIES = 3;
@@ -67,7 +66,7 @@ async function fetchAndValidateImage(): Promise<{ imageUrl: string, sourceUrl: s
     };
 }
 
-const RandomImageLoader: React.FC<RandomImageLoaderProps> = ({ onImageSelected, onCancel }) => {
+const RandomImageLoader: React.FC<RandomImageLoaderProps> = ({ onImageSelected }) => {
     const [isActive, setIsActive] = useState(false);
     const [currentImage, setCurrentImage] = useState<{ imageUrl: string, sourceUrl: string, title: string } | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -153,13 +152,6 @@ const RandomImageLoader: React.FC<RandomImageLoaderProps> = ({ onImageSelected, 
                     >
                         Load Random Image
                     </Button>
-                    <Button
-                        onClick={onCancel}
-                        variant="ghost"
-                        className="text-gray-400 hover:text-white hover:bg-white/10"
-                    >
-                        Cancel
-                    </Button>
                 </div>
                 <p className="text-xs text-gray-500">Alternatively, upload an image manually above.</p>
             </div>
@@ -173,8 +165,6 @@ const RandomImageLoader: React.FC<RandomImageLoaderProps> = ({ onImageSelected, 
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 mb-4"></div>
                 <p className="text-gray-400 mb-2">Searching Wikimedia Commons</p>
                 {retries > 0 && <p className="text-sm text-yellow-500">Attempt {retries + 1} of {MAX_RETRIES}...</p>}
-
-                <Button onClick={onCancel} variant="ghost" className="mt-6 text-gray-400 hover:text-white">Cancel</Button>
             </div>
         );
     }
@@ -186,7 +176,6 @@ const RandomImageLoader: React.FC<RandomImageLoaderProps> = ({ onImageSelected, 
                 <p className="text-sm text-gray-400 mb-6 max-w-md">{error}</p>
                 <div className="flex gap-4">
                     <Button onClick={handleReloadImage} variant="default" className="bg-red-600 hover:bg-red-700">Try Again</Button>
-                    <Button onClick={onCancel} variant="ghost" className="text-gray-400 hover:text-white">Cancel</Button>
                 </div>
             </div>
         );
@@ -223,11 +212,6 @@ const RandomImageLoader: React.FC<RandomImageLoaderProps> = ({ onImageSelected, 
                         className="bg-gray-800 hover:bg-gray-700 text-gray-300 px-3">
                         <RotateCcw className="h-4 w-4" />
                     </Button>
-                    <Button onClick={onCancel}
-                        variant="ghost"
-                        className="text-gray-400 hover:text-white px-3">
-                        Cancel
-                    </Button>
                 </div>
             </div>
         );
@@ -236,7 +220,6 @@ const RandomImageLoader: React.FC<RandomImageLoaderProps> = ({ onImageSelected, 
     return (
         <div className="flex flex-col items-center justify-center h-96 border border-dashed border-gray-600 rounded-lg p-8 bg-gray-800 text-gray-300">
             <p className="mb-2">An unexpected issue occurred with the random image loader.</p>
-            <Button onClick={onCancel} variant="link">Cancel and return</Button>
         </div>
     );
 };

@@ -82,12 +82,13 @@ export interface ProcessImageOptions {
 
 export async function processImage(
   options: ProcessImageOptions,
-  settings: Settings
+  settings: Settings,
+  onProgress?: (progress: number, status: string) => boolean
 ): Promise<ImageData> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
-    img.onload = () => {
+    img.onload = async () => {
       try {
         // Berechne optimale Bildgröße
         const { width: optimalWidth, height: optimalHeight } =
@@ -335,16 +336,17 @@ export async function processImage(
         let newColorGroups: Record<string, ColorGroup>;
         switch (settings.processingMode) {
           case "grayscale":
-            newColorGroups = processGrayscale(processedImageData, settings);
+            newColorGroups = await processGrayscale(processedImageData, settings, onProgress);
             break;
           case "posterize":
-            newColorGroups = PosterizeProcessor.process(
+            newColorGroups = await PosterizeProcessor.process(
               processedImageData,
-              settings
+              settings,
+              onProgress
             );
             break;
           case "monochrome":
-            newColorGroups = processMonochrome(processedImageData, settings);
+            newColorGroups = await processMonochrome(processedImageData, settings, onProgress);
             break;
           default:
             newColorGroups = {};

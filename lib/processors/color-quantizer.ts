@@ -11,7 +11,7 @@ export class ColorQuantizer {
   private originalPixels: PixelData[] = [];
 
   constructor(imageData: ImageData, colorsAmt: number, quantizationMethod: "kmeans" | "median-cut") {
-    this.originalPixels = [...imageData.pixels];
+    this.originalPixels = imageData.pixels; // Store reference to prevent massive O(N) copy
     this.extractOriginalColors(imageData);
     this.calculateQuantization(colorsAmt, quantizationMethod);
   }

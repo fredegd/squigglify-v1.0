@@ -6,25 +6,21 @@ import RandomImageLoader from "@/components/random-image-loader"
 import { LoadingAnimation } from "@/components/loading-animation"
 import Preview, { ImageThumbnail } from "@/components/preview"
 import SettingsPanel from "@/components/settings-panel"
+import { FullscreenImageDialog } from "@/components/fullscreen-image-dialog"
 import { useSettings } from "@/hooks/use-settings"
 import { useIsMobile } from "@/hooks/use-mobile"
 import type { ProcessImageOptions } from "@/lib/image-processor"
 import { Button } from "@/components/ui/button"
-import { generateSVG, generateSVGProgressively, type SVGChunk } from "@/lib/image-processor"
-import { processImageWithProgress } from "@/lib/image-processor-with-progress"
 import type { ImageData, Settings } from "@/lib/types"
-import ProcessingProgress from "@/components/processing-progress"
+import { processImageWithProgress } from "@/lib/image-processor-with-progress"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { Settings as SettingsIcon, X } from "lucide-react"
+import { Settings as SettingsIcon, X, Trash2 } from "lucide-react"
 import {
   getStoredImage,
   saveImageToStorage,
   clearStoredImage
 } from "@/lib/utils/image-storage"
 import {
-  saveSvgToStorage,
-  getStoredSvg,
-  clearStoredSvg,
   saveProcessedDataToStorage,
   getStoredProcessedData,
   clearStoredProcessedData
@@ -40,21 +36,18 @@ if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
 export default function Home() {
   const [originalImage, setOriginalImage] = useState<string | null>(null)
   const [processedData, setProcessedData] = useState<ImageData | null>(null)
-  const [svgContent, setSvgContent] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [isSettingsPanelVisible, setIsSettingsPanelVisible] = useState(false)
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { settings, updateSettings, updateCurveControls, resetSettings, isSettingsLoaded } = useSettings()
   const [showRandomImageLoader, setShowRandomImageLoader] = useState(false)
   const [currentFileName, setCurrentFileName] = useState<string | undefined>(undefined)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
-  const [animationSpeed, setAnimationSpeed] = useState(1.0)
-  const [animationTrigger, setAnimationTrigger] = useState(0)
-  const svgRestoredRef = useRef(false) // Track if SVG was restored from cache
-  const [stopTrigger, setStopTrigger] = useState(0)
+  const dataRestoredRef = useRef(false) // Track if data was restored from cache
   const [processingProgress, setProcessingProgress] = useState(0)
   const [processingStatus, setProcessingStatus] = useState("")
-  const [showProgress, setShowProgress] = useState(false)
+  const [isWaitingToProcess, setIsWaitingToProcess] = useState(false)
   const isCancelledRef = useRef(false)
   const isMobile = useIsMobile()
 
@@ -67,19 +60,15 @@ export default function Home() {
         const storedImage = getStoredImage();
 
         if (storedImage) {
-          // Try to restore cached SVG and processed data to avoid re-generation
-          const [cachedSvg, cachedProcessedData] = await Promise.all([
-            getStoredSvg(),
-            getStoredProcessedData()
-          ]);
+          // Try to restore cached processed data to avoid re-processing
+          const cachedProcessedData = await getStoredProcessedData();
 
-          if (cachedSvg && cachedProcessedData) {
-            svgRestoredRef.current = true;
-            setSvgContent(cachedSvg);
+          if (cachedProcessedData) {
+            dataRestoredRef.current = true;
             setProcessedData(cachedProcessedData);
-            console.log('SVG and Processed Data restored from cache — skipping re-generation');
+            console.log('Processed data restored from cache — skipping re-processing');
           } else {
-            console.log('Cache miss or incomplete data — will regenerate');
+            console.log('Cache miss — will reprocess');
           }
 
           console.log(`Loading stored image: ${storedImage.fileName} (${(storedImage.compressedSize / 1024 / 1024).toFixed(2)}MB)`);
@@ -94,14 +83,13 @@ export default function Home() {
           setCurrentFileName("La_Gioconda_Leonardo_Da_Vinci.jpg");
           setShowRandomImageLoader(false);
 
-          // Save the default image to localStorage for next time (now with proper URL to data URL conversion)
+          // Save the default image to localStorage for next time
           saveImageToStorage(defaultImageUrl, "La_Gioconda_Leonardo_Da_Vinci.jpg").catch(error => {
             console.log('Could not save default image to localStorage:', error);
           });
         }
       } catch (error) {
         console.error('Error loading initial image:', error);
-        // Fallback to showing the random image loader
         setShowRandomImageLoader(true);
       } finally {
         setIsInitialLoad(false);
@@ -119,12 +107,25 @@ export default function Home() {
     }
   }, [originalImage, isInitialLoad, processedData, settings, isSettingsLoaded]);
 
-  // Process image when it's uploaded or settings change (excluding curveControls and visiblePaths)
+  // Process image when processing-related settings change — debounced to avoid
+  // reprocessing on every slider tick during rapid dragging.
   useEffect(() => {
-    if (originalImage && settings && !isInitialLoad && isSettingsLoaded && processedData) {
+    if (!originalImage || !settings || isInitialLoad || !isSettingsLoaded || !processedData) return
+
+    // Immediately show feedback that we're waiting for changes to settle if processing image on settings change
+    if (!dataRestoredRef.current) {
+      setIsWaitingToProcess(true)
+    }
+
+    const timerId = setTimeout(() => {
+      setIsWaitingToProcess(false)
       const { curveControls, visiblePaths, ...processingSettingsForEffect } = settings;
-      // console.log("Processing image due to settings change (excluding curves/visibility):");
-      handleProcessImage(processingSettingsForEffect as Settings) // Cast as Settings, though it's partial
+      handleProcessImage(processingSettingsForEffect as Settings)
+    }, 300) // 300ms debounce — waits until user stops dragging
+
+    return () => {
+      clearTimeout(timerId)
+      setIsWaitingToProcess(false)
     }
   }, [
     originalImage,
@@ -141,33 +142,8 @@ export default function Home() {
     settings.monochromeColor,
     isInitialLoad,
     isSettingsLoaded,
-    // curveControls and visiblePaths are intentionally excluded here to prevent re-processing
-    // Their changes are handled by the other useEffect hooks that only regenerate SVG
-  ])
-
-  // Handle visibility changes separately (SVG regeneration only)
-  useEffect(() => {
-    if (processedData && originalImage && !isProcessing) {
-      // console.log("Regenerating SVG due to visiblePaths change");
-      const svg = generateSVG(processedData, { ...settings })
-      setSvgContent(svg)
-      saveSvgToStorage(svg)
-    }
-  }, [settings.visiblePaths, processedData, originalImage, isProcessing])
-
-  // Handle curve control changes and curvedPaths toggle separately (SVG regeneration only)
-  useEffect(() => {
-    if (processedData && originalImage && !isProcessing) {
-      const svg = generateSVG(processedData, { ...settings })
-      setSvgContent(svg)
-      saveSvgToStorage(svg)
-    }
-  }, [
-    settings.curveControls,
-    settings.curvedPaths,
-    processedData,
-    originalImage,
-    isProcessing
+    // NOTE: curveControls, visiblePaths, curvedPaths are NOT here.
+    // They only affect rendering, which the WebGL renderer handles directly.
   ])
 
   // Save processed data when it changes
@@ -179,16 +155,18 @@ export default function Home() {
 
   const handleManualImageUpload = async (imageDataUrl: string, fileName: string) => {
     try {
-      // Save the new image to localStorage
       await saveImageToStorage(imageDataUrl, fileName);
       console.log(`Saved image to localStorage: ${fileName}`);
 
+      clearStoredProcessedData()
+      setProcessedData(null)
       setOriginalImage(imageDataUrl)
-      setCurrentFileName(fileName) // Store the fileName
+      setCurrentFileName(fileName)
       setShowRandomImageLoader(false)
     } catch (error) {
       console.error('Failed to save image to localStorage:', error);
-      // Still proceed with setting the image even if saving fails
+      clearStoredProcessedData()
+      setProcessedData(null)
       setOriginalImage(imageDataUrl)
       setCurrentFileName(fileName)
       setShowRandomImageLoader(false)
@@ -197,17 +175,19 @@ export default function Home() {
 
   const handleImageSelectedFromRandomLoader = async (imageUrl: string, fileName?: string) => {
     try {
-      // Save the selected random image to localStorage
       const finalFileName = fileName || new URL(imageUrl).pathname.split('/').pop() || 'random_image.jpg';
       await saveImageToStorage(imageUrl, finalFileName);
       console.log(`Saved random image to localStorage: ${finalFileName}`);
 
+      clearStoredProcessedData()
+      setProcessedData(null)
       setOriginalImage(imageUrl)
       setCurrentFileName(finalFileName)
       setShowRandomImageLoader(false)
     } catch (error) {
       console.error('Failed to save random image to localStorage:', error);
-      // Still proceed with setting the image even if saving fails
+      clearStoredProcessedData()
+      setProcessedData(null)
       setOriginalImage(imageUrl)
       setCurrentFileName(fileName)
       setShowRandomImageLoader(false)
@@ -220,21 +200,24 @@ export default function Home() {
 
   const handleNewImageUpload = () => {
     setIsSettingsPanelVisible(false)
-    setSvgContent(null)
     setShowRandomImageLoader(true)
+  }
 
-    // Clear the stored image and cached SVG since user is explicitly uploading a new one
-    clearStoredImage()
-    clearStoredSvg()
-    clearStoredProcessedData()
-    console.log('Cleared stored image and cached data for new upload')
+  const handleDeleteImage = () => {
+    const proceed = confirm("Are you sure you want to permanently delete this image from your workspace?");
+    if (!proceed) return;
+
+    clearStoredImage();
+    clearStoredProcessedData();
+    setOriginalImage(null);
+    setCurrentFileName(undefined);
+    setProcessedData(null);
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
 
-      // Check if file is an image
       if (!file.type.match("image.*")) {
         alert("Please select an image file")
         return
@@ -244,23 +227,20 @@ export default function Home() {
       reader.onload = async (e) => {
         if (e.target && typeof e.target.result === "string") {
           try {
-            // Save the image to localStorage
             await saveImageToStorage(e.target.result, file.name);
             console.log(`Saved uploaded file to localStorage: ${file.name}`);
           } catch (error) {
             console.error('Failed to save uploaded file to localStorage:', error);
           }
 
-          // Set the original image and pass the file name to handleProcessImage
           handleProcessImage({
             imageDataUrl: e.target.result,
-            fileName: file.name // Pass fileName here
+            fileName: file.name
           } as ProcessImageOptions)
 
           setOriginalImage(e.target.result)
-          setCurrentFileName(file.name) // Update currentFileName state
+          setCurrentFileName(file.name)
 
-          // Clear the input value so the same file can be selected again
           if (fileInputRef.current) {
             fileInputRef.current.value = ''
           }
@@ -273,50 +253,46 @@ export default function Home() {
   const handleProcessImage = async (input: ProcessImageOptions | Settings) => {
     if (!originalImage) return
 
-    // Skip all processing if we already have a cached SVG and data from a previous session
-    if (svgRestoredRef.current) {
-      svgRestoredRef.current = false;
-      console.log('Skipping processing and SVG generation — using cached data');
+    // Skip processing if we already have cached data from a previous session
+    if (dataRestoredRef.current) {
+      dataRestoredRef.current = false;
+      console.log('Skipping processing — using cached data');
+      setIsProcessing(false);
       return;
     }
 
     isCancelledRef.current = false;
 
-    // Stash previous valid state to fall back to in case of cancellation
+    // Stash previous valid state for fallback on cancellation
     const previousProcessedData = processedData;
-    const previousSvgContent = svgContent;
 
     setIsProcessing(true)
-    setShowProgress(true)
     setProcessingProgress(0)
     setProcessingStatus("Initializing...")
 
     try {
-      // Determine if we're dealing with ProcessImageOptions or Settings
       const imageOptions: ProcessImageOptions = 'imageDataUrl' in input
         ? input
         : {
           imageDataUrl: originalImage,
-          fileName: currentFileName, // Use currentFileName from state
+          fileName: currentFileName,
           ...(originalImage.includes('wikimedia.org') && {
             fileName: currentFileName || new URL(originalImage).pathname.split('/').pop(),
             sourceUrl: originalImage
           })
         };
 
-      // Use the appropriate settings
       const processingSettings = 'imageDataUrl' in input ? settings : input as Settings;
 
-      // Process with progress updates (0-70% for image processing)
+      // Process with progress updates (0-100% — no SVG generation step now!)
       const imageData = await processImageWithProgress(
         imageOptions,
         processingSettings,
         (progress, status) => {
           if (isCancelledRef.current) return true;
-          // Scale image processing to 0-70%
-          setProcessingProgress(progress * 0.7)
+          setProcessingProgress(progress)
           setProcessingStatus(status)
-          return false // Don't cancel
+          return false
         }
       )
 
@@ -328,100 +304,52 @@ export default function Home() {
             settings.visiblePaths[colorKey] !== undefined ? settings.visiblePaths[colorKey] : true
         })
 
-        // Only update settings if the visible paths have changed
         if (JSON.stringify(newVisiblePaths) !== JSON.stringify(settings.visiblePaths)) {
           updateSettings({ visiblePaths: newVisiblePaths })
         }
       }
 
       setProcessedData(imageData)
-
-      // Progressive SVG generation (70-100%)
-      setProcessingStatus("Generating SVG paths...")
-      setProcessingProgress(70)
-
-      let lastSvg = '';
-      await generateSVGProgressively(
-        imageData,
-        { ...processingSettings, visiblePaths: settings.visiblePaths },
-        (chunk: SVGChunk, partialSvg: string) => {
-          if (isCancelledRef.current) return true;
-
-          // Update SVG in real-time to show partial results
-          setSvgContent(partialSvg)
-          lastSvg = partialSvg;
-
-          // Scale SVG progress from 70-100%
-          const svgProgress = 70 + (chunk.progress * 0.3)
-          setProcessingProgress(svgProgress)
-
-          // Show which color is being processed
-          if (chunk.type === 'colorGroup' && chunk.colorName) {
-            setProcessingStatus(`Generating SVG: ${chunk.colorName} (${chunk.currentGroup}/${chunk.totalGroups})`)
-          } else if (chunk.type === 'header') {
-            setProcessingStatus("Generating SVG: Starting...")
-          } else if (chunk.type === 'footer') {
-            setProcessingStatus("Generating SVG: Finalizing...")
-          }
-        },
-        16 // Small delay between chunks to allow UI updates
-      )
-
       setProcessingProgress(100)
       setProcessingStatus("Complete!")
-
-      // Save the final SVG to cache for persistence across refreshes
-      if (lastSvg) {
-        saveSvgToStorage(lastSvg);
-      }
     } catch (error) {
       if (error instanceof Error && error.message === "Processing cancelled") {
-        console.log("Processing was cancelled by the user. Falling back to previous valid state.");
+        console.log("Processing was cancelled. Falling back to previous state.");
         setProcessedData(previousProcessedData);
-        setSvgContent(previousSvgContent);
         return;
       }
       console.error("Error processing image:", error)
-      // Handle error state here
     } finally {
       setIsProcessing(false)
-      setShowProgress(false)
     }
   }
 
   const handleCancelProcessing = () => {
     isCancelledRef.current = true;
     setIsProcessing(false);
-    setShowProgress(false);
   }
 
   const handleClearCache = () => {
     resetSettings()
-    clearStoredSvg()
     clearStoredProcessedData()
     setProcessedData(null)
-    setSvgContent(null)
-    svgRestoredRef.current = false
+    dataRestoredRef.current = false
     console.log('Cleared cache data (kept original image)')
   }
 
   const handleSettingsChange = (newSettingsPatch: Partial<Settings>) => {
-    // Use the unified settings update function
     updateSettings(newSettingsPatch);
 
     // If colorGroups were part of the update patch, update processedData directly
-    // This ensures that changes from PathVisibilitySettings' color picker are reflected.
     if (newSettingsPatch.colorGroups) {
       setProcessedData(prevProcessedData => {
         if (!prevProcessedData) {
-          // This shouldn't ideally occur if colorGroups are being changed,
-          // as processedData should exist. Log a warning if it does.
-          console.warn("Attempted to update colorGroups on null processedData in handleSettingsChange.");
-          return prevProcessedData; // or null
+          console.warn("Attempted to update colorGroups on null processedData.");
+          return prevProcessedData;
         }
         return {
           ...prevProcessedData,
-          colorGroups: newSettingsPatch.colorGroups, // Apply the updated color groups
+          colorGroups: newSettingsPatch.colorGroups,
         };
       });
     }
@@ -433,23 +361,6 @@ export default function Home() {
 
   const toggleSettingsPanel = () => {
     setIsSettingsPanelVisible(prev => !prev)
-  }
-
-  const handlePlayAnimation = () => {
-    setAnimationTrigger(prev => prev + 1) // Increment to trigger animation
-
-    // Close settings panel on mobile when animation plays
-    if (isMobile) {
-      setIsSettingsPanelVisible(false)
-    }
-  }
-
-  const handleStopAnimation = () => {
-    setStopTrigger(prev => prev + 1) // Increment to trigger stop
-  }
-
-  const handleAnimationSpeedChange = (speed: number) => {
-    setAnimationSpeed(speed)
   }
 
   return (
@@ -491,17 +402,64 @@ export default function Home() {
         <div className={`grid grid-cols-1 ${(originalImage && !showRandomImageLoader) ? 'lg:grid-cols-4' : ''} gap-6 relative `}>
           <div className={`${(originalImage && !showRandomImageLoader) ? 'lg:col-span-3' : 'col-span-1'}`}>
             {showRandomImageLoader && (
-              <div className={`flex flex-col w-full  gap-8 ${originalImage ? 'lg:flex-col' : 'lg:flex-row'} justify-center items-center mb-12`}>
+              <div className={`flex flex-col-reverse w-full gap-8 ${originalImage ? 'lg:flex-row lg:items-stretch lg:justify-center' : 'lg:flex-row justify-center items-center'} mb-12`}>
 
-
-                <ImageUploader onImageUpload={handleManualImageUpload} />
-                <div className="w-full text-center lg:hidden">
-                  <p className="text-gray-300 text-sm mb-2">Otherwhise</p>
+                <div className="flex flex-col w-full gap-8">
+                  <ImageUploader
+                    onImageUpload={handleManualImageUpload}
+                  />
+                  <div className="w-full text-center lg:hidden">
+                    <p className="text-gray-300 text-sm mb-2">Otherwise</p>
+                  </div>
+                  <RandomImageLoader
+                    onImageSelected={handleImageSelectedFromRandomLoader}
+                  />
                 </div>
-                <RandomImageLoader
-                  onImageSelected={handleImageSelectedFromRandomLoader}
-                  onCancel={handleCancelRandomImageLoad}
-                />
+                {originalImage && (
+                  <div className="flex flex-col items-start  gap-2 p-4 border border-gray-700 bg-gray-800/40 rounded-2xl w-full lg:w-1/3 max-w-sm self-stretch shrink-0">
+
+                    <h3 className="text-lg font-bold text-gray-200 whitespace-nowrap">Current Workspace Image</h3>
+
+
+                    <div
+                      className="w-full aspect-square bg-[#f1f1f1] rounded-xl overflow-hidden flex items-center justify-center mb-4 p-2 shadow-inner cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => setIsFullscreenOpen(true)}
+                    >
+                      <img src={originalImage} alt="Current" className="max-w-full max-h-full object-contain" />
+                    </div>
+                    {currentFileName && (
+                      <p className="text-sm text-gray-300 font-medium truncate w-full mb-1" title={currentFileName}>
+                        {currentFileName}
+                      </p>
+                    )}
+                    {processedData && (
+                      <div className="text-xs text-gray-400 mb-6 text-center">
+                        {processedData.originalWidth} × {processedData.originalHeight} px
+                        <span className="mx-2">•</span>
+                        {(processedData.originalWidth / processedData.originalHeight).toFixed(2)}:1
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between w-full">
+                      <Button
+                        variant="outline"
+                        onClick={handleCancelRandomImageLoad}
+                        className=" border-gray-600 text-gray-300 hover:text-white hover:bg-gray-700 transition-colors"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleDeleteImage}
+                        variant="ghost"
+                        className="w-10 px-0 shrink-0 text-white"
+                        title="Delete image"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+
 
               </div>
             )}
@@ -520,15 +478,12 @@ export default function Home() {
               <div className="sticky top-16 z-10 overflow-hidden">
                 <Preview
                   originalImage={originalImage!}
-                  svgContent={svgContent}
-                  isProcessing={isProcessing}
                   processedData={processedData}
+                  isProcessing={isProcessing || isWaitingToProcess}
+                  processingProgress={isWaitingToProcess ? 0 : processingProgress}
+                  processingStatus={isWaitingToProcess ? "Pending changes..." : processingStatus}
                   onNewImageUpload={handleNewImageUpload}
-                  onRemoveImage={handleNewImageUpload}
                   settings={settings}
-                  animationSpeed={animationSpeed}
-                  animationTrigger={animationTrigger}
-                  stopTrigger={stopTrigger}
                 />
               </div>
             )}
@@ -552,8 +507,6 @@ export default function Home() {
                   originalImage={originalImage}
                   processedData={processedData}
                   onNewImageUpload={handleNewImageUpload}
-                  onRemoveImage={handleNewImageUpload}
-                  svgContentPreview={svgContent}
                   toggleSettingsPanel={toggleSettingsPanel}
                   settings={settings}
                 />
@@ -567,15 +520,11 @@ export default function Home() {
                     processedData={processedData}
                     onResetSettings={resetSettings}
                     onClearCache={handleClearCache}
-                    onPlayAnimation={handlePlayAnimation}
-                    onStopAnimation={handleStopAnimation}
-                    animationSpeed={animationSpeed}
-                    onAnimationSpeedChange={handleAnimationSpeedChange}
                   />
                 </TooltipProvider>
               </div>
             </div>
-            {/* Close button - only visible on mobile, moved outside panel scroll for correct fixed behavior */}
+            {/* Close button - only visible on mobile */}
             {isSettingsPanelVisible && (
               <div className="fixed top-4 right-4 z-50 lg:hidden">
                 <Button
@@ -591,16 +540,15 @@ export default function Home() {
             )}
           </>)}
         </div>
-      </div>
 
-      {/* Processing Progress Overlay */}
-      {showProgress && (
-        <ProcessingProgress
-          progress={processingProgress}
-          status={processingStatus}
-          onCancel={handleCancelProcessing}
+        {/* Fullscreen Image Dialog */}
+        <FullscreenImageDialog
+          isOpen={isFullscreenOpen}
+          onOpenChange={setIsFullscreenOpen}
+          originalImage={originalImage}
+          processedData={processedData}
         />
-      )}
+      </div>
     </main>
   )
 }
