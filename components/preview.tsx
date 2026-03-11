@@ -1,10 +1,9 @@
 "use client"
 
-import { useEffect, useRef, memo, useState, useCallback } from "react"
+import { useEffect, useRef, memo, useState } from "react"
 
-import { ArrowUpToLine, ArrowUpRight, Maximize2, LoaderCircle, X, ChevronDown, Play, Square, Move, ZoomIn, ZoomOut, RotateCcw } from "lucide-react"
+import { ArrowUpToLine, ArrowUpRight, Maximize2, LoaderCircle, ChevronDown, Move, ZoomIn, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Dialog } from "@/components/ui/dialog"
 import { FullscreenImageDialog } from "@/components/fullscreen-image-dialog"
 import SvgDownloadOptions from "@/components/svg-download-options"
 import type { ImageData, Settings } from "@/lib/types"
