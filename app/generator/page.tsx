@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button"
 import type { ImageData, Settings } from "@/lib/types"
 import { processImageWithProgress } from "@/lib/image-processor-with-progress"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { Settings as SettingsIcon, X, Trash2 } from "lucide-react"
+import { Settings as SettingsIcon, X, Trash2, Maximize } from "lucide-react"
 import {
   getStoredImage,
   saveImageToStorage,
@@ -422,10 +422,13 @@ export default function Home() {
 
 
                     <div
-                      className="w-full aspect-square bg-[#f1f1f1] rounded-xl overflow-hidden flex items-center justify-center mb-4 p-2 shadow-inner cursor-pointer hover:opacity-80 transition-opacity"
+                      className="group relative w-full aspect-square bg-[#f1f1f1] rounded-xl overflow-hidden flex items-center justify-center mb-4 p-2 shadow-inner cursor-pointer hover:opacity-80 transition-opacity"
                       onClick={() => setIsFullscreenOpen(true)}
                     >
                       <img src={originalImage} alt="Current" className="max-w-full max-h-full object-contain" />
+                      <div className="absolute top-2 right-2 p-1.5 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Maximize className="w-4 h-4 text-white" />
+                      </div>
                     </div>
                     {currentFileName && (
                       <p className="text-sm text-gray-300 font-medium truncate w-full mb-1" title={currentFileName}>

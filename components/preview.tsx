@@ -100,7 +100,7 @@ const Preview = memo(function Preview({
     <>
       <div className="relative h-full flex flex-col">
         <div className="space-y-4 flex-1 flex flex-col ">
-          <div className="flex-1 lg:w-full  border border-gray-700 rounded-2xl overflow-hidden p-2 relative flex flex-col">
+          <div className="flex flex-col lg:w-full  border border-gray-700 rounded-2xl overflow-hidden p-2 relative flex flex-col">
             <h3 className="text-lg font-bold text-center mb-2 text-gradient self-start">Output</h3>
             <div className=" absolute lg:top-auto bottom-4 lg:right-6 right-6  ">
               {processedData?.colorGroups && (
@@ -268,18 +268,18 @@ const Preview = memo(function Preview({
               )}
             </div>
             {processedData && (
-              <p className="mt-1 text-center text-xs text-gray-300">
+              <p className="mt-1 text-xs text-gray-300">
                 {processedData.columnsCount} × {processedData.rowsCount} tiles
 
               </p>
             )}
             {/* display density information */}
-            <p className="mt-1 text-center text-xs text-gray-300">
+            <p className="mt-1 text-xs text-gray-300">
               Density: {settings.minDensity} - {settings.maxDensity}
             </p>
 
             {/* display current processing mode */}
-            <p className="mt-1 text-center text-xs text-gray-300">
+            <p className="mt-1 text-xs text-gray-300">
               Processing Mode: {settings.processingMode}
             </p>
           </div>
@@ -380,16 +380,16 @@ export const ImageThumbnail = memo(function ImageThumbnail({
               </div>
               {/* Optional: Add tile info for preview if needed */}
               {processedData && (
-                <p className="mt-1 text-center text-xs text-gray-300">
+                <p className="mt-1  text-xs text-gray-300">
                   {processedData.columnsCount} × {processedData.rowsCount} tiles
                 </p>
               )}
               {/* display density information */}
-              <p className="mt-1 text-center text-xs text-gray-300">
+              <p className="mt-1 text-xs text-gray-300">
                 Density: {settings.minDensity} - {settings.maxDensity}
               </p>
               {/* display current processing mode */}
-              <p className="mt-1 text-center text-xs text-gray-300">
+              <p className="mt-1 text-xs text-gray-300">
                 Processing Mode: {settings.processingMode}
               </p>
             </div>
