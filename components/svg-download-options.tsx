@@ -119,6 +119,22 @@ export default function SvgDownloadOptions({
         URL.revokeObjectURL(url);
     };
 
+    const getBaseFilename = () => {
+        let baseName = "";
+        if (processedData.fileName) {
+            const parts = processedData.fileName.split('.');
+            if (parts.length > 1) {
+                parts.pop();
+                baseName = parts.join('.');
+            } else {
+                baseName = processedData.fileName;
+            }
+            baseName = baseName.replace(/\s+/g, '_');
+            return `squigglify_output-${baseName}`;
+        }
+        return "squigglify_output";
+    };
+
     // Handler for downloading the complete SVG
     const handleDownloadFull = async () => {
         setIsGenerating(true);
@@ -128,7 +144,7 @@ export default function SvgDownloadOptions({
             setDownloadProgress(100);
 
             const blob = new Blob([svgContent], { type: "image/svg+xml" });
-            downloadFile(blob, "squigglify_output.svg");
+            downloadFile(blob, `${getBaseFilename()}.svg`);
         } catch (error) {
             console.error("Error generating SVG:", error);
             alert("Failed to generate SVG. Please try again.");
@@ -178,7 +194,7 @@ export default function SvgDownloadOptions({
                 height: targetPngHeight,
             });
             const blob = new Blob([new Uint8Array(pngUint8Array)], { type: "image/png" });
-            downloadFile(blob, "squigglify_output.png");
+            downloadFile(blob, `${getBaseFilename()}.png`);
             setDownloadProgress(100);
         } catch (error) {
             console.error("Error downloading PNG:", error);
@@ -311,7 +327,7 @@ export default function SvgDownloadOptions({
 
             const doc = <MyPdfDocument svgString={svgContent} svgWidth={finalPdfPageWidth} svgHeight={finalPdfPageHeight} />;
             const pdfBlob = await pdf(doc).toBlob();
-            downloadFile(pdfBlob, "squigglify_output-svg.pdf");
+            downloadFile(pdfBlob, `${getBaseFilename()}.pdf`);
             setDownloadProgress(100);
         } catch (error) {
             console.error("Error downloading PDF:", error);
@@ -340,13 +356,20 @@ export default function SvgDownloadOptions({
             const extractedGroups = extractAllColorGroups(svgContent)
 
             Object.entries(extractedGroups).forEach(([colorKey, groupSvg]) => {
-                const displayName = colorGroups[colorKey]?.displayName || colorKey
-                const filename = `${displayName.toLowerCase().replace(/[^a-z0-9]/g, "-")}.svg`
+                const labelMatch = groupSvg.match(/inkscape:label="([^"]+)"/);
+                let filename = "";
+                if (labelMatch && labelMatch[1]) {
+                    // e.g. "1 - Spicy Mix - 805c3d.svg"
+                    filename = `${labelMatch[1].replace(/[^a-zA-Z0-9- ]/g, "").replace(/\s+/g, " ")}.svg`;
+                } else {
+                    const displayName = colorGroups[colorKey]?.displayName || colorKey;
+                    filename = `${displayName.toLowerCase().replace(/[^a-z0-9]/g, "-")}.svg`;
+                }
                 zip.file(filename, groupSvg)
             })
 
             const content = await zip.generateAsync({ type: "blob" })
-            downloadFile(content, "squigglify_output-layers.zip");
+            downloadFile(content, `${getBaseFilename()}.zip`);
             setDownloadProgress(100);
         } catch (error) {
             console.error("Error creating ZIP file:", error)

@@ -877,6 +877,7 @@ export function extractColorGroupSVG(
     newSvg.setAttribute("height", height);
     newSvg.setAttribute("viewBox", viewBox);
     newSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    newSvg.setAttribute("xmlns:inkscape", "http://www.inkscape.org/namespaces/inkscape");
     newSvg.setAttribute("shape-rendering", "geometricPrecision");
     newSvg.setAttribute(
       "style",
