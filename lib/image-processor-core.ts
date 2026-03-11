@@ -82,7 +82,8 @@ export interface ProcessImageOptions {
 
 export async function processImage(
   options: ProcessImageOptions,
-  settings: Settings
+  settings: Settings,
+  onProgress?: (progress: number, status: string) => boolean
 ): Promise<ImageData> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -335,16 +336,17 @@ export async function processImage(
         let newColorGroups: Record<string, ColorGroup>;
         switch (settings.processingMode) {
           case "grayscale":
-            newColorGroups = await processGrayscale(processedImageData, settings);
+            newColorGroups = await processGrayscale(processedImageData, settings, onProgress);
             break;
           case "posterize":
             newColorGroups = await PosterizeProcessor.process(
               processedImageData,
-              settings
+              settings,
+              onProgress
             );
             break;
           case "monochrome":
-            newColorGroups = await processMonochrome(processedImageData, settings);
+            newColorGroups = await processMonochrome(processedImageData, settings, onProgress);
             break;
           default:
             newColorGroups = {};
