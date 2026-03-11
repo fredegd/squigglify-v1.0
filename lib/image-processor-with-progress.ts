@@ -30,11 +30,6 @@ export async function processImageWithProgress(
         }
         await new Promise(resolve => setTimeout(resolve, 30));
 
-        if (onProgress && onProgress(30, "Generating vector paths...")) {
-            throw new Error("Processing cancelled");
-        }
-        await new Promise(resolve => setTimeout(resolve, 30));
-
         // Start actual processing
         const imageData = await processImageSync(options, settings, onProgress);
 
