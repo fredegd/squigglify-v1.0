@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Layers, FileImage, FileText, ArrowDownToLine, Route, LoaderCircle } from "lucide-react"
 import type { ColorGroup, ImageData, Settings } from "@/lib/types"
-import { generateSVG, extractColorGroupSVG, extractAllColorGroups, generateSVGProgressively } from "@/lib/image-processor"
+import { generateSVG, extractAllColorGroups, generateSVGProgressively } from "@/lib/image-processor"
 import DownloadBlockingModal from "@/components/download-blocking-modal"
 
 // For PNG Conversion
@@ -134,29 +134,6 @@ export default function SvgDownloadOptions({
             alert("Failed to generate SVG. Please try again.");
         } finally {
             setIsGenerating(false);
-        }
-    }
-
-    // Handler for downloading a specific color group
-    const handleDownloadColorGroup = async (colorKey: string, displayName: string) => {
-        setIsDownloading(true)
-        setIsGenerating(true)
-        try {
-            const svgContent = await generateSvgAsync(`Processing ${displayName}`);
-            setDownloadStatus("Extracting layer...");
-            
-            const extractedSvg = extractColorGroupSVG(svgContent, colorKey)
-            if (extractedSvg) {
-                const filename = `squigglify_output-${displayName.toLowerCase().replace(/[^a-z0-9]/g, "-")}.svg`
-                const blob = new Blob([extractedSvg], { type: "image/svg+xml" });
-                downloadFile(blob, filename);
-            }
-            setDownloadProgress(100);
-        } catch (error) {
-            console.error("Error downloading color group:", error)
-        } finally {
-            setIsDownloading(false)
-            setIsGenerating(false)
         }
     }
 
@@ -425,25 +402,10 @@ export default function SvgDownloadOptions({
                     {colorGroups && Object.keys(colorGroups).length > 0 && (
                         <>
                             <DropdownMenuSeparator />
-                            <DropdownMenuLabel>Individual Color Groups</DropdownMenuLabel>
-
                             <DropdownMenuItem onClick={handleDownloadAllSeparately} disabled={isBusy}>
                                 <Layers className="mr-2 h-4 w-4" />
-                                All Groups as ZIP (SVG)
+                                Individual Color Group
                             </DropdownMenuItem>
-
-                            <DropdownMenuSeparator />
-
-                            {Object.entries(colorGroups).map(([colorKey, group]) => (
-                                <DropdownMenuItem
-                                    key={colorKey}
-                                    onClick={() => handleDownloadColorGroup(colorKey, group.displayName)}
-                                    disabled={isBusy}
-                                >
-                                    <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: group.color }} />
-                                    {group.displayName} (SVG)
-                                </DropdownMenuItem>
-                            ))}
                         </>
                     )}
                 </DropdownMenuContent>
