@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Layers, FileImage, FileText, ArrowDownToLine, Route, LoaderCircle } from "lucide-react"
 import type { ColorGroup, ImageData, Settings } from "@/lib/types"
-import { generateSVG, extractColorGroupSVG, extractAllColorGroups } from "@/lib/image-processor"
+import { generateSVG, extractColorGroupSVG, extractAllColorGroups, generateSVGProgressively } from "@/lib/image-processor"
+import DownloadBlockingModal from "@/components/download-blocking-modal"
 
 // For PNG Conversion
 import { svg2png, initialize as initializeSvg2pngWasm } from 'svg2png-wasm';
@@ -41,6 +42,8 @@ export default function SvgDownloadOptions({
     const [isDownloading, setIsDownloading] = useState(false)
     const [isWasmInitialized, setIsWasmInitialized] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [downloadProgress, setDownloadProgress] = useState(0);
+    const [downloadStatus, setDownloadStatus] = useState("");
 
     // Dynamically calculate scale factor for high resolution (min 4000px longest edge)
     const getDynamicScaleFactor = (baseWidth: number, baseHeight: number) => {
@@ -87,6 +90,23 @@ export default function SvgDownloadOptions({
         return generateSVG(processedData, settings);
     };
 
+    // Generate SVG non-blockingly with progress updates
+    const generateSvgAsync = async (statusPrefix: string = "Generating") => {
+        setDownloadProgress(0);
+        setDownloadStatus(`${statusPrefix}...`);
+        
+        return await generateSVGProgressively(
+            processedData,
+            settings,
+            (chunk) => {
+                setDownloadProgress(chunk.progress);
+                if (chunk.type === 'colorGroup' && chunk.colorName) {
+                    setDownloadStatus(`${statusPrefix}: ${chunk.colorName}...`);
+                }
+            }
+        );
+    };
+
     // Generic file download helper
     const downloadFile = (blob: Blob, filename: string) => {
         const url = URL.createObjectURL(blob);
@@ -102,11 +122,16 @@ export default function SvgDownloadOptions({
     // Handler for downloading the complete SVG
     const handleDownloadFull = async () => {
         setIsGenerating(true);
-        await yieldToMain();
         try {
-            const svgContent = generateSvgOnDemand();
+            const svgContent = await generateSvgAsync("Building SVG");
+            setDownloadStatus("Preparing file...");
+            setDownloadProgress(100);
+            
             const blob = new Blob([svgContent], { type: "image/svg+xml" });
             downloadFile(blob, "squigglify_output.svg");
+        } catch (error) {
+            console.error("Error generating SVG:", error);
+            alert("Failed to generate SVG. Please try again.");
         } finally {
             setIsGenerating(false);
         }
@@ -116,15 +141,17 @@ export default function SvgDownloadOptions({
     const handleDownloadColorGroup = async (colorKey: string, displayName: string) => {
         setIsDownloading(true)
         setIsGenerating(true)
-        await yieldToMain();
         try {
-            const svgContent = generateSvgOnDemand();
+            const svgContent = await generateSvgAsync(`Processing ${displayName}`);
+            setDownloadStatus("Extracting layer...");
+            
             const extractedSvg = extractColorGroupSVG(svgContent, colorKey)
             if (extractedSvg) {
                 const filename = `squigglify_output-${displayName.toLowerCase().replace(/[^a-z0-9]/g, "-")}.svg`
                 const blob = new Blob([extractedSvg], { type: "image/svg+xml" });
                 downloadFile(blob, filename);
             }
+            setDownloadProgress(100);
         } catch (error) {
             console.error("Error downloading color group:", error)
         } finally {
@@ -141,9 +168,10 @@ export default function SvgDownloadOptions({
         }
         setIsDownloading(true);
         setIsGenerating(true);
-        await yieldToMain();
         try {
-            const svgContent = generateSvgOnDemand();
+            const svgContent = await generateSvgAsync("Building SVG for PNG");
+            setDownloadStatus("Converting to PNG (high resolution)...");
+            setDownloadProgress(90);
 
             let baseSvgWidth: number | undefined;
             let baseSvgHeight: number | undefined;
@@ -174,6 +202,7 @@ export default function SvgDownloadOptions({
             });
             const blob = new Blob([new Uint8Array(pngUint8Array)], { type: "image/png" });
             downloadFile(blob, "squigglify_output.png");
+            setDownloadProgress(100);
         } catch (error) {
             console.error("Error downloading PNG:", error);
             alert(`Failed to download PNG: ${error instanceof Error ? error.message : String(error)}`);
@@ -275,9 +304,10 @@ export default function SvgDownloadOptions({
     const handleDownloadPdf = async () => {
         setIsDownloading(true);
         setIsGenerating(true);
-        await yieldToMain();
         try {
-            const svgContent = generateSvgOnDemand();
+            const svgContent = await generateSvgAsync("Building SVG for PDF");
+            setDownloadStatus("Converting to PDF (high resolution)...");
+            setDownloadProgress(90);
 
             let basePageWidth = 595;
             let basePageHeight = 842;
@@ -305,6 +335,7 @@ export default function SvgDownloadOptions({
             const doc = <MyPdfDocument svgString={svgContent} svgWidth={finalPdfPageWidth} svgHeight={finalPdfPageHeight} />;
             const pdfBlob = await pdf(doc).toBlob();
             downloadFile(pdfBlob, "squigglify_output-svg.pdf");
+            setDownloadProgress(100);
         } catch (error) {
             console.error("Error downloading PDF:", error);
             alert(`Failed to download PDF: ${error instanceof Error ? error.message : String(error)}`);
@@ -320,10 +351,12 @@ export default function SvgDownloadOptions({
 
         setIsDownloading(true)
         setIsGenerating(true)
-        await yieldToMain();
 
         try {
-            const svgContent = generateSvgOnDemand();
+            const svgContent = await generateSvgAsync("Building SVG Layers");
+            setDownloadStatus("Creating ZIP archive...");
+            setDownloadProgress(95);
+            
             const JSZip = (await import('jszip')).default
             const zip = new JSZip()
 
@@ -337,6 +370,7 @@ export default function SvgDownloadOptions({
 
             const content = await zip.generateAsync({ type: "blob" })
             downloadFile(content, "squigglify_output-layers.zip");
+            setDownloadProgress(100);
         } catch (error) {
             console.error("Error creating ZIP file:", error)
             alert("Failed to create ZIP file. Please try again.")
@@ -349,63 +383,71 @@ export default function SvgDownloadOptions({
     const isBusy = isProcessing || isDownloading || isGenerating;
 
     return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <button
-                    className="w-9 h-9 flex items-center justify-center rounded-lg backdrop-blur-sm transition-all duration-200 bg-gray-900/70 text-white hover:bg-gray-900/90 disabled:opacity-40 disabled:cursor-not-allowed"
-                    disabled={isBusy}
-                >
-                    {isGenerating ? (
-                        <LoaderCircle className="h-4 w-4 animate-spin" />
-                    ) : (
-                        <ArrowDownToLine className="h-4 w-4" />
-                    )}
-                </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>Download Options</DropdownMenuLabel>
-                <DropdownMenuSeparator />
+        <>
+            {isGenerating && (
+                <DownloadBlockingModal 
+                    progress={downloadProgress} 
+                    status={downloadStatus} 
+                />
+            )}
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <button
+                        className="w-9 h-9 flex items-center justify-center rounded-lg backdrop-blur-sm transition-all duration-200 bg-gray-900/70 text-white hover:bg-gray-900/90 disabled:opacity-40 disabled:cursor-not-allowed"
+                        disabled={isBusy}
+                    >
+                        {isGenerating ? (
+                            <LoaderCircle className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <ArrowDownToLine className="h-4 w-4" />
+                        )}
+                    </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                    <DropdownMenuLabel>Download Options</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
 
-                <DropdownMenuItem onClick={handleDownloadFull} disabled={isBusy}>
-                    <Route className="mr-2 h-4 w-4" />
-                    Download Complete SVG
-                </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleDownloadFull} disabled={isBusy}>
+                        <Route className="mr-2 h-4 w-4" />
+                        Download Complete SVG
+                    </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={handleDownloadPng} disabled={!isWasmInitialized || isBusy}>
-                    <FileImage className="mr-2 h-4 w-4" />
-                    Download as PNG
-                </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleDownloadPng} disabled={!isWasmInitialized || isBusy}>
+                        <FileImage className="mr-2 h-4 w-4" />
+                        Download as PNG
+                    </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={handleDownloadPdf} disabled={isBusy}>
-                    <FileText className="mr-2 h-4 w-4" />
-                    Download as PDF
-                </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleDownloadPdf} disabled={isBusy}>
+                        <FileText className="mr-2 h-4 w-4" />
+                        Download as PDF
+                    </DropdownMenuItem>
 
-                {colorGroups && Object.keys(colorGroups).length > 0 && (
-                    <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuLabel>Individual Color Groups</DropdownMenuLabel>
+                    {colorGroups && Object.keys(colorGroups).length > 0 && (
+                        <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel>Individual Color Groups</DropdownMenuLabel>
 
-                        <DropdownMenuItem onClick={handleDownloadAllSeparately} disabled={isBusy}>
-                            <Layers className="mr-2 h-4 w-4" />
-                            All Groups as ZIP (SVG)
-                        </DropdownMenuItem>
-
-                        <DropdownMenuSeparator />
-
-                        {Object.entries(colorGroups).map(([colorKey, group]) => (
-                            <DropdownMenuItem
-                                key={colorKey}
-                                onClick={() => handleDownloadColorGroup(colorKey, group.displayName)}
-                                disabled={isBusy}
-                            >
-                                <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: group.color }} />
-                                {group.displayName} (SVG)
+                            <DropdownMenuItem onClick={handleDownloadAllSeparately} disabled={isBusy}>
+                                <Layers className="mr-2 h-4 w-4" />
+                                All Groups as ZIP (SVG)
                             </DropdownMenuItem>
-                        ))}
-                    </>
-                )}
-            </DropdownMenuContent>
-        </DropdownMenu>
+
+                            <DropdownMenuSeparator />
+
+                            {Object.entries(colorGroups).map(([colorKey, group]) => (
+                                <DropdownMenuItem
+                                    key={colorKey}
+                                    onClick={() => handleDownloadColorGroup(colorKey, group.displayName)}
+                                    disabled={isBusy}
+                                >
+                                    <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: group.color }} />
+                                    {group.displayName} (SVG)
+                                </DropdownMenuItem>
+                            ))}
+                        </>
+                    )}
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </>
     )
 }
