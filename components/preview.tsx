@@ -235,7 +235,7 @@ const Preview = memo(function Preview({
                 </>
               ) : isProcessing ? (
                 <div className="flex flex-col items-center justify-center">
-                  <LoaderCircle className="h-10 w-10 text-primary animate-spin mb-2" />
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 mb-4"></div>
                   <p className="text-gray-300">Processing image...</p>
                 </div>
               ) : (
@@ -249,7 +249,7 @@ const Preview = memo(function Preview({
                 <div className="absolute inset-x-0 bottom-0 rounded-b-lg overflow-hidden pointer-events-none z-50">
                   <div className="bg-gray-900/80 backdrop-blur-sm px-4 py-2">
                     <div className="flex items-center gap-3 mb-1.5">
-                      <LoaderCircle className="h-4 w-4 text-purple-400 animate-spin flex-shrink-0" />
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 mb-4 flex-shrink-0"></div>
                       <span className="text-xs text-gray-300 truncate">
                         {isProcessing ? (processingStatus || 'Processing...') : 'Building vectors...'}
                       </span>

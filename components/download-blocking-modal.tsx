@@ -12,7 +12,7 @@ export default function DownloadBlockingModal({ progress, status, title = "Prepa
             <div className="bg-gray-900 border border-gray-700 rounded-2xl p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-300">
                 <div className="flex items-center space-x-4 mb-6">
                     <div className="relative">
-                        <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 mb-4"></div>
                         <div className="absolute inset-0 blur-sm bg-purple-500/20 rounded-full animate-pulse" />
                     </div>
                     <h3 className="text-xl font-bold text-white tracking-tight">{title}</h3>

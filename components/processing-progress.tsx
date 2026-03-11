@@ -14,7 +14,7 @@ export default function ProcessingProgress({ progress, status, onCancel }: Proce
             <div className="bg-gray-900 border border-gray-700 rounded-lg p-8 max-w-md w-full shadow-2xl">
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center space-x-3">
-                        <Loader2 className="h-6 w-6 animate-spin text-purple-500" />
+                        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 mb-4"></div>
                         <h3 className="text-lg font-semibold text-white">Processing Image</h3>
                     </div>
                     {onCancel && (
