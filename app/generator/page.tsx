@@ -47,7 +47,6 @@ export default function Home() {
   const dataRestoredRef = useRef(false) // Track if data was restored from cache
   const [processingProgress, setProcessingProgress] = useState(0)
   const [processingStatus, setProcessingStatus] = useState("")
-  const [showProgress, setShowProgress] = useState(false)
   const [isWaitingToProcess, setIsWaitingToProcess] = useState(false)
   const isCancelledRef = useRef(false)
   const isMobile = useIsMobile()
@@ -259,7 +258,6 @@ export default function Home() {
       dataRestoredRef.current = false;
       console.log('Skipping processing — using cached data');
       setIsProcessing(false);
-      setShowProgress(false);
       return;
     }
 
@@ -269,7 +267,6 @@ export default function Home() {
     const previousProcessedData = processedData;
 
     setIsProcessing(true)
-    setShowProgress(true)
     setProcessingProgress(0)
     setProcessingStatus("Initializing...")
 
@@ -324,14 +321,12 @@ export default function Home() {
       console.error("Error processing image:", error)
     } finally {
       setIsProcessing(false)
-      setShowProgress(false)
     }
   }
 
   const handleCancelProcessing = () => {
     isCancelledRef.current = true;
     setIsProcessing(false);
-    setShowProgress(false);
   }
 
   const handleClearCache = () => {
