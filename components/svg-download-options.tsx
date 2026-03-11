@@ -79,6 +79,9 @@ export default function SvgDownloadOptions({
         initWasm();
     }, []);
 
+    // Yield to main thread to allow React to paint loading states before heavy synchronous processing
+    const yieldToMain = () => new Promise(resolve => setTimeout(resolve, 50));
+
     // Generate SVG on demand from processedData + current settings
     const generateSvgOnDemand = (): string => {
         return generateSVG(processedData, settings);
@@ -97,8 +100,9 @@ export default function SvgDownloadOptions({
     };
 
     // Handler for downloading the complete SVG
-    const handleDownloadFull = () => {
+    const handleDownloadFull = async () => {
         setIsGenerating(true);
+        await yieldToMain();
         try {
             const svgContent = generateSvgOnDemand();
             const blob = new Blob([svgContent], { type: "image/svg+xml" });
@@ -109,8 +113,10 @@ export default function SvgDownloadOptions({
     }
 
     // Handler for downloading a specific color group
-    const handleDownloadColorGroup = (colorKey: string, displayName: string) => {
+    const handleDownloadColorGroup = async (colorKey: string, displayName: string) => {
         setIsDownloading(true)
+        setIsGenerating(true)
+        await yieldToMain();
         try {
             const svgContent = generateSvgOnDemand();
             const extractedSvg = extractColorGroupSVG(svgContent, colorKey)
@@ -123,6 +129,7 @@ export default function SvgDownloadOptions({
             console.error("Error downloading color group:", error)
         } finally {
             setIsDownloading(false)
+            setIsGenerating(false)
         }
     }
 
@@ -134,6 +141,7 @@ export default function SvgDownloadOptions({
         }
         setIsDownloading(true);
         setIsGenerating(true);
+        await yieldToMain();
         try {
             const svgContent = generateSvgOnDemand();
 
@@ -267,6 +275,7 @@ export default function SvgDownloadOptions({
     const handleDownloadPdf = async () => {
         setIsDownloading(true);
         setIsGenerating(true);
+        await yieldToMain();
         try {
             const svgContent = generateSvgOnDemand();
 
@@ -311,6 +320,7 @@ export default function SvgDownloadOptions({
 
         setIsDownloading(true)
         setIsGenerating(true)
+        await yieldToMain();
 
         try {
             const svgContent = generateSvgOnDemand();
