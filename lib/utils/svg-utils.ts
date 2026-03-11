@@ -527,7 +527,7 @@ function createPathFromVertices(
     pathData = convertToLinePath(vertices);
   }
 
-  return `<path d="${pathData}" stroke="${color}" fill="none" stroke-width="${strokeWidth}" stroke-linejoin="round" stroke-linecap="round" />\n`;
+  return `<path d="${pathData}" stroke="${color}" fill="none" stroke-width="${strokeWidth}" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" />\n`;
 }
 
 // Straight line path conversion (from example.tsx)
