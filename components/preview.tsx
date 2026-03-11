@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, memo, useState, useCallback } from "react"
 
-import { ArrowUpToLine, ArrowUpRight, Maximize2, LoaderCircle, X, ChevronDown, Play, Square, Move, ZoomIn, RotateCcw, Trash2 } from "lucide-react"
+import { ArrowUpToLine, ArrowUpRight, Maximize2, LoaderCircle, X, ChevronDown, Play, Square, Move, ZoomIn, ZoomOut, RotateCcw, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import SvgDownloadOptions from "@/components/svg-download-options"
@@ -36,6 +36,7 @@ const Preview = memo(function Preview({
   const [isPanEnabled, setIsPanEnabled] = useState(true)
   const [isZoomEnabled, setIsZoomEnabled] = useState(true)
   const [isRendering, setIsRendering] = useState(false)
+  const [currentZoom, setCurrentZoom] = useState(1)
 
   const isCanvasVisible = !!processedData?.colorGroups;
 
@@ -121,20 +122,21 @@ const Preview = memo(function Preview({
                   <TransformWrapper
                     initialScale={1}
                     minScale={0.5}
-                    maxScale={20}
+                    maxScale={3.0}
                     panning={{ disabled: !isPanEnabled }}
                     wheel={{ disabled: !isZoomEnabled }}
                     pinch={{ disabled: !isZoomEnabled }}
                     doubleClick={{ disabled: !isZoomEnabled }}
                     onTransformed={(ref) => {
                       const scale = ref.state.scale;
+                      setCurrentZoom(scale);
                       if (rendererRef.current) {
                         rendererRef.current.setZoomScale(scale);
                         rendererRef.current.render(settings);
                       }
                     }}
                   >
-                    {({ resetTransform }) => (
+                    {({ resetTransform, zoomIn, zoomOut }) => (
                       <>
                         <TransformComponent
                           wrapperStyle={{
@@ -181,6 +183,34 @@ const Preview = memo(function Preview({
                               <span className="absolute w-5 h-0.5 bg-red-400/80 rotate-45 rounded-full" />
                             )}
                           </button>
+
+                          <button
+                            onClick={() => {
+                              zoomIn();
+                            }}
+                            disabled={!isZoomEnabled || currentZoom >= 3.0}
+                            title="Zoom In"
+                            className={`w-9 h-9 flex items-center justify-center rounded-lg backdrop-blur-sm transition-all duration-200 mt-2 ${!isZoomEnabled || currentZoom >= 3.0
+                              ? 'bg-gray-900/40 text-gray-500 cursor-not-allowed'
+                              : 'bg-gray-900/70 text-white hover:bg-gray-900/90'
+                              }`}
+                          >
+                            <span className="text-lg leading-none">+</span>
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              zoomOut();
+                            }}
+                            disabled={!isZoomEnabled || currentZoom <= 0.5}
+                            title="Zoom Out"
+                            className={`w-9 h-9 flex items-center justify-center rounded-lg backdrop-blur-sm transition-all duration-200 ${!isZoomEnabled || currentZoom <= 0.5
+                              ? 'bg-gray-900/40 text-gray-500 cursor-not-allowed'
+                              : 'bg-gray-900/70 text-white hover:bg-gray-900/90'
+                              }`}
+                          >
+                            <span className="text-lg leading-none">-</span>
+                          </button>
                         </div>
 
                         {/* Reset view button — visible on all screens */}
@@ -188,6 +218,7 @@ const Preview = memo(function Preview({
                           <button
                             onClick={() => {
                               resetTransform();
+                              setCurrentZoom(1);
                               if (rendererRef.current) {
                                 rendererRef.current.setZoomScale(1);
                                 rendererRef.current.render(settings);
@@ -211,7 +242,7 @@ const Preview = memo(function Preview({
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center opacity-0 animate-in fade-in duration-500 delay-500 fill-mode-forwards">
-                     <p className="text-gray-300">Vector preview will appear here</p>
+                  <p className="text-gray-300">Vector preview will appear here</p>
                 </div>
               )}
 
