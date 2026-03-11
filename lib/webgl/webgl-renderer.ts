@@ -5,10 +5,11 @@
  * replacing the SVG-string-based preview for real-time, non-blocking updates.
  *
  * Usage:
- *   const renderer = new WebGLRenderer(canvas);
- *   renderer.updateData(processedData, settings);  // when image/processing changes
- *   renderer.render(settings);                     // when rendering settings change
- *   renderer.dispose();                            // cleanup
+ *   const renderer = new WebGLRenderer();
+ *   renderer.init(canvas);                                   // once, after you have the canvas
+ *   renderer.updateData(processedData, settings);            // when image/processing changes
+ *   renderer.renderWithNewSettings(processedData, settings); // when rendering settings change
+ *   renderer.dispose();                                      // cleanup
  */
 
 import { VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE } from "./shaders";
