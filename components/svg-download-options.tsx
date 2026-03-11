@@ -94,7 +94,7 @@ export default function SvgDownloadOptions({
     const generateSvgAsync = async (statusPrefix: string = "Generating") => {
         setDownloadProgress(0);
         setDownloadStatus(`${statusPrefix}...`);
-        
+
         return await generateSVGProgressively(
             processedData,
             settings,
@@ -126,7 +126,7 @@ export default function SvgDownloadOptions({
             const svgContent = await generateSvgAsync("Building SVG");
             setDownloadStatus("Preparing file...");
             setDownloadProgress(100);
-            
+
             const blob = new Blob([svgContent], { type: "image/svg+xml" });
             downloadFile(blob, "squigglify_output.svg");
         } catch (error) {
@@ -333,7 +333,7 @@ export default function SvgDownloadOptions({
             const svgContent = await generateSvgAsync("Building SVG Layers");
             setDownloadStatus("Creating ZIP archive...");
             setDownloadProgress(95);
-            
+
             const JSZip = (await import('jszip')).default
             const zip = new JSZip()
 
@@ -362,9 +362,9 @@ export default function SvgDownloadOptions({
     return (
         <>
             {isGenerating && (
-                <DownloadBlockingModal 
-                    progress={downloadProgress} 
-                    status={downloadStatus} 
+                <DownloadBlockingModal
+                    progress={downloadProgress}
+                    status={downloadStatus}
                 />
             )}
             <DropdownMenu>
@@ -404,7 +404,7 @@ export default function SvgDownloadOptions({
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={handleDownloadAllSeparately} disabled={isBusy}>
                                 <Layers className="mr-2 h-4 w-4" />
-                                Individual Color Group
+                                Individual Colors -  SVG
                             </DropdownMenuItem>
                         </>
                     )}

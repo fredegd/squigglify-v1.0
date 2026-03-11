@@ -40,13 +40,13 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button asChild size="lg" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-lg px-8">
                 <Link href="/generator">
-                Start
+                  Start
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
 
               <Button asChild variant="outline" size="lg" className="border-purple-400 text-purple-400 hover:bg-purple-900 text-lg px-8">
-                <Link href="/docs">
+                <Link href="/about">
                   Learn More
                 </Link>
               </Button>

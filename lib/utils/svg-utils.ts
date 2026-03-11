@@ -1,5 +1,6 @@
 import { calculateDistance } from "./math-utils";
 import { perfStart, perfEnd } from "./performance-profiler";
+import { GetColorName } from "hex-color-to-color-name";
 import type {
   ColorGroup,
   ImageData,
@@ -24,7 +25,7 @@ export function generateSVG(imageData: ImageData, settings: Settings): string {
   const svgHeight = outputHeight;
 
   // Start SVG content with pixel dimensions instead of mm to avoid browser parsing issues
-  let svgContent = `<svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision" style="stroke-linejoin: round; stroke-linecap: round;" data-width-mm="${widthInMM}" data-height-mm="${heightInMM}">
+  let svgContent = `<svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" shape-rendering="geometricPrecision" style="stroke-linejoin: round; stroke-linecap: round;" data-width-mm="${widthInMM}" data-height-mm="${heightInMM}">
   `;
 
   // Generate paths for each color group
@@ -35,10 +36,12 @@ export function generateSVG(imageData: ImageData, settings: Settings): string {
 
       // Verwende die aktuelle Farbe als Gruppen-ID (ohne # für gültige IDs)
       const safeColorId = group.color.replace("#", "");
+      const colorName = GetColorName(group.color);
 
       // Create a group with id and custom data attributes for easier post-processing
+      const layerName = `${index + 1} - ${colorName} - ${safeColorId}`;
       svgContent += `<g id="color-group-${safeColorId}" data-color="${group.color
-        }" data-name="${group.displayName}" data-index="${index + 1}">\n`;
+        }" data-name="${group.displayName}" data-index="${index + 1}" inkscape:groupmode="layer" inkscape:label="${layerName}">\n`;
 
       if (continuousPaths) {
         // Generate continuous path for this color group
@@ -99,7 +102,7 @@ export function* generateSVGChunks(
     const totalGroups = colorEntries.length;
 
     // Yield SVG header
-    const svgHeader = `<svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision" style="stroke-linejoin: round; stroke-linecap: round;" data-width-mm="${widthInMM}" data-height-mm="${heightInMM}">
+    const svgHeader = `<svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" shape-rendering="geometricPrecision" style="stroke-linejoin: round; stroke-linecap: round;" data-width-mm="${widthInMM}" data-height-mm="${heightInMM}">
   `;
 
     yield {
@@ -119,7 +122,9 @@ export function* generateSVGChunks(
 
         // Generate group content
         const safeColorId = group.color.replace("#", "");
-        let groupContent = `<g id="color-group-${safeColorId}" data-color="${group.color}" data-name="${group.displayName}" data-index="${groupIndex}">\n`;
+        const colorName = GetColorName(group.color);
+        const layerName = `${groupIndex} - ${colorName} - ${safeColorId}`;
+        let groupContent = `<g id="color-group-${safeColorId}" data-color="${group.color}" data-name="${group.displayName}" data-index="${groupIndex}" inkscape:groupmode="layer" inkscape:label="${layerName}">\n`;
 
         if (continuousPaths) {
           groupContent += generateContinuousPath(group, settings);
