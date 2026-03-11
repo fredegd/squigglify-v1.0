@@ -9,6 +9,7 @@ import type { ImageData } from "../types";
  * The Cache API stores Request/Response pairs, so we wrap the SVG in a synthetic Response.
  */
 export async function saveSvgToStorage(svgContent: string): Promise<void> {
+    if (typeof caches === "undefined") return;
     try {
         const cache = await caches.open(CACHE_NAME);
         const response = new Response(svgContent, {
@@ -31,6 +32,7 @@ export async function saveSvgToStorage(svgContent: string): Promise<void> {
  * Returns null if no cached SVG is found.
  */
 export async function getStoredSvg(): Promise<string | null> {
+    if (typeof caches === "undefined") return null;
     try {
         const cache = await caches.open(CACHE_NAME);
         const response = await cache.match(CACHE_KEY);
@@ -55,6 +57,7 @@ export async function getStoredSvg(): Promise<string | null> {
  * Clears the stored SVG from the Cache API.
  */
 export async function clearStoredSvg(): Promise<void> {
+    if (typeof caches === "undefined") return;
     try {
         const cache = await caches.open(CACHE_NAME);
         await cache.delete(CACHE_KEY);
@@ -70,6 +73,7 @@ export async function clearStoredSvg(): Promise<void> {
  * This preserves color groups and other metadata needed for regeneration/settings.
  */
 export async function saveProcessedDataToStorage(data: ImageData): Promise<void> {
+    if (typeof caches === "undefined") return;
     try {
         // Create a lightweight copy without the heavy pixels array
         // We need colorGroups (for paths/colors) but not the raw pixel grid
@@ -96,6 +100,7 @@ export async function saveProcessedDataToStorage(data: ImageData): Promise<void>
  * Retrieves the stored processed image data from the Cache API.
  */
 export async function getStoredProcessedData(): Promise<ImageData | null> {
+    if (typeof caches === "undefined") return null;
     try {
         const cache = await caches.open(CACHE_NAME);
         const response = await cache.match(PROCESSED_DATA_CACHE_KEY);
@@ -116,6 +121,7 @@ export async function getStoredProcessedData(): Promise<ImageData | null> {
  * Clears the stored processed data.
  */
 export async function clearStoredProcessedData(): Promise<void> {
+    if (typeof caches === "undefined") return;
     try {
         const cache = await caches.open(CACHE_NAME);
         await cache.delete(PROCESSED_DATA_CACHE_KEY);

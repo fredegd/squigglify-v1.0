@@ -340,6 +340,24 @@ export const ImageThumbnail = memo(function ImageThumbnail({
     return () => clearTimeout(timerId)
   }, [processedData, settings])
 
+  // Handle canvas resize
+  useEffect(() => {
+    if (!miniCanvasRef.current || !miniRendererRef.current) return
+
+    const resizeObserver = new ResizeObserver(() => {
+      const renderer = miniRendererRef.current
+      if (renderer) {
+        renderer.render(settings)
+      }
+    })
+
+    resizeObserver.observe(miniCanvasRef.current)
+
+    return () => {
+      resizeObserver.disconnect()
+    }
+  }, [settings])
+
   return (
     <div className="bg-gray-800/95 backdrop-blur-md rounded-b-lg sticky top-0 lg:top-16 z-[45] pt-12 lg:pt-0 px-7 lg:px-0  shadow-xl">
       {/* we should include this following div in a details/summary section */}
