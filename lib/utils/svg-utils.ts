@@ -254,7 +254,10 @@ export function generateContinuousPath(
       settings.rowsCount
     );
 
-    if (pathVertices.length > 0 && !needNewPath) {
+    // For squared/curved, pop the last vertex to merge with the next tile's
+    // overlapping start vertex. For zig-zag, tiles don't share endpoint
+    // positions, so keep all vertices to preserve the diagonal connections.
+    if (pathVertices.length > 0 && !needNewPath && curveMode !== "zigzag") {
       pathVertices.pop();
     }
 
