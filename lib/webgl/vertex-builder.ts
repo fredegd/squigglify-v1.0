@@ -264,7 +264,7 @@ function tessellateVerticesAsCurve(
   return result;
 }
 
-// ─── Segment merging (O(n) single-pass — segments are already in spatial order) ─
+// ─── Segment merging (greedy all-pairs — matches svg-utils.ts algorithm) ────────
 
 function mergeNearbySegments(
   segments: Vertex[][],
@@ -273,35 +273,71 @@ function mergeNearbySegments(
   if (segments.length <= 1) return segments;
 
   const thresholdSq = threshold * threshold;
-  const result: Vertex[][] = [segments[0]];
 
-  for (let i = 1; i < segments.length; i++) {
-    const seg = segments[i];
-    if (seg.length === 0) continue;
+  type Connection = "end-start" | "end-end" | "start-start" | "start-end";
 
-    const current = result[result.length - 1];
-    if (current.length === 0) {
-      result[result.length - 1] = seg;
-      continue;
+  let result = segments.map(s => s.slice());
+  let changed = true;
+
+  while (changed) {
+    changed = false;
+
+    for (let i = 0; i < result.length; i++) {
+      const segA = result[i];
+      if (segA.length === 0) continue;
+
+      const aStart = segA[0];
+      const aEnd = segA[segA.length - 1];
+
+      let bestJ = -1;
+      let bestDistSq = Infinity;
+      let bestConn: Connection = "end-start";
+
+      for (let j = 0; j < result.length; j++) {
+        if (i === j) continue;
+        const segB = result[j];
+        if (segB.length === 0) continue;
+
+        const bStart = segB[0];
+        const bEnd = segB[segB.length - 1];
+
+        const d1 = (aEnd.x - bStart.x) ** 2 + (aEnd.y - bStart.y) ** 2;
+        if (d1 <= thresholdSq && d1 < bestDistSq) {
+          bestDistSq = d1; bestJ = j; bestConn = "end-start";
+        }
+
+        const d2 = (aEnd.x - bEnd.x) ** 2 + (aEnd.y - bEnd.y) ** 2;
+        if (d2 <= thresholdSq && d2 < bestDistSq) {
+          bestDistSq = d2; bestJ = j; bestConn = "end-end";
+        }
+
+        const d3 = (aStart.x - bStart.x) ** 2 + (aStart.y - bStart.y) ** 2;
+        if (d3 <= thresholdSq && d3 < bestDistSq) {
+          bestDistSq = d3; bestJ = j; bestConn = "start-start";
+        }
+
+        const d4 = (aStart.x - bEnd.x) ** 2 + (aStart.y - bEnd.y) ** 2;
+        if (d4 <= thresholdSq && d4 < bestDistSq) {
+          bestDistSq = d4; bestJ = j; bestConn = "start-end";
+        }
+      }
+
+      if (bestJ < 0) continue;
+
+      const segB = result[bestJ];
+      switch (bestConn) {
+        case "end-start": result[i] = [...segA, ...segB]; break;
+        case "end-end": result[i] = [...segA, ...segB.slice().reverse()]; break;
+        case "start-start": result[i] = [...segA.slice().reverse(), ...segB]; break;
+        case "start-end": result[i] = [...segB, ...segA]; break;
+      }
+      result[bestJ] = [];
+      changed = true;
+      break;
     }
 
-    const curEnd = current[current.length - 1];
-    const segStart = seg[0];
-    const segEnd = seg[seg.length - 1];
-
-    // Fast distance check (squared, avoids sqrt)
-    const dEndStart = (curEnd.x - segStart.x) ** 2 + (curEnd.y - segStart.y) ** 2;
-    const dEndEnd = (curEnd.x - segEnd.x) ** 2 + (curEnd.y - segEnd.y) ** 2;
-
-    if (dEndStart <= thresholdSq) {
-      // Append seg directly
-      for (let j = 0; j < seg.length; j++) current.push(seg[j]);
-    } else if (dEndEnd <= thresholdSq) {
-      // Append seg reversed
-      for (let j = seg.length - 1; j >= 0; j--) current.push(seg[j]);
-    } else {
-      // Too far — start a new segment
-      result.push(seg);
+    if (changed) {
+      result = result.filter(s => s.length > 0);
     }
   }
 
