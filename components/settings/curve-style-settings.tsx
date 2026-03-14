@@ -2,10 +2,9 @@
 
 import { Slider } from "@/components/ui/slider-w-buttons"
 import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Info, ChevronDown } from "lucide-react"
-import type { Settings, CurveControlSettings } from "@/lib/types"
+import type { Settings, CurveControlSettings, CurveMode } from "@/lib/types"
 import { calculateMaxStrokeWidth } from "@/lib/utils/dimension-utils"
 import Image from "next/image"
 
@@ -57,14 +56,14 @@ export default function CurveStyleSettings({
             <details className="group" >
                 <summary className="cursor-pointer text-lg font-bold mb-4 flex items-center justify-between">
                     <h3 className="flex items-center gap-2 text-gradient">
-                        {settings.curvedPaths ? "Curved" : "Square"} Paths
+                        {{ curved: "Curved", squared: "Square", zigzag: "Zig-Zag" }[settings.curveMode]} Paths
                         <Tooltip>
                             <TooltipTrigger>
                                 <Info className="h-4 w-4 text-gray-300" />
                             </TooltipTrigger>
                             <TooltipContent>
                                 <p className="max-w-xs">
-                                    When enabled, creates smooth, curved paths. When disabled, uses straight lines with sharp corners.
+                                    Select the path style: smooth curves, sharp square waves, or diagonal zig-zag sawtooth waves.
                                 </p>
                             </TooltipContent>
                         </Tooltip>
@@ -75,27 +74,34 @@ export default function CurveStyleSettings({
                 <div className="flex flex-col gap-8 mt-4 text-gray-300 lg:px-4 px-8">
                     <div className="flex w-full justify-between text-gray-300 ">
                         <h3 className="text-sm font-medium mb-3">Matrix: </h3>
-                        <div className="flex items-center gap-2 mb-4">
-                            <Image
-                                src="/squared-paths.svg"
-                                alt="Squared paths"
-                                width={24}
-                                height={24}
-                                className={`w-6 h-6 transition-all duration-200 ${settings.curvedPaths ? 'opacity-50' : 'opacity-100'} hover:opacity-100 [filter:invert(1)_brightness(0.8)] hover:[filter:invert(1)_brightness(1)_sepia(1)_saturate(5)_hue-rotate(170deg)]`}
-                            />
-                            <Switch
-                                id="curvedPaths-setting"
-                                checked={settings.curvedPaths}
-                                onCheckedChange={(checked) => onSettingsChange({ curvedPaths: checked })}
-                                disabled={disabled}
-                            />
-                            <Image
-                                src="/curved-paths.svg"
-                                alt="Curved paths"
-                                width={24}
-                                height={24}
-                                className={`w-6 h-6 transition-all duration-200 ${!settings.curvedPaths ? 'opacity-50' : 'opacity-100'} hover:opacity-100 [filter:invert(1)_brightness(0.8)] hover:[filter:invert(1)_brightness(1)_sepia(1)_saturate(5)_hue-rotate(170deg)]`}
-                            />
+                        <div className="flex items-center gap-1 mb-4">
+                            {([
+                                { mode: "squared" as CurveMode, src: "/squared-paths.svg", alt: "Squared paths" },
+                                { mode: "zigzag" as CurveMode, src: "/ziz-zag-paths.svg", alt: "Zig-Zag paths" },
+                                { mode: "curved" as CurveMode, src: "/curved-paths.svg", alt: "Curved paths" },
+                            ]).map(({ mode, src, alt }) => (
+                                <button
+                                    key={mode}
+                                    type="button"
+                                    onClick={() => onSettingsChange({ curveMode: mode })}
+                                    disabled={disabled}
+                                    className={`p-1.5 rounded transition-all duration-200 ${settings.curveMode === mode
+                                        ? 'bg-white/10 ring-1 ring-white/20'
+                                        : 'hover:bg-white/5'
+                                    }`}
+                                >
+                                    <Image
+                                        src={src}
+                                        alt={alt}
+                                        width={24}
+                                        height={24}
+                                        className={`w-6 h-6 transition-all duration-200 ${settings.curveMode === mode
+                                            ? 'opacity-100 [filter:invert(1)_brightness(1)_sepia(1)_saturate(5)_hue-rotate(170deg)]'
+                                            : 'opacity-50 [filter:invert(1)_brightness(0.8)] hover:opacity-100'
+                                        }`}
+                                    />
+                                </button>
+                            ))}
                         </div>
                     </div>
                     <div className="space-y-2">

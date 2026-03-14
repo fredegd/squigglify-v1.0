@@ -1,5 +1,7 @@
 export type ProcessingMode = "grayscale" | "posterize" | "monochrome";
 
+export type CurveMode = "curved" | "squared" | "zigzag";
+
 export interface CurveControlSettings {
   // Simplified curve control parameters for the new implementation
   junctionContinuityFactor: number; // Controls the smoothness of curves (used as smoothness param)
@@ -21,7 +23,7 @@ export interface Settings {
   rowsCount: number;
   columnsCount: number;
   continuousPaths: boolean;
-  curvedPaths: boolean;
+  curveMode: CurveMode;
   pathDistanceThreshold: number;
   processingMode: ProcessingMode;
   quantizationMethod: "kmeans" | "median-cut";

@@ -142,7 +142,7 @@ export default function Home() {
     settings.monochromeColor,
     isInitialLoad,
     isSettingsLoaded,
-    // NOTE: curveControls, visiblePaths, curvedPaths are NOT here.
+    // NOTE: curveControls, visiblePaths, curveMode are NOT here.
     // They only affect rendering, which the WebGL renderer handles directly.
   ])
 

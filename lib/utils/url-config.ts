@@ -5,7 +5,7 @@
  * Enables sharing configurations via URLs for testing and quick recall.
  */
 
-import type { Settings, CurveControlSettings, ProcessingMode } from "@/lib/types";
+import type { Settings, CurveControlSettings, ProcessingMode, CurveMode } from "@/lib/types";
 import { DEFAULT_CURVE_CONTROLS } from "@/lib/types";
 
 // Parameter name mappings (abbreviated for shorter URLs)
@@ -17,7 +17,7 @@ const PARAM_MAP = {
     minD: "minDensity",
     maxD: "maxDensity",
     cont: "continuousPaths",
-    curved: "curvedPaths",
+    cm: "curveMode",
     dist: "pathDistanceThreshold",
     colors: "colorsAmt",
     monoColor: "monochromeColor",
@@ -31,6 +31,9 @@ const REVERSE_PARAM_MAP = Object.fromEntries(
 
 // Valid processing modes
 const VALID_MODES: ProcessingMode[] = ["grayscale", "posterize", "monochrome"];
+
+// Valid curve modes
+const VALID_CURVE_MODES: CurveMode[] = ["curved", "squared", "zigzag"];
 
 // Curve control parameter mappings (abbreviated)
 const CURVE_PARAM_MAP = {
@@ -191,8 +194,16 @@ export function deserializeSettingsFromUrl(searchParams: URLSearchParams): Parti
         }
 
         // Handle booleans
-        if (fullKey === "continuousPaths" || fullKey === "curvedPaths") {
+        if (fullKey === "continuousPaths") {
             settings[fullKey] = value === "1" || value === "true";
+            continue;
+        }
+
+        // Handle curve mode enum
+        if (fullKey === "curveMode") {
+            if (VALID_CURVE_MODES.includes(value as CurveMode)) {
+                settings.curveMode = value as CurveMode;
+            }
             continue;
         }
 

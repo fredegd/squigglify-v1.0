@@ -11,7 +11,7 @@ const DEFAULT_SETTINGS: Settings = {
   rowsCount: 36,
   columnsCount: 24,
   continuousPaths: true,
-  curvedPaths: true,
+  curveMode: "curved",
   pathDistanceThreshold: 25,
   processingMode: "posterize",
   quantizationMethod: "kmeans",
@@ -53,7 +53,14 @@ export function useSettings(): UseSettingsReturn {
       // Layer 1: Load from localStorage
       const savedSettings = localStorage.getItem(SETTINGS_STORAGE_KEY);
       if (savedSettings) {
-        const parsedSettings = JSON.parse(savedSettings) as Settings;
+        const parsedSettings = JSON.parse(savedSettings);
+
+        // Migrate legacy curvedPaths boolean → curveMode enum
+        if ("curvedPaths" in parsedSettings && !("curveMode" in parsedSettings)) {
+          parsedSettings.curveMode = parsedSettings.curvedPaths ? "curved" : "squared";
+          delete parsedSettings.curvedPaths;
+        }
+
         mergedSettings = {
           ...mergedSettings,
           ...parsedSettings,

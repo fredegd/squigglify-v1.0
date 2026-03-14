@@ -46,7 +46,7 @@ export default function SettingsPanel({
   }, [curveControls]);
 
   const { calculatedDensity, effectiveTileWidth } = useMemo(() => {
-    const MIN_STEP_PX = 0.4;
+    const MIN_STEP_PX = 0.25;
     const MAX_DIMENSION = 560;
 
     // Use actual outputWidth from processed image when available;
@@ -132,7 +132,7 @@ export default function SettingsPanel({
           </summary>
 
           <div className="flex flex-col gap-8 mt-4 text-gray-300 lg:px-4 px-8">
-            {settings.curvedPaths && (
+            {settings.curveMode === "curved" && (
               <div className="space-y-2">
                 <div className="flex gap-2">
                   <Label htmlFor="junctionContinuityFactor-panel">

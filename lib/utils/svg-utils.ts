@@ -6,6 +6,7 @@ import type {
   ImageData,
   Settings,
   CurveControlSettings,
+  CurveMode,
   PathPoint,
 } from "../types";
 
@@ -211,7 +212,8 @@ export function generateContinuousPath(
   settings: Settings
 ): string {
   const { color, points } = colorGroup;
-  const { curvedPaths, curveControls, pathDistanceThreshold } = settings;
+  const { curveMode, curveControls, pathDistanceThreshold } = settings;
+  const vertexFn = curveMode === "zigzag" ? createZigZagTileVertices : createTileVertices;
 
   // --- Phase 1: serpentine row-order path segments (original algorithm) ---
 
@@ -239,7 +241,7 @@ export function generateContinuousPath(
       pathVertices = [];
     }
 
-    const tileVertices = createTileVertices(
+    const tileVertices = vertexFn(
       point.x,
       point.y,
       point.width,
@@ -272,7 +274,7 @@ export function generateContinuousPath(
   let svgContent = "";
   for (const seg of merged) {
     if (seg.length > 0) {
-      svgContent += createPathFromVertices(seg, color, curvedPaths, curveControls);
+      svgContent += createPathFromVertices(seg, color, curveMode, curveControls);
     }
   }
 
@@ -510,25 +512,128 @@ function createTileVertices(
   return vertices;
 }
 
-// Create a path from an array of vertices, applying the curved path algorithm from example.tsx
+// Build sawtooth (zig-zag) vertices for a single tile.
+// Produces diagonal lines directly from peak to trough — no horizontal flat segments.
+function createZigZagTileVertices(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  density: number,
+  direction: number,
+  curveControls?: CurveControlSettings,
+  pathPoint?: PathPoint,
+  totalColumns?: number,
+  totalRows?: number
+): { x: number; y: number }[] {
+  if (density <= 0) return [];
+
+  const vertices: { x: number; y: number }[] = [];
+  const step = width / density;
+  const lowerXShift = curveControls?.lowerKnotXShift || 0;
+  const upperShiftFactor = curveControls?.upperKnotShiftFactor || 0;
+  const disorganizeFactor = curveControls?.disorganizeFactor || 0;
+  const rowWaveShift = curveControls?.rowWaveShift || 0;
+  const columnWaveShift = curveControls?.columnWaveShift || 0;
+  const waveShiftFrequency = curveControls?.waveShiftFrequency || 2.0;
+
+  let rowWaveOffset = 0;
+  let columnWaveOffset = 0;
+
+  if (pathPoint && totalColumns && totalRows) {
+    const row = pathPoint.row;
+    const column = pathPoint.column ?? Math.floor(pathPoint.x / width);
+    const normalizedColumn = (1.0 * column + 1) / totalColumns || 1.0;
+    const isEvenRow = row % 2 === 0;
+
+    const rowWaveValue =
+      (Math.cos(normalizedColumn * Math.PI * waveShiftFrequency) *
+        rowWaveShift *
+        height) /
+      2;
+
+    rowWaveOffset = isEvenRow ? rowWaveValue : -rowWaveValue;
+
+    columnWaveOffset =
+      (Math.cos(normalizedColumn * Math.PI * waveShiftFrequency) *
+        columnWaveShift *
+        height) /
+      2;
+  }
+
+  const applyDisorganization = (coordX: number, coordY: number) => {
+    if (disorganizeFactor > 0) {
+      const maxShift = Math.min(width, height) * 0.25;
+      const shiftX = (Math.random() - 0.5) * 2 * maxShift * disorganizeFactor;
+      const shiftY = (Math.random() - 0.5) * 2 * maxShift * disorganizeFactor;
+      return { x: coordX + shiftX, y: coordY + shiftY };
+    }
+    return { x: coordX, y: coordY };
+  };
+
+  const randomUpperXShift =
+    (pathPoint?.randomUpperKnotShiftX || 0) * upperShiftFactor;
+  const randomUpperYShift =
+    (pathPoint?.randomUpperKnotShiftY || 0) * upperShiftFactor;
+
+  const getUpperWaveShiftY = () => {
+    return pathPoint && totalRows && pathPoint.row === 0
+      ? 0
+      : rowWaveOffset + columnWaveOffset;
+  };
+
+  const getLowerWaveShiftY = () => {
+    return pathPoint && totalRows && pathPoint.row === totalRows - 1
+      ? 0
+      : -rowWaveOffset + columnWaveOffset;
+  };
+
+  vertices.push(
+    applyDisorganization(
+      x + randomUpperXShift,
+      y + randomUpperYShift + getUpperWaveShiftY()
+    )
+  );
+
+  for (let i = 0; i < density; i++) {
+    const nextLoopX = x + (i + 1) * step * direction;
+
+    if (i % 2 === 0) {
+      vertices.push(
+        applyDisorganization(
+          nextLoopX + lowerXShift,
+          y + height + getLowerWaveShiftY()
+        )
+      );
+    } else {
+      vertices.push(
+        applyDisorganization(
+          nextLoopX + randomUpperXShift,
+          y + randomUpperYShift + getUpperWaveShiftY()
+        )
+      );
+    }
+  }
+
+  return vertices;
+}
+
 function createPathFromVertices(
   vertices: { x: number; y: number }[],
   color: string,
-  useCurvedPaths: boolean,
+  curveMode: CurveMode,
   curveControls?: CurveControlSettings
 ): string {
   if (vertices.length === 0) return "";
 
   let pathData = "";
   const smoothness = curveControls?.junctionContinuityFactor || 0.1;
-  const handleRotationAngle = curveControls?.handleRotationAngle || 0; // Degrees
-  const strokeWidth = curveControls?.strokeWidth || 1; // Get strokeWidth
+  const handleRotationAngle = curveControls?.handleRotationAngle || 0;
+  const strokeWidth = curveControls?.strokeWidth || 1;
 
-  if (useCurvedPaths) {
-    // Use the curve algorithm
+  if (curveMode === "curved") {
     pathData = convertToCurvePath(vertices, smoothness, handleRotationAngle);
   } else {
-    // Use straight lines
     pathData = convertToLinePath(vertices);
   }
 
@@ -638,7 +743,7 @@ export function createTilePathDataWithTangent(
   density: number,
   direction: number,
   isFirst: boolean,
-  useCurvedPaths: boolean = false,
+  curveMode: CurveMode = "squared",
   incomingTangentX: number = 0,
   incomingTangentY: number = 0,
   curveControls?: CurveControlSettings
@@ -661,9 +766,8 @@ export function createTilePathDataWithTangent(
     pathData = `M ${x} ${y} `;
   }
 
-  // For both curved and straight paths, we'll now generate vertices and create paths
-  // This function is kept for backward compatibility
-  const vertices = createTileVertices(
+  const vertexFn = curveMode === "zigzag" ? createZigZagTileVertices : createTileVertices;
+  const vertices = vertexFn(
     x,
     y,
     width,
@@ -673,8 +777,7 @@ export function createTilePathDataWithTangent(
     curveControls
   );
 
-  // Convert vertices to paths based on the curved mode
-  if (useCurvedPaths) {
+  if (curveMode === "curved") {
     // For curved paths, we'll use the smoothness parameter if provided
     const smoothness = curveControls?.junctionContinuityFactor || 0.1;
 
@@ -744,10 +847,9 @@ export function createTilePathData(
   density: number,
   direction: number,
   isFirst: boolean,
-  useCurvedPaths: boolean = false,
-  curveControls?: CurveControlSettings // Add optional curve controls parameter
+  curveMode: CurveMode = "squared",
+  curveControls?: CurveControlSettings
 ): string {
-  // Call the enhanced function and return just the path segment
   return createTilePathDataWithTangent(
     x,
     y,
@@ -756,7 +858,7 @@ export function createTilePathData(
     density,
     direction,
     isFirst,
-    useCurvedPaths,
+    curveMode,
     0,
     0,
     curveControls
@@ -769,17 +871,14 @@ export function generateIndividualPaths(
   settings: Settings
 ): string {
   const { color, points } = colorGroup;
-  const { curvedPaths, curveControls } = settings;
-  // No need for a nested g element since we're already in a color group
+  const { curveMode, curveControls } = settings;
+  const vertexFn = curveMode === "zigzag" ? createZigZagTileVertices : createTileVertices;
   let svgContent = "";
 
-  // Add each path segment
   points.forEach((point) => {
-    // Skip zero-density points
     if (point.density <= 0) return;
 
-    // Generate vertices for this tile
-    const vertices = createTileVertices(
+    const vertices = vertexFn(
       point.x,
       point.y,
       point.width,
@@ -792,11 +891,10 @@ export function generateIndividualPaths(
       settings.rowsCount
     );
 
-    // Create path from vertices
     svgContent += createPathFromVertices(
       vertices,
       color,
-      curvedPaths,
+      curveMode,
       curveControls
     );
   });
@@ -813,13 +911,13 @@ export function generateSerpentinePath(
   density: number,
   direction: number,
   color: string,
-  useCurvedPaths: boolean = false,
-  curveControls?: CurveControlSettings // Add optional curve controls parameter
+  curveMode: CurveMode = "squared",
+  curveControls?: CurveControlSettings
 ): string {
   if (density <= 0) return "";
 
-  // Generate vertices for this tile
-  const vertices = createTileVertices(
+  const vertexFn = curveMode === "zigzag" ? createZigZagTileVertices : createTileVertices;
+  const vertices = vertexFn(
     x,
     y,
     width,
@@ -829,8 +927,7 @@ export function generateSerpentinePath(
     curveControls
   );
 
-  // Create path from vertices
-  return createPathFromVertices(vertices, color, useCurvedPaths, curveControls);
+  return createPathFromVertices(vertices, color, curveMode, curveControls);
 }
 
 // Extract a single color group as its own SVG

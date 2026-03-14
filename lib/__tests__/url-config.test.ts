@@ -15,7 +15,7 @@ const createTestSettings = (overrides: Partial<Settings> = {}): Settings => ({
     rowsCount: 36,
     columnsCount: 24,
     continuousPaths: true,
-    curvedPaths: true,
+    curveMode: "curved",
     pathDistanceThreshold: 25,
     processingMode: "posterize",
     quantizationMethod: "kmeans",
@@ -42,16 +42,16 @@ describe("URL Config Utilities", () => {
             expect(queryString).toContain("cols=32");
         });
 
-        it("should handle boolean values", () => {
+        it("should handle boolean and enum values", () => {
             const settings = createTestSettings({
                 continuousPaths: false,
-                curvedPaths: true,
+                curveMode: "zigzag",
             });
 
             const queryString = serializeSettingsToUrl(settings);
 
             expect(queryString).toContain("cont=0");
-            expect(queryString).toContain("curved=1");
+            expect(queryString).toContain("cm=zigzag");
         });
 
         it("should encode monochrome color without # prefix", () => {
@@ -109,21 +109,36 @@ describe("URL Config Utilities", () => {
         });
 
         it("should handle boolean values as 1/0", () => {
-            const params = new URLSearchParams("cont=0&curved=1");
+            const params = new URLSearchParams("cont=0");
 
             const settings = deserializeSettingsFromUrl(params);
 
             expect(settings?.continuousPaths).toBe(false);
-            expect(settings?.curvedPaths).toBe(true);
         });
 
         it("should handle boolean values as true/false", () => {
-            const params = new URLSearchParams("cont=false&curved=true");
+            const params = new URLSearchParams("cont=false");
 
             const settings = deserializeSettingsFromUrl(params);
 
             expect(settings?.continuousPaths).toBe(false);
-            expect(settings?.curvedPaths).toBe(true);
+        });
+
+        it("should parse curveMode enum from URL", () => {
+            const params = new URLSearchParams("cm=zigzag");
+
+            const settings = deserializeSettingsFromUrl(params);
+
+            expect(settings?.curveMode).toBe("zigzag");
+        });
+
+        it("should ignore invalid curveMode values", () => {
+            const params = new URLSearchParams("cm=invalid&rows=50");
+
+            const settings = deserializeSettingsFromUrl(params);
+
+            expect(settings?.curveMode).toBeUndefined();
+            expect(settings?.rowsCount).toBe(50);
         });
 
         it("should add # prefix to monochrome color", () => {
@@ -181,7 +196,7 @@ describe("URL Config Utilities", () => {
                 minDensity: 3,
                 maxDensity: 8,
                 continuousPaths: false,
-                curvedPaths: true,
+                curveMode: "zigzag",
                 monochromeColor: "#123456",
             });
 
@@ -195,7 +210,7 @@ describe("URL Config Utilities", () => {
             expect(restored?.minDensity).toBe(original.minDensity);
             expect(restored?.maxDensity).toBe(original.maxDensity);
             expect(restored?.continuousPaths).toBe(original.continuousPaths);
-            expect(restored?.curvedPaths).toBe(original.curvedPaths);
+            expect(restored?.curveMode).toBe(original.curveMode);
             expect(restored?.monochromeColor).toBe(original.monochromeColor);
         });
     });
