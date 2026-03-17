@@ -47,12 +47,12 @@ export function ShareConfigButton({
                     {copied ? (
                         <>
                             <Check className="h-4 w-4 mr-1 text-green-500" />
-                            <span className="text-green-500">Copied!</span>
+                            <span className="text-green-500 text-xs md:text-base">Copied!</span>
                         </>
                     ) : (
                         <>
                             <Link className="h-4 w-4 mr-1" />
-                            <span>Share</span>
+                            <span className="text-xs md:text-base">Share</span>
                         </>
                     )}
                 </Button>

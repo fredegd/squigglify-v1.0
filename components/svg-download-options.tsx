@@ -9,10 +9,13 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
-import { Layers, FileImage, FileText, ArrowDownToLine, Route, LoaderCircle } from "lucide-react"
-import type { ColorGroup, ImageData, Settings } from "@/lib/types"
+import { Layers, FileImage, FileText, ArrowDownToLine, Route, LoaderCircle, Scissors } from "lucide-react"
+import type { ColorGroup, ImageData, Settings, EmbroiderySettings } from "@/lib/types"
 import { generateSVG, extractAllColorGroups, generateSVGProgressively } from "@/lib/image-processor"
 import DownloadBlockingModal from "@/components/download-blocking-modal"
+import EmbroiderySettingsDialog from "@/components/settings/embroidery-settings"
+import { convertToStitchBlocks } from "@/lib/utils/svg-to-stitches"
+import { encodePesFile } from "@/lib/utils/pes-encoder"
 
 // For PNG Conversion
 import { svg2png, initialize as initializeSvg2pngWasm } from 'svg2png-wasm';
@@ -44,6 +47,7 @@ export default function SvgDownloadOptions({
     const [isGenerating, setIsGenerating] = useState(false);
     const [downloadProgress, setDownloadProgress] = useState(0);
     const [downloadStatus, setDownloadStatus] = useState("");
+    const [showEmbroideryDialog, setShowEmbroideryDialog] = useState(false);
 
     // Dynamically calculate scale factor for high resolution (min 4000px longest edge)
     const getDynamicScaleFactor = (baseWidth: number, baseHeight: number) => {
@@ -380,6 +384,48 @@ export default function SvgDownloadOptions({
         }
     }
 
+    const handleDownloadPes = async (embroiderySettings: EmbroiderySettings) => {
+        setShowEmbroideryDialog(false);
+        setIsDownloading(true);
+        setIsGenerating(true);
+        try {
+            setDownloadProgress(10);
+            setDownloadStatus("Converting to embroidery stitches...");
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+
+            const stitchBlocks = convertToStitchBlocks(processedData, settings, embroiderySettings);
+
+            if (stitchBlocks.length === 0) {
+                alert("No stitch data generated. Make sure your design has visible paths.");
+                return;
+            }
+
+            setDownloadProgress(60);
+            setDownloadStatus("Encoding PES file...");
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+
+            const pesData = encodePesFile(
+                stitchBlocks,
+                getBaseFilename().substring(0, 16)
+            );
+
+            setDownloadProgress(90);
+            setDownloadStatus("Preparing download...");
+
+            const blob = new Blob([new Uint8Array(pesData)], { type: "application/octet-stream" });
+            downloadFile(blob, `${getBaseFilename()}.pes`);
+            setDownloadProgress(100);
+        } catch (error) {
+            console.error("Error generating PES file:", error);
+            alert(`Failed to generate PES file: ${error instanceof Error ? error.message : String(error)}`);
+        } finally {
+            setIsDownloading(false);
+            setIsGenerating(false);
+        }
+    };
+
     const isBusy = isProcessing || isDownloading || isGenerating;
 
     return (
@@ -390,6 +436,12 @@ export default function SvgDownloadOptions({
                     status={downloadStatus}
                 />
             )}
+            <EmbroiderySettingsDialog
+                open={showEmbroideryDialog}
+                onOpenChange={setShowEmbroideryDialog}
+                onConfirm={handleDownloadPes}
+                colorGroups={colorGroups}
+            />
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <button
@@ -422,7 +474,19 @@ export default function SvgDownloadOptions({
                         Download as PDF
                     </DropdownMenuItem>
 
-                    {colorGroups && Object.keys(colorGroups).length > 0 && (
+                    {settings.curveMode === "zigzag" && (
+                        <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => setShowEmbroideryDialog(true)} disabled={isBusy}>
+                                <Scissors className="mr-2 h-4 w-4" />
+                                Download as PES (Embroidery) (Beta)
+                            </DropdownMenuItem>
+                        </>
+                    )}
+
+                    {settings.processingMode !== "monochrome" &&
+                        colorGroups &&
+                        Object.keys(colorGroups).length > 0 && (
                         <>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={handleDownloadAllSeparately} disabled={isBusy}>

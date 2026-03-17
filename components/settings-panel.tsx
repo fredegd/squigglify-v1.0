@@ -366,7 +366,6 @@ export default function SettingsPanel({
 
       {(onClearCache || onResetSettings) && (
         <>
-          <Separator className="bg-gray-700" />
           <div className="flex items-center justify-between">
             <h3 className="flex items-center gap-2 text-gradient font-bold">Current Settings</h3>
             {onResetSettings && (
@@ -397,7 +396,7 @@ export default function SettingsPanel({
                 >
                   <Trash2 className="h-4 w-4 mr-2 hidden md:block" />
                   <Trash2 className="h-4 w-4 md:hidden" />
-                  <span className="hidden md:inline">Clear Cache</span>
+                  <span className="text-xs md:text-base">Clear Cache</span>
                 </Button>
               )}
             </div>

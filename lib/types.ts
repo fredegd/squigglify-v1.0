@@ -48,6 +48,35 @@ export const DEFAULT_CURVE_CONTROLS: CurveControlSettings = {
   waveShiftFrequency: 2.0, // Default frequency multiplier for wave calculations
 };
 
+export interface HoopPreset {
+  label: string;
+  widthMm: number;
+  heightMm: number;
+}
+
+export const HOOP_PRESETS: HoopPreset[] = [
+  { label: '4×4" (100×100mm)', widthMm: 100, heightMm: 100 },
+  { label: '5×7" (130×180mm)', widthMm: 130, heightMm: 180 },
+  { label: '6×10" (160×260mm)', widthMm: 160, heightMm: 260 },
+  { label: '8×8" (200×200mm)', widthMm: 200, heightMm: 200 },
+];
+
+export interface EmbroiderySettings {
+  hoopWidth: number;   // mm
+  hoopHeight: number;  // mm
+  stitchLength: number; // mm (max distance between stitch points)
+  jumpThreshold: number; // mm (distance triggering a jump stitch)
+  fitToHoop: boolean;
+}
+
+export const DEFAULT_EMBROIDERY_SETTINGS: EmbroiderySettings = {
+  hoopWidth: 100,
+  hoopHeight: 100,
+  stitchLength: 2.5,
+  jumpThreshold: 3.0,
+  fitToHoop: true,
+};
+
 export interface PixelData {
   x: number;
   y: number;
