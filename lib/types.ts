@@ -12,8 +12,10 @@ export interface CurveControlSettings {
   upperKnotShiftFactor?: number; // Optional: Factor to apply random X/Y shift to upper knot points (0-1)
   disorganizeFactor?: number; // Optional: Factor to apply random X/Y shift to each point in a path (0-1)
   rowWaveShift?: number; // Optional: Factor for row-based wave shift (-1 to 1)
-  columnWaveShift?: number; // Optional: Factor for column-based wave shift (-1 to 1)
+  columnWaveShift?: number; // Optional: Factor for column wave shift (-1 to 1)
   waveShiftFrequency?: number; // Optional: Frequency multiplier for wave calculations (0.5 to 5.0)
+  matchDensity?: boolean; // Optional: If true, tile height is multiplied by a factor based on density
+  matchDensityMultiplier?: number; // Optional: Multiplier for tile height based on density (0-1)
 }
 
 export interface Settings {
@@ -46,6 +48,8 @@ export const DEFAULT_CURVE_CONTROLS: CurveControlSettings = {
   rowWaveShift: 0.0, // Default factor for row wave shift
   columnWaveShift: 0.0, // Default factor for column wave shift
   waveShiftFrequency: 2.0, // Default frequency multiplier for wave calculations
+  matchDensity: false, // Default: do not match density
+  matchDensityMultiplier: 0.5, // Default multiplier 0.5 (50% height at min density)
 };
 
 export interface HoopPreset {

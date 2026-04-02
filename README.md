@@ -75,6 +75,7 @@ Reduces your image to a limited color palette, creating separate path groups for
 ## Advanced Options
 
 - **Curved Paths & Organic Styling**: Toggle between angular zigzags and smooth curved paths. Fine-tune curve parameters to achieve a more organic, hand-drawn look, potentially including shifted path effects.
+- **Tile height: Match Density**: Dynamically scale individual tile heights based on their local path density. This creates a more varied and organic pattern where lighter areas have shorter tiles, adding depth and visual interest.
 - **Path Density**: Control the density of wave paths for each brightness level
 - **Grid Size**: Adjust the number of rows and columns in the grid
 - **Continuous Paths**: Generate unbroken, connected paths for more efficient plotting
@@ -131,6 +132,6 @@ MIT License - Feel free to use, modify, and distribute this tool for personal or
 
 ## Credits
 
-Created with ❤️ by [fedegd](https://github.com/fredegd/)
+Created with ❤️ by [fedegd](https://fredegd.dev/)
 
 Feedback, suggestions, and contributions welcome!

@@ -455,6 +455,37 @@ function mergeNearbySegments(
   return result;
 }
 
+/**
+ * Calculates tile height and Y-offset based on 'match density' settings.
+ * Returns adjusted height and Y coordinate (centered within the row).
+ */
+function getAdjustedTileDimensions(
+  point: PathPoint,
+  settings: Settings,
+  curveControls: CurveControlSettings | undefined
+) {
+  const baseHeight = point.height * (curveControls?.tileHeightScale || 1.0);
+  let finalHeight = baseHeight;
+  let yOffset = 0;
+
+  if (curveControls?.matchDensity) {
+    const minD = settings.minDensity;
+    const maxD = settings.maxDensity;
+    const strength = curveControls.matchDensityMultiplier ?? 0.5;
+    const minHeightMultiplier = 1.0 - strength;
+
+    const normalizedD = maxD > minD
+      ? Math.max(0, Math.min(1, (point.density - minD) / (maxD - minD)))
+      : 1;
+
+    finalHeight = baseHeight * (minHeightMultiplier + (1.0 - minHeightMultiplier) * normalizedD);
+    // Center vertically within the original row space (point.height)
+    yOffset = (point.height - finalHeight) / 2;
+  }
+
+  return { height: finalHeight, y: point.y + yOffset };
+}
+
 // ─── Public API ────────────────────────────────────────────────────────────────
 
 /**
@@ -532,11 +563,13 @@ function buildIndividualPolylines(
   for (const point of colorGroup.points) {
     if (point.density <= 0) continue;
 
+    const { height: adjustedHeight, y: adjustedY } = getAdjustedTileDimensions(point, settings, curveControls);
+
     const tileVerts = vertexFn(
       point.x,
-      point.y,
+      adjustedY,
       point.width,
-      point.height * (curveControls?.tileHeightScale || 1.0),
+      adjustedHeight,
       point.density,
       point.direction,
       curveControls,
@@ -598,11 +631,13 @@ function buildContinuousPolylines(
       pathVertices = [];
     }
 
+    const { height: adjustedHeight, y: adjustedY } = getAdjustedTileDimensions(point, settings, curveControls);
+
     const tileVertices = vertexFn(
       point.x,
-      point.y,
+      adjustedY,
       point.width,
-      point.height * (curveControls?.tileHeightScale || 1.0),
+      adjustedHeight,
       point.density,
       point.direction,
       curveControls,

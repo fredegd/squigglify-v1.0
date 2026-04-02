@@ -4,6 +4,8 @@ import { Slider } from "@/components/ui/slider-w-buttons"
 import { Label } from "@/components/ui/label"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Info, ChevronDown } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
+import { Separator } from "@/components/ui/separator"
 import type { Settings, CurveControlSettings, CurveMode } from "@/lib/types"
 import { calculateMaxStrokeWidth } from "@/lib/utils/dimension-utils"
 import Image from "next/image"
@@ -27,6 +29,7 @@ export default function CurveStyleSettings({
 }: CurveStyleSettingsProps) {
     const [tileHeightScale, setTileHeightScale] = useState(curveControls.tileHeightScale)
     const [strokeWidth, setStrokeWidth] = useState(curveControls.strokeWidth)
+    const [matchDensityMultiplier, setMatchDensityMultiplier] = useState(curveControls.matchDensityMultiplier ?? 0.5)
 
     const calculatedMaxStrokeWidth = useMemo(() => {
         const MAX_DIMENSION = 560;
@@ -50,6 +53,10 @@ export default function CurveStyleSettings({
     useEffect(() => {
         setStrokeWidth(curveControls.strokeWidth)
     }, [curveControls.strokeWidth])
+
+    useEffect(() => {
+        setMatchDensityMultiplier(curveControls.matchDensityMultiplier ?? 0.5)
+    }, [curveControls.matchDensityMultiplier])
 
     return (
         <TooltipProvider>
@@ -156,6 +163,62 @@ export default function CurveStyleSettings({
                             onValueCommit={(value) => onCurveControlsChange({ strokeWidth: value[0] })}
                             disabled={disabled}
                         />
+                    </div>
+
+                    <Separator className="bg-gray-700/50" />
+
+                    <div className="space-y-6 pb-4">
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="matchDensity-toggle" className="flex items-center gap-2 cursor-pointer">
+                                Tile height: Match Density
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <Info className="h-4 w-4 text-gray-300" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p className="max-w-xs">
+                                            Scales the height of each tile based on its density. Tiles with minimum density will be shorter, and tiles with maximum density will be at full height.
+                                        </p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </Label>
+                            <Switch
+                                id="matchDensity-toggle"
+                                checked={curveControls.matchDensity || false}
+                                onCheckedChange={(checked) => onCurveControlsChange({ matchDensity: checked })}
+                                disabled={disabled}
+                            />
+                        </div>
+
+                        {curveControls.matchDensity && (
+                            <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                                <div className="flex justify-between">
+                                    <Label htmlFor="matchDensityMultiplier-setting">
+                                        Effect Strength: {(matchDensityMultiplier * 100).toFixed(0)}%
+                                    </Label>
+                                    <Tooltip>
+                                        <TooltipTrigger>
+                                            <Info className="h-4 w-4 text-gray-300" />
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p className="max-w-xs">
+                                                Controls how much the density influences the tile height. 0% means all tiles stay at full height. 100% means tile height fully follows the density (low density = very short tiles).
+                                            </p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </div>
+                                <Slider
+                                    id="matchDensityMultiplier-setting"
+                                    min={0}
+                                    max={1.0}
+                                    step={0.01}
+                                    value={[matchDensityMultiplier]}
+                                    onValueChange={(value) => setMatchDensityMultiplier(value[0])}
+                                    onValueCommit={(value) => onCurveControlsChange({ matchDensityMultiplier: value[0] })}
+                                    disabled={disabled}
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             </details>

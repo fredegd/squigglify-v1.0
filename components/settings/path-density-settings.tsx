@@ -15,7 +15,13 @@ interface PathDensitySettingsProps {
     tileWidth: number
 }
 
-export default function PathDensitySettings({ settings, onSettingsChange, disabled, calculatedDensity, tileWidth }: PathDensitySettingsProps) {
+export default function PathDensitySettings({
+    settings,
+    onSettingsChange,
+    disabled,
+    calculatedDensity,
+    tileWidth,
+}: PathDensitySettingsProps) {
     const [isValueLinked, setIsValueLinked] = useState(false)
     const [minDensity, setMinDensity] = useState(settings.minDensity)
     const [maxDensity, setMaxDensity] = useState(settings.maxDensity)
@@ -66,6 +72,7 @@ export default function PathDensitySettings({ settings, onSettingsChange, disabl
     const toggleLinkState = () => {
         setIsValueLinked(!isValueLinked)
     }
+
     return (
         <TooltipProvider>
             <details className="group" >
@@ -76,18 +83,15 @@ export default function PathDensitySettings({ settings, onSettingsChange, disabl
                             <TooltipTrigger>
                                 <Info className="h-4 w-4 text-gray-300" />
                             </TooltipTrigger>
-                            *
                             <TooltipContent>
-                                <p className="max-w-xs">
-                                    <span>
+                                <div className="max-w-xs space-y-2">
+                                    <p>
                                         Density controls how how often the serpentine path repeats for each tile.
-                                    </span>
-                                    <br />
-
-                                    <span>
+                                    </p>
+                                    <p>
                                         Darker pixels have more zigzags, creating a denser pattern.
-                                    </span>
-                                </p>
+                                    </p>
+                                </div>
                             </TooltipContent>
                         </Tooltip>
                     </h3>
@@ -101,7 +105,7 @@ export default function PathDensitySettings({ settings, onSettingsChange, disabl
                         <Slider
                             id="minDensity-setting"
                             min={0}
-                            max={calculatedDensity} // Use calculatedDensity here
+                            max={calculatedDensity}
                             step={1}
                             value={[minDensity]}
                             onValueChange={(value) => handleMinDensityChange(value[0])}
@@ -116,7 +120,7 @@ export default function PathDensitySettings({ settings, onSettingsChange, disabl
                         <Slider
                             id="maxDensity-setting"
                             min={0}
-                            max={calculatedDensity} // Use calculatedDensity here
+                            max={calculatedDensity}
                             step={1}
                             value={[maxDensity]}
                             onValueChange={(value) => handleMaxDensityChange(value[0])}
@@ -146,11 +150,11 @@ export default function PathDensitySettings({ settings, onSettingsChange, disabl
                         </button>
                     </div>
 
-                    <p className="text-xs pl-4">
+                    <p className="text-xs pl-4 border-t border-gray-700/30 pt-4">
                         * tile width: {tileWidth.toFixed(1)}px — max {calculatedDensity} oscillations (≥0.5px step)
                     </p>
                 </div>
             </details>
         </TooltipProvider>
     )
-} 
+}

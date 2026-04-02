@@ -253,7 +253,7 @@ export default function DocsPage() {
                             <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
                                 <h3 className="font-semibold text-white mb-2">Brightness Threshold</h3>
                                 <p className="text-gray-300 text-sm mb-2">
-                                   only pixel areas darker than this threshold are considered for path generation. 
+                                    only pixel areas darker than this threshold are considered for path generation.
                                 </p>
                                 <p className="text-purple-400 text-sm">💡 Tip: Lower the threshold to remove light areas from the output.</p>
                             </div>
@@ -267,11 +267,11 @@ export default function DocsPage() {
                             </div>
 
                             <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
-                                <h3 className="font-semibold text-white mb-2">Curved / Square Paths</h3>
+                                <h3 className="font-semibold text-white mb-2">Squared / Zig-Zag / Curved Paths</h3>
                                 <p className="text-gray-300 text-sm mb-2">
-                                    Toggle between edged corner and smooth curves using Bézier curves. Adjust smoothness and rotation for organic effects.
+                                    Toggle between three core path styles: **Square** (pixelated, rigid), **Zig-Zag** (sawtooth, diagonal), or **Curved** (smooth Bézier lines). Each style responds differently to density, with Curved paths offeringadditional parameters for organic smoothness and handle rotation.
                                 </p>
-                                <p className="text-purple-400 text-sm">💡 Tip: Toggle on for more hand-drawn, natural appearance</p>
+                                <p className="text-purple-400 text-sm">💡 Tip: Use Zig-Zag for a sharp, technical look; use Curved for a more fluid, hand-drawn appearance.</p>
                             </div>
                             <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
                                 <h3 className="font-semibold text-white mb-2">Rows height</h3>
@@ -355,6 +355,17 @@ export default function DocsPage() {
                             </div>
 
                             <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
+                                <h3 className="font-semibold text-white mb-2">Tile height: Match Density</h3>
+                                <p className="text-gray-300 text-sm mb-2">
+                                    Dynamically scales the height of each tile based on its local path density. When enabled, tiles in lower-density (lighter) areas become shorter, while tiles in high-density (darker) areas maintain their full height. This creates a powerful sense of depth and varying line weight.
+                                </p>
+                                <div className="bg-gray-800 rounded p-3 border border-gray-600 mt-3">
+                                    <p className="text-xs text-gray-400"><strong className="text-gray-300">Control:</strong> Effect Strength (0% – 100%) &nbsp;|&nbsp; <strong className="text-gray-300">Default:</strong> OFF / 50%</p>
+                                </div>
+                                <p className="text-purple-400 text-sm mt-2">💡 Tip: at 100% strength, tiles in the brightest areas approach zero height, creating a very dynamic, high-contrast texture.</p>
+                            </div>
+
+                            <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
                                 <h3 className="font-semibold text-white mb-2">Row Wave Height</h3>
                                 <p className="text-gray-300 text-sm mb-2">
                                     modulates the row height based on a sinusoidal wave pattern.
@@ -368,7 +379,7 @@ export default function DocsPage() {
                             <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
                                 <h3 className="font-semibold text-white mb-2">Column Wave Shift</h3>
                                 <p className="text-gray-300 text-sm mb-2">
-                                 shift vertically paths according to a sinusoidal wave pattern. Entire columns are shifted vertically based on a cosine function of the row position, producing vertical undulations through the artwork.
+                                    shift vertically paths according to a sinusoidal wave pattern. Entire columns are shifted vertically based on a cosine function of the row position, producing vertical undulations through the artwork.
                                 </p>
                                 <div className="bg-gray-800 rounded p-3 border border-gray-600 mt-3">
                                     <p className="text-xs text-gray-400"><strong className="text-gray-300">Range:</strong> –100% to +100% &nbsp;|&nbsp; <strong className="text-gray-300">Default:</strong> 0%</p>
@@ -396,25 +407,42 @@ export default function DocsPage() {
                             Export Options
                         </h2>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
-                                <h3 className="font-semibold text-white mb-2">SVG </h3>
-                                <p className="text-gray-300 text-sm mb-3">Vector format, scales infinitely without quality loss</p>
-                                <p className="text-xs text-purple-400">✓ Pen plotters<br />✓ Laser cutters<br />✓ Design software</p>
+                                <h3 className="font-semibold text-white mb-2">Vector (SVG)</h3>
+                                <p className="text-gray-300 text-sm mb-3">Infinite scaling without quality loss. Small file size.</p>
+                                <p className="text-xs text-purple-400">✓ Pen plotters<br />✓ Laser cutters / CNC<br />✓ Design software (Illustrator/Inkscape)</p>
                             </div>
 
                             <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
-                                <h3 className="font-semibold text-white mb-2">PDF </h3>
-                                <p className="text-gray-300 text-sm mb-3">Document format preserving vector quality</p>
-                                <p className="text-xs text-purple-400">✓ Print publishing<br />✓ Archiving<br />✓ Professional use</p>
-                            </div>
-                           
-                            <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
-                                <h3 className="font-semibold text-white mb-2">PNG </h3>
-                                <p className="text-gray-300 text-sm mb-3">Raster format for preview and sharing</p>
-                                <p className="text-xs text-purple-400">✓ Social media<br />✓ Quick previews<br />✓ Print</p>
+                                <h3 className="font-semibold text-white mb-2">Layered SVG (ZIP)</h3>
+                                <p className="text-gray-300 text-sm mb-3">Individual SVG files for every color/density layer.</p>
+                                <p className="text-xs text-purple-400">✓ Multi-pen plotting<br />✓ Layer-based CNC engraving<br />✓ Screen printing separations</p>
                             </div>
 
+                            <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
+                                <h3 className="font-semibold text-white mb-2">Embroidery  (PES) <span className="text-[10px] bg-purple-600 px-1 rounded ml-1 uppercase">Beta</span></h3>
+                                <p className="text-gray-300 text-sm mb-3">Specialized stitch data for embroidery machines (Zig-Zag mode only).</p>
+                                <p className="text-xs text-purple-400">✓ Brother / Baby Lock machines<br />✓ Textile design<br />✓ Custom apparel</p>
+                            </div>
+
+                            <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
+                                <h3 className="font-semibold text-white mb-2">Vector (PDF)</h3>
+                                <p className="text-gray-300 text-sm mb-3">High-resolution document format preserving vector paths.</p>
+                                <p className="text-xs text-purple-400">✓ Digital publishing<br />✓ High-quality printing<br />✓ Professional archiving</p>
+                            </div>
+
+                            <div className="bg-gray-900/50 rounded-lg p-6 border border-gray-700">
+                                <h3 className="font-semibold text-white mb-2">Raster (PNG)</h3>
+                                <p className="text-gray-300 text-sm mb-3">High-resolution bitmap export (upscaled to ~4000px).</p>
+                                <p className="text-xs text-purple-400">✓ Social media / Sharing<br />✓ Immediate previews<br />✓ Non-vector printing</p>
+                            </div>
+                        </div>
+
+                        <div className="mt-6 p-4 bg-purple-900/20 border border-purple-800/50 rounded-lg">
+                            <p className="text-sm text-gray-300 italic">
+                                <strong className="text-purple-400">Note on Scaling:</strong> When exporting to PNG or PDF, Squigglify automatically applies a high-resolution scale factor (ensuring at least 4000px on the longest edge) to maintain professional-grade detail even in raster formats.
+                            </p>
                         </div>
                     </section>
 

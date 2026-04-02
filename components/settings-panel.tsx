@@ -103,6 +103,8 @@ export default function SettingsPanel({
         disabled={disabled}
         calculatedDensity={calculatedDensity}
         tileWidth={effectiveTileWidth}
+        curveControls={curveControls}
+        onCurveControlsChange={onCurveControlsChange}
       />
 
       <Separator className="bg-gray-700" />

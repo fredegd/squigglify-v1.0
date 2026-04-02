@@ -204,6 +204,38 @@ export async function generateSVGProgressively(
 
   return partialSvg;
 }
+
+/**
+ * Calculates tile height and Y-offset based on 'match density' settings.
+ * Returns adjusted height and Y coordinate (centered within the row).
+ * Directly mirrors the logic in vertex-builder.ts to keep rendering consistent.
+ */
+function getAdjustedTileDimensions(
+  point: PathPoint,
+  settings: Settings,
+  curveControls: CurveControlSettings | undefined
+) {
+  const baseHeight = point.height * (curveControls?.tileHeightScale || 1.0);
+  let finalHeight = baseHeight;
+  let yOffset = 0;
+
+  if (curveControls?.matchDensity) {
+    const minD = settings.minDensity;
+    const maxD = settings.maxDensity;
+    const strength = curveControls.matchDensityMultiplier ?? 0.5;
+    const minHeightMultiplier = 1.0 - strength;
+
+    const normalizedD = maxD > minD
+      ? Math.max(0, Math.min(1, (point.density - minD) / (maxD - minD)))
+      : 1;
+
+    finalHeight = baseHeight * (minHeightMultiplier + (1.0 - minHeightMultiplier) * normalizedD);
+    // Center vertically within the original row space (point.height)
+    yOffset = (point.height - finalHeight) / 2;
+  }
+
+  return { height: finalHeight, y: point.y + yOffset };
+}
 // Generate continuous path for a color group.
 // Phase 1: serpentine row-order traversal (preserves original within-row quality).
 // Phase 2: greedy merge of nearby segment endpoints to connect across rows.
@@ -241,11 +273,13 @@ export function generateContinuousPath(
       pathVertices = [];
     }
 
+    const { height: adjustedHeight, y: adjustedY } = getAdjustedTileDimensions(point, settings, curveControls);
+
     const tileVertices = vertexFn(
       point.x,
-      point.y,
+      adjustedY,
       point.width,
-      point.height * (curveControls?.tileHeightScale || 1.0),
+      adjustedHeight,
       point.density,
       point.direction,
       curveControls,
@@ -881,11 +915,13 @@ export function generateIndividualPaths(
   points.forEach((point) => {
     if (point.density <= 0) return;
 
+    const { height: adjustedHeight, y: adjustedY } = getAdjustedTileDimensions(point, settings, curveControls);
+
     const vertices = vertexFn(
       point.x,
-      point.y,
+      adjustedY,
       point.width,
-      point.height * (curveControls?.tileHeightScale || 1.0),
+      adjustedHeight,
       point.density,
       point.direction,
       curveControls,
@@ -920,11 +956,17 @@ export function generateSerpentinePath(
   if (density <= 0) return "";
 
   const vertexFn = curveMode === "zigzag" ? createZigZagTileVertices : createTileVertices;
+  const { height: adjustedHeight, y: adjustedY } = getAdjustedTileDimensions(
+    { x, y, width, height, density, row: 0, direction } as PathPoint,
+    { minDensity: 0, maxDensity: density } as any, // Mock settings for simple case
+    curveControls
+  );
+
   const vertices = vertexFn(
     x,
-    y,
+    adjustedY,
     width,
-    height * (curveControls?.tileHeightScale || 1.0),
+    adjustedHeight,
     density,
     direction,
     curveControls
